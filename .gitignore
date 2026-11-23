@@ -1,0 +1,33 @@
+# Generated SQLite databases & runtime logs
+data/*.db
+data/*.db-*
+data/logs/
+index/*.db
+index/*.db-*
+
+# Python caches & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# OS & editor artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# OLD Merge
+_ref_PowerShellStore
+_ref_GuideIT
