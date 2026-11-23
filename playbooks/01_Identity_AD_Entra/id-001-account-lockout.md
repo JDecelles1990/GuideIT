@@ -44,6 +44,9 @@ related_ids:
   - sec-001
   - id-005
   - net-004
+linked_scripts:
+  - 05_Security_Defender/Get-LocalAccountStatus.ps1
+  - 01_System/Get-RecentEventErrors.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

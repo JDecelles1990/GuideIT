@@ -42,6 +42,9 @@ related_ids:
   - id-004
   - id-001
   - win-004
+linked_scripts:
+  - 03_M365/Get-EntraRegistrationStatus.ps1
+  - 01_System/Get-OSInformation.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

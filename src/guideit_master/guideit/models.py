@@ -27,6 +27,7 @@ class Playbook:
     last_verified: str
     subcategory: str = ""
     related_ids: list[str] = field(default_factory=list)
+    linked_scripts: list[str] = field(default_factory=list)
     sections: dict[str, str] = field(default_factory=dict)
     section_order: list[str] = field(default_factory=list)
     body_markdown: str = ""
@@ -116,6 +117,7 @@ class SearchHit:
     score: float
     subcategory: str = ""
     matched_reasons: list[str] = field(default_factory=list)
+    linked_scripts: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)

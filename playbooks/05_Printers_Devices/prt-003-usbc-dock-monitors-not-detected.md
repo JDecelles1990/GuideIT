@@ -40,6 +40,10 @@ related_ids:
   - win-003
   - win-007
   - prt-002
+linked_scripts:
+  - 04_Devices/Get-DisplayTopology.ps1
+  - 04_Devices/Get-DeviceDrivers.ps1
+  - 04_Devices/Get-ProblemDevices.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

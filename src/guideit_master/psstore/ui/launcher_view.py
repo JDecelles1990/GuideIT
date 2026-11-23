@@ -9,6 +9,7 @@ from typing import Any
 from PySide6.QtCore import QFileSystemWatcher, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
+    QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -33,6 +34,11 @@ from guideit_master.psstore.ui.catalog_table_view import CatalogTableView
 from guideit_master.psstore.ui.console_view import ConsoleView
 from guideit_master.psstore.ui.parameter_form import ParameterFormWidget
 from guideit_master.psstore.ui.sidebar_view import SidebarView
+from guideit_master.services.cross_link_service import (
+    CrossLinkService,
+    coerce_param_overrides,
+)
+from guideit_master.ui.flow_layout import FlowLayout
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +53,7 @@ class ScriptsWorkspaceWidget(QWidget):
 
     status_message_requested = Signal(str, int)
     startup_toggled = Signal(bool)
+    playbook_link_clicked = Signal(str, bool)
 
     def __init__(
         self,
@@ -56,6 +63,7 @@ class ScriptsWorkspaceWidget(QWidget):
         runner: ScriptRunner | None = None,
         report_service: ReportService | None = None,
         event_bus: AppEventBus | None = None,
+        cross_link_service: CrossLinkService | None = None,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
@@ -76,11 +84,13 @@ class ScriptsWorkspaceWidget(QWidget):
             report_service if report_service is not None else ReportService()
         )
         self.event_bus = event_bus
+        self.cross_link_service = cross_link_service
 
         self._current_script: ScriptRecord | None = None
         self._saved_params: dict[str, dict[str, Any]] = {}
         self._sidebar_expanded: bool = True
         self._compact_mode: bool = False
+        self.used_in_playbook_buttons: dict[str, QPushButton] = {}
 
         self._init_ui()
         self._init_watcher()
@@ -173,6 +183,13 @@ class ScriptsWorkspaceWidget(QWidget):
 
         chips_layout.addStretch()
         layout.addLayout(chips_layout)
+
+        self.used_in_playbooks_container = QWidget(self.inspector_frame)
+        self.used_in_playbooks_container.setStyleSheet("background: transparent;")
+        self._used_in_playbooks_layout = FlowLayout(self.used_in_playbooks_container, spacing=6)
+        self._used_in_playbooks_layout.setContentsMargins(0, 2, 0, 2)
+        self.used_in_playbooks_container.setVisible(False)
+        layout.addWidget(self.used_in_playbooks_container)
 
         self.synopsis_label = QLabel(
             "Select a script from the catalog to configure parameters and run or copy."
@@ -406,21 +423,75 @@ class ScriptsWorkspaceWidget(QWidget):
         self.console_view.clear_raw_output()
         self._emit_status("Raw console cleared", 2000)
 
+    def set_cross_link_service(self, service: CrossLinkService | None) -> None:
+        """Attach CrossLinkService and refresh reverse 'Used in Playbooks' badges."""
+        self.cross_link_service = service
+        self.refresh_reverse_playbook_links()
+
+    def refresh_reverse_playbook_links(self) -> None:
+        """Update the 'Used in Playbooks:' pill row for the currently selected script."""
+        self._used_in_playbooks_layout.clear_widgets()
+        self.used_in_playbook_buttons.clear()
+
+        if self.cross_link_service is None or self._current_script is None:
+            self.used_in_playbooks_container.setVisible(False)
+            return
+
+        playbooks = self.cross_link_service.get_playbooks_for_script(
+            self._current_script.relative_path
+        )
+        if not playbooks:
+            self.used_in_playbooks_container.setVisible(False)
+            return
+
+        prefix_lbl = QLabel("📘 Used in Playbooks:", self.used_in_playbooks_container)
+        prefix_lbl.setStyleSheet(
+            "color: #9ca3af; font-size: 12px; font-weight: 600; background: transparent;"
+        )
+        self._used_in_playbooks_layout.addWidget(prefix_lbl)
+
+        for pb in playbooks:
+            btn = QPushButton(f"[{pb.id}]", self.used_in_playbooks_container)
+            btn.setObjectName("relatedPill")
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setToolTip(
+                f"[{pb.id}] {pb.title} ({pb.tier} • {pb.subject})\n"
+                "Click to open playbook (Shift+Click for Split View)"
+            )
+            btn.clicked.connect(
+                lambda _checked=False, target_id=pb.id: self._on_reverse_playbook_clicked(
+                    target_id
+                )
+            )
+            self._used_in_playbooks_layout.addWidget(btn)
+            self.used_in_playbook_buttons[pb.id] = btn
+
+        self.used_in_playbooks_container.setVisible(True)
+
+    def _on_reverse_playbook_clicked(self, playbook_id: str) -> None:
+        split_view = bool(
+            QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier
+        )
+        self.playbook_link_clicked.emit(playbook_id, split_view)
+        if self.event_bus is not None:
+            self.event_bus.open_playbook_requested.emit(playbook_id, split_view)
+
     def select_and_preload_script(
         self,
         relative_path: str,
         param_overrides: dict[str, Any] | None = None,
     ) -> bool:
-        """Selects a script by relative path and preloads optional parameter overrides."""
+        """Selects a script by relative path and preloads validated parameter overrides."""
         norm_rel = relative_path.replace("\\", "/")
         script = self.repo.get_script_by_path(norm_rel)
         if script is None:
             self._emit_status(f"Linked script not found: {norm_rel}", 4000)
             return False
 
-        if param_overrides:
+        validated_overrides = coerce_param_overrides(script.params, param_overrides)
+        if validated_overrides:
             merged = self._get_effective_params(script)
-            merged.update(param_overrides)
+            merged.update(validated_overrides)
             self._saved_params[script.relative_path] = merged
 
         if script.id is not None:
@@ -430,8 +501,8 @@ class ScriptsWorkspaceWidget(QWidget):
             or self._current_script.relative_path != script.relative_path
         ):
             self._on_script_selected(script)
-        elif param_overrides:
-            self.param_form.set_parameter_values(param_overrides)
+        elif validated_overrides:
+            self.param_form.set_parameter_values(validated_overrides)
             self._on_param_values_changed(self.param_form.get_parameter_values())
 
         return True
@@ -513,6 +584,7 @@ class ScriptsWorkspaceWidget(QWidget):
 
         self.synopsis_label.setText(script.synopsis or "No synopsis available.")
         self.console_view.set_script_context(script.title, script.category)
+        self.refresh_reverse_playbook_links()
 
         self.param_form.load_script(script)
         if script.relative_path in self._saved_params:
@@ -584,9 +656,22 @@ class ScriptsWorkspaceWidget(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Copy Failed", f"Failed to copy RMM-ready script: {e}")
 
-    def _on_run_local_clicked(self) -> None:
-        checked = self.catalog_view.get_checked_scripts()
-        targets = checked if checked else ([self._current_script] if self._current_script else [])
+    def run_current_script_locally(self) -> None:
+        """Executes only the active script through remediation and UAC safety gates."""
+        if self._current_script is not None and not self.runner.is_running:
+            self._on_run_local_clicked(target_script=self._current_script)
+
+    def _on_run_local_clicked(
+        self,
+        _checked: bool = False,
+        *,
+        target_script: ScriptRecord | None = None,
+    ) -> None:
+        if target_script is not None:
+            targets = [target_script]
+        else:
+            checked = self.catalog_view.get_checked_scripts()
+            targets = checked if checked else ([self._current_script] if self._current_script else [])
         if not targets:
             return
 

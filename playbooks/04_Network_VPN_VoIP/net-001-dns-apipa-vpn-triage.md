@@ -49,6 +49,10 @@ related_ids:
   - app-001
   - prt-001
   - net-005
+linked_scripts:
+  - 02_Network/Get-NetworkSnapshot.ps1
+  - 02_Network/Test-PortConnectivity.ps1
+  - 02_Network/Reset-NetworkStack.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

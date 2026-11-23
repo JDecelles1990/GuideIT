@@ -43,6 +43,9 @@ related_ids:
   - win-001
   - srv-016
   - srv-013
+linked_scripts:
+  - 01_System/Get-DiskSpaceReport.ps1
+  - 01_System/Invoke-DeepSystemCleanup.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

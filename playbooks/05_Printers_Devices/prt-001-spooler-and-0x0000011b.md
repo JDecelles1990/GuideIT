@@ -44,6 +44,9 @@ related_ids:
   - srv-012
   - win-001
   - net-004
+linked_scripts:
+  - 04_Devices/Get-PrintQueues.ps1
+  - 04_Devices/Reset-PrintSpooler.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

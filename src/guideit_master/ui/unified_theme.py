@@ -640,4 +640,73 @@ QScrollArea {
     border: none;
     background-color: transparent;
 }
+
+/* =====================================================================
+   Phase 3 Cross-Linking Action Cards & Unified Omnibox
+   ===================================================================== */
+QFrame#linkedScriptsSectionCard {
+    background-color: rgba(20, 24, 39, 0.90);
+    border: 1px solid rgba(139, 92, 246, 0.55);
+    border-radius: 8px;
+}
+
+QFrame#linkedScriptCard {
+    background-color: #0E1525;
+    border: 1px solid #2A3547;
+    border-radius: 6px;
+}
+
+QPushButton#linkedScriptPill {
+    background-color: #211938;
+    color: #DDD6FE;
+    border: 1px solid #6D28D9;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QPushButton#linkedScriptPill:hover {
+    background-color: #2E224F;
+    border-color: #A78BFA;
+    color: #FFFFFF;
+}
+
+QLineEdit#omniboxInput {
+    background-color: rgba(10, 16, 32, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12.5px;
+    color: #F8FAFC;
+}
+
+QLineEdit#omniboxInput:focus {
+    border: 1px solid #38BDF8;
+    background-color: rgba(15, 23, 42, 0.95);
+}
+
+QFrame#OmniboxPopup {
+    background-color: #0F172A;
+    border: 1px solid #38BDF8;
+    border-radius: 8px;
+}
+
+QListWidget#OmniboxResultsList {
+    background-color: transparent;
+    border: none;
+    outline: 0;
+}
+
+QListWidget#OmniboxResultsList::item {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.30);
+}
+
+QListWidget#OmniboxResultsList::item:selected {
+    background-color: rgba(37, 99, 235, 0.55);
+    color: #FFFFFF;
+}
 """

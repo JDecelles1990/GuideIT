@@ -42,6 +42,10 @@ related_ids:
   - win-003
   - sec-002
   - win-001
+linked_scripts:
+  - 01_System/Get-HighResourceProcesses.ps1
+  - 01_System/Get-DiskSpaceReport.ps1
+  - 01_System/Get-RecentEventErrors.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

@@ -44,6 +44,9 @@ related_ids:
   - sec-003
   - m365-001
   - id-007
+linked_scripts:
+  - 03_M365/Clear-BrowserCache.ps1
+  - 03_M365/Get-EntraRegistrationStatus.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

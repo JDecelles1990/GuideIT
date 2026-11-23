@@ -43,6 +43,9 @@ related_ids:
   - net-001
   - prt-002
   - win-007
+linked_scripts:
+  - 02_Network/Test-NetworkQuality.ps1
+  - 02_Network/Get-WiFiDiagnostics.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

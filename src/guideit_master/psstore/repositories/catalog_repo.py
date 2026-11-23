@@ -3,12 +3,28 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from guideit_master.paths import get_psstore_db_path
+
+
+def _build_params_text(params: list[dict[str, Any]]) -> str:
+    """Build FTS-searchable token text from .PSSTORE_META parameter names."""
+    tokens: list[str] = []
+    for param in params or []:
+        name = str(param.get("name", "")).strip()
+        if not name:
+            continue
+        if name not in tokens:
+            tokens.append(name)
+        for word in re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name).split():
+            if word and word not in tokens:
+                tokens.append(word)
+    return " ".join(tokens)
 
 
 @dataclass
@@ -105,8 +121,26 @@ class CatalogRepo:
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_run_history_script ON run_history(script_id);
+
+                CREATE VIRTUAL TABLE IF NOT EXISTS scripts_fts USING fts5(
+                    relative_path,
+                    title,
+                    category,
+                    synopsis,
+                    filename,
+                    params_text,
+                    tokenize = "unicode61 remove_diacritics 2"
+                );
                 """
             )
+            scripts_count = int(conn.execute("SELECT COUNT(*) FROM scripts").fetchone()[0])
+            fts_count = int(conn.execute("SELECT COUNT(*) FROM scripts_fts").fetchone()[0])
+            if scripts_count != fts_count:
+                conn.execute("DELETE FROM scripts_fts")
+                if scripts_count > 0:
+                    existing_rows = conn.execute("SELECT * FROM scripts").fetchall()
+                    for row in existing_rows:
+                        self._upsert_fts_row(conn, self._row_to_script(row))
 
     def _row_to_script(self, row: sqlite3.Row) -> ScriptRecord:
         params: list[dict[str, Any]] = []
@@ -133,7 +167,27 @@ class CatalogRepo:
             updated_at=str(row["updated_at"]),
         )
 
+    def _upsert_fts_row(self, conn: sqlite3.Connection, script: ScriptRecord) -> None:
+        norm_rel = script.relative_path.replace("\\", "/")
+        conn.execute("DELETE FROM scripts_fts WHERE relative_path = ?", (norm_rel,))
+        conn.execute(
+            """
+            INSERT INTO scripts_fts (
+                relative_path, title, category, synopsis, filename, params_text
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                norm_rel,
+                script.title,
+                script.category,
+                script.synopsis or "",
+                script.filename,
+                _build_params_text(script.params),
+            ),
+        )
+
     def upsert_script(self, script: ScriptRecord) -> int:
+        norm_rel = script.relative_path.replace("\\", "/")
         query = """
         INSERT INTO scripts (
             relative_path, category, filename, title, synopsis,
@@ -159,7 +213,7 @@ class CatalogRepo:
             updated_at = CURRENT_TIMESTAMP;
         """
         params = {
-            "relative_path": script.relative_path,
+            "relative_path": norm_rel,
             "category": script.category,
             "filename": script.filename,
             "title": script.title,
@@ -175,11 +229,12 @@ class CatalogRepo:
 
         with self._get_connection() as conn:
             cursor = conn.execute(query, params)
+            self._upsert_fts_row(conn, script)
             if script.id:
                 return script.id
             row = conn.execute(
                 "SELECT id FROM scripts WHERE relative_path = ?",
-                (script.relative_path,),
+                (norm_rel,),
             ).fetchone()
             return row["id"] if row else cursor.lastrowid
 
@@ -199,6 +254,48 @@ class CatalogRepo:
             if row:
                 return self._row_to_script(row)
         return None
+
+    def get_scripts_by_paths(self, relative_paths: list[str]) -> dict[str, ScriptRecord]:
+        normalized = [p.replace("\\", "/") for p in relative_paths if p]
+        if not normalized:
+            return {}
+        unique_paths = list(dict.fromkeys(normalized))
+        placeholders = ",".join("?" for _ in unique_paths)
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                f"SELECT * FROM scripts WHERE relative_path IN ({placeholders})",
+                unique_paths,
+            ).fetchall()
+        return {rec.relative_path: rec for rec in (self._row_to_script(r) for r in rows)}
+
+    def search_scripts_fts(
+        self,
+        fts_query: str,
+        *,
+        limit: int = 20,
+    ) -> list[tuple[ScriptRecord, float]]:
+        cleaned = fts_query.strip()
+        if not cleaned:
+            return []
+        sql = """
+        SELECT
+            s.*,
+            -bm25(scripts_fts, 2.0, 10.0, 4.0, 6.0, 8.0, 3.0) AS fts_score
+        FROM scripts_fts
+        JOIN scripts s ON s.relative_path = scripts_fts.relative_path
+        WHERE scripts_fts MATCH ?
+        ORDER BY fts_score DESC, s.title ASC
+        """
+        args: list[Any] = [cleaned]
+        if limit > 0:
+            sql += " LIMIT ?"
+            args.append(limit)
+        try:
+            with self._get_connection() as conn:
+                rows = conn.execute(sql, args).fetchall()
+        except sqlite3.OperationalError:
+            return []
+        return [(self._row_to_script(row), max(0.0, float(row["fts_score"]))) for row in rows]
 
     def get_all_scripts(
         self,
@@ -248,10 +345,15 @@ class CatalogRepo:
         normalized_paths = [p.replace("\\", "/") for p in current_relative_paths]
         with self._get_connection() as conn:
             if not normalized_paths:
+                conn.execute("DELETE FROM scripts_fts")
                 cursor = conn.execute("DELETE FROM scripts")
                 return cursor.rowcount
 
             placeholders = ",".join("?" for _ in normalized_paths)
+            conn.execute(
+                f"DELETE FROM scripts_fts WHERE relative_path NOT IN ({placeholders})",
+                normalized_paths,
+            )
             query = f"DELETE FROM scripts WHERE relative_path NOT IN ({placeholders})"
             cursor = conn.execute(query, normalized_paths)
             return cursor.rowcount

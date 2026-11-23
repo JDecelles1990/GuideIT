@@ -18,6 +18,7 @@ _PLAYBOOK_REF_RE = re.compile(r"\[([a-z]{2,5}-\d{3,})\](?!\()")
 _MD_PLAYBOOK_LINK_RE = re.compile(
     r"\[([^\]\n]+)\]\((?!https?://|mailto:|#)(?:(?:\.\./)*playbooks/[0-9]{2}_[A-Za-z0-9_]+/|\.\./[0-9]{2}_[A-Za-z0-9_]+/|\./)?([a-z]{2,5}-\d{3,})-[a-z0-9-]+\.md(?:#[^\s)]+)?\)"
 )
+_MD_PSSTORE_LINK_RE = re.compile(r"\[([^\]\n]+)\]\((psstore://[^\s)]+)\)")
 _MD_LINK_RE = re.compile(r"\[([^\]\n]+)\]\((https?://[^\s)]+)\)")
 _BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
 _ITALIC_RE = re.compile(r"(?<!\w)\*([^\*\n]+?)\*(?!\w)")
@@ -130,6 +131,17 @@ def _format_inline(raw_text: str) -> str:
         )
 
     working = _MD_PLAYBOOK_LINK_RE.sub(_replace_pb_md_link, working)
+
+    # Inline PowerShellStore deep links [Label](psstore://...) -> interactive action badge
+    def _replace_psstore_link(match: re.Match[str]) -> str:
+        label = match.group(1)
+        uri = match.group(2)
+        return _stash(
+            f'<a href="{uri}" style="color:#C084FC;text-decoration:underline;font-weight:600;">'
+            f"⚡ {label}</a>"
+        )
+
+    working = _MD_PSSTORE_LINK_RE.sub(_replace_psstore_link, working)
 
     # Markdown links [Label](https://...) outside code spans
     def _replace_md_link(match: re.Match[str]) -> str:

@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Any, Callable
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtGui import QAction, QColor, QFont, QIcon, QKeySequence, QPainter, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QMenu,
     QPushButton,
@@ -39,6 +42,8 @@ from guideit_master.psstore.services.runner import ScriptRunner
 from guideit_master.psstore.services.scanner import ScriptScanner
 from guideit_master.psstore.services.startup_service import StartupService
 from guideit_master.psstore.ui.launcher_view import ScriptsWorkspaceWidget
+from guideit_master.services.cross_link_service import CrossLinkService, coerce_param_overrides
+from guideit_master.services.unified_search import UnifiedSearchResponse, search_all
 from guideit_master.ui.backdrop_fx import install_backdrop_fx
 from guideit_master.ui.effects import install_item_view_glow_recursive
 
@@ -84,6 +89,8 @@ class UnifiedShellWindow(QMainWindow):
 
         self._force_quit = False
         self._current_mode = MODE_SCRIPTS
+        self._last_unified_response: UnifiedSearchResponse | None = None
+        self._last_unified_query: str = ""
         self._playbooks_kw = {
             "root_dir": playbooks_root_dir,
             "db_path": guideit_db_path,
@@ -160,7 +167,17 @@ class UnifiedShellWindow(QMainWindow):
         self.mode_group.addButton(self.btn_mode_split, MODE_SPLIT)
         header_layout.addWidget(self.btn_mode_split)
 
-        header_layout.addStretch(1)
+        self.omnibox_input = QLineEdit(self.shell_header)
+        self.omnibox_input.setObjectName("omniboxInput")
+        self.omnibox_input.setClearButtonEnabled(True)
+        self.omnibox_input.setMinimumWidth(200)
+        self.omnibox_input.setPlaceholderText(
+            "🔍 Unified search (playbooks & scripts, EN/FR, 4740)...  [Ctrl+Shift+K]"
+        )
+        self.omnibox_input.setToolTip(
+            "Unified EN/FR search across GuideIT playbooks and PowerShellStore scripts (Ctrl+Shift+K)"
+        )
+        header_layout.addWidget(self.omnibox_input, 1)
 
         self.btn_useful_tools = QPushButton("🌐 Useful Tools", self.shell_header)
         self.btn_useful_tools.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -227,6 +244,13 @@ class UnifiedShellWindow(QMainWindow):
         self.mode_splitter.addWidget(self.scripts_workspace)
         central_layout.addWidget(self.mode_splitter, 1)
 
+        self.cross_link_service = CrossLinkService(
+            guideit_db_path=self.playbooks_workspace.db_path,
+            catalog_repo=self.scripts_workspace.repo,
+        )
+        self.playbooks_workspace.set_cross_link_service(self.cross_link_service)
+        self.scripts_workspace.set_cross_link_service(self.cross_link_service)
+
         self.setCentralWidget(central)
 
         self.status_bar = QStatusBar(self)
@@ -237,6 +261,42 @@ class UnifiedShellWindow(QMainWindow):
         )
         self.status_bar.addPermanentWidget(self.index_status_label)
         self.status_bar.showMessage("Ready")
+
+        # Unified Omnibox floating results overlay
+        self.omnibox_popup = QFrame(self)
+        self.omnibox_popup.setObjectName("OmniboxPopup")
+        self.omnibox_popup.setVisible(False)
+        popup_layout = QVBoxLayout(self.omnibox_popup)
+        popup_layout.setContentsMargins(10, 8, 10, 8)
+        popup_layout.setSpacing(6)
+
+        popup_head = QHBoxLayout()
+        popup_head.setContentsMargins(2, 0, 2, 0)
+        self.omnibox_status_label = QLabel("Unified Search", self.omnibox_popup)
+        self.omnibox_status_label.setStyleSheet(
+            "color: #93A4B8; font-size: 11px; font-weight: 600; background: transparent;"
+        )
+        popup_head.addWidget(self.omnibox_status_label, 1)
+
+        self.omnibox_close_btn = QPushButton("✕", self.omnibox_popup)
+        self.omnibox_close_btn.setFixedSize(22, 22)
+        self.omnibox_close_btn.setToolTip("Close unified search results (Esc)")
+        self.omnibox_close_btn.setStyleSheet("padding: 0px; font-size: 11px;")
+        self.omnibox_close_btn.clicked.connect(self.omnibox_popup.hide)
+        popup_head.addWidget(self.omnibox_close_btn)
+        popup_layout.addLayout(popup_head)
+
+        self.omnibox_results_list = QListWidget(self.omnibox_popup)
+        self.omnibox_results_list.setObjectName("OmniboxResultsList")
+        self.omnibox_results_list.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        popup_layout.addWidget(self.omnibox_results_list, 1)
+
+        self._omnibox_timer = QTimer(self)
+        self._omnibox_timer.setSingleShot(True)
+        self._omnibox_timer.setInterval(150)
+        self._omnibox_timer.timeout.connect(self.run_unified_search)
 
     def _connect_signals(self) -> None:
         self.playbooks_workspace.status_message_requested.connect(self.status_bar.showMessage)
@@ -252,11 +312,18 @@ class UnifiedShellWindow(QMainWindow):
         self.event_bus.copy_script_requested.connect(self._on_copy_script_requested)
         self.event_bus.run_script_requested.connect(self._on_run_script_requested)
         self.event_bus.open_playbook_requested.connect(self._on_open_playbook_requested)
+        self.event_bus.catalog_synced.connect(self._on_catalog_synced)
+        self.event_bus.playbooks_reindexed.connect(self._on_playbooks_reindexed)
+        self.omnibox_input.textChanged.connect(self._on_omnibox_text_changed)
+        self.omnibox_input.returnPressed.connect(self._on_omnibox_return_pressed)
+        self.omnibox_results_list.itemClicked.connect(self._on_omnibox_item_activated)
+        self.omnibox_results_list.itemActivated.connect(self._on_omnibox_item_activated)
         self.hotkey_manager.triggered.connect(self.toggle_window_visibility)
 
     def _update_health_pill(self, report: ValidationReport) -> None:
         err_cnt = len(report.errors)
         warn_cnt = len(report.warnings)
+        broken_links = sum(1 for err in report.errors if err.code == "BROKEN_LINKED_SCRIPT")
         if err_cnt > 0:
             status = "err"
             text = f"✕ {err_cnt} Error(s)"
@@ -271,6 +338,23 @@ class UnifiedShellWindow(QMainWindow):
         self.health_pill_btn.setProperty("status", status)
         self.health_pill_btn.style().unpolish(self.health_pill_btn)
         self.health_pill_btn.style().polish(self.health_pill_btn)
+        if broken_links > 0:
+            self.health_pill_btn.setToolTip(
+                f"{err_cnt} validation error(s), including {broken_links} broken linked_scripts "
+                "reference(s). Click to inspect report."
+            )
+        elif err_cnt > 0:
+            self.health_pill_btn.setToolTip(
+                f"{err_cnt} validation error(s). Click to inspect GuideIT validation report."
+            )
+        elif warn_cnt > 0:
+            self.health_pill_btn.setToolTip(
+                f"{warn_cnt} validation warning(s). Click to inspect GuideIT validation report."
+            )
+        else:
+            self.health_pill_btn.setToolTip(
+                "All playbooks, linked_scripts, and multi-tenant PII rules passed. Click to inspect."
+            )
 
     def _register_shortcut(
         self,
@@ -305,6 +389,9 @@ class UnifiedShellWindow(QMainWindow):
         self._register_shortcut("focus_search", "Ctrl+F", self._focus_search_input)
         self._register_shortcut(
             "focus_playbook_search", "Ctrl+K", self._focus_playbook_search
+        )
+        self._register_shortcut(
+            "focus_unified_search", "Ctrl+Shift+K", self._focus_unified_search
         )
         self._register_shortcut(
             "useful_tools", "Ctrl+T", self.playbooks_workspace.open_resources_dialog
@@ -446,6 +533,150 @@ class UnifiedShellWindow(QMainWindow):
             self.set_mode(MODE_PLAYBOOKS)
         self.playbooks_workspace.focus_search()
 
+    def _focus_unified_search(self) -> None:
+        self.omnibox_input.setFocus()
+        self.omnibox_input.selectAll()
+        if self.omnibox_input.text().strip():
+            self.run_unified_search()
+
+    def _on_omnibox_text_changed(self, text: str) -> None:
+        if not text.strip():
+            self._omnibox_timer.stop()
+            self.omnibox_popup.hide()
+            return
+        self._omnibox_timer.start()
+
+    def _on_omnibox_return_pressed(self) -> None:
+        self._omnibox_timer.stop()
+        text = self.omnibox_input.text().strip()
+        if not text:
+            self.omnibox_popup.hide()
+            return
+        if self.omnibox_popup.isVisible() and self._last_unified_query == text:
+            current = self.omnibox_results_list.currentItem()
+            if current is not None and current.data(Qt.ItemDataRole.UserRole) is not None:
+                self._on_omnibox_item_activated(current)
+                return
+        self.run_unified_search(text)
+
+    def _position_omnibox_popup(self) -> None:
+        anchor = self.omnibox_input.mapTo(self, QPoint(0, self.omnibox_input.height() + 4))
+        popup_w = max(480, min(self.width() - 24, max(self.omnibox_input.width() + 140, 620)))
+        popup_h = min(400, max(160, self.height() - anchor.y() - 36))
+        x = max(12, min(anchor.x(), self.width() - popup_w - 12))
+        y = max(self.shell_header.geometry().bottom() + 4, anchor.y())
+        self.omnibox_popup.setGeometry(x, y, popup_w, popup_h)
+
+    def run_unified_search(self, query: str | None = None) -> UnifiedSearchResponse:
+        """Execute unified bilingual FTS5 search across playbooks and PowerShell scripts."""
+        if query is not None:
+            text = query.strip()
+            if self.omnibox_input.text().strip() != text:
+                self.omnibox_input.blockSignals(True)
+                self.omnibox_input.setText(text)
+                self.omnibox_input.blockSignals(False)
+        else:
+            text = self.omnibox_input.text().strip()
+
+        if not text:
+            self.omnibox_popup.hide()
+            empty = UnifiedSearchResponse(
+                query="",
+                expanded_tags=[],
+                suggested_domains=[],
+                total_playbook_hits=0,
+                total_script_hits=0,
+                playbook_hits=[],
+                script_hits=[],
+            )
+            self._last_unified_response = empty
+            self._last_unified_query = ""
+            return empty
+
+        response = search_all(
+            text,
+            guideit_db_path=self.playbooks_workspace.db_path,
+            catalog_repo=self.scripts_workspace.repo,
+            root_dir=self.playbooks_workspace.root_dir,
+            playbook_limit=6,
+            script_limit=6,
+        )
+        self._last_unified_response = response
+        self._last_unified_query = text
+
+        self.omnibox_results_list.clear()
+        tags_note = (
+            f"  •  Tags: {', '.join(response.expanded_tags[:5])}"
+            if response.expanded_tags
+            else ""
+        )
+        self.omnibox_status_label.setText(
+            f"{response.total_playbook_hits} playbook(s)  •  "
+            f"{response.total_script_hits} script(s){tags_note}"
+        )
+
+        first_selectable_row = -1
+
+        if response.playbook_hits:
+            hdr = QListWidgetItem(f"📘 PLAYBOOKS ({response.total_playbook_hits})")
+            hdr.setFlags(Qt.ItemFlag.NoItemFlags)
+            hdr.setForeground(QColor("#38BDF8"))
+            self.omnibox_results_list.addItem(hdr)
+            for pb in response.playbook_hits:
+                item = QListWidgetItem(f"  [{pb.id}] {pb.title}  —  {pb.tier} • {pb.subject}")
+                item.setData(Qt.ItemDataRole.UserRole, ("playbook", pb.id))
+                item.setToolTip(
+                    f"{pb.path}\nClick to open Playbook (Shift+Click for Split View)"
+                )
+                self.omnibox_results_list.addItem(item)
+                if first_selectable_row == -1:
+                    first_selectable_row = self.omnibox_results_list.count() - 1
+
+        if response.script_hits:
+            hdr = QListWidgetItem(f"⚡ POWERSHELL SCRIPTS ({response.total_script_hits})")
+            hdr.setFlags(Qt.ItemFlag.NoItemFlags)
+            hdr.setForeground(QColor("#C084FC"))
+            self.omnibox_results_list.addItem(hdr)
+            for sc in response.script_hits:
+                admin_str = "ADMIN" if sc.requires_admin else "USER"
+                item = QListWidgetItem(
+                    f"  {sc.title}  —  {sc.relative_path} [{sc.risk_level.upper()} | {admin_str}]"
+                )
+                item.setData(Qt.ItemDataRole.UserRole, ("script", sc.relative_path))
+                item.setToolTip(
+                    f"{sc.synopsis}\nClick to open Script (Shift+Click for Split View)"
+                )
+                self.omnibox_results_list.addItem(item)
+                if first_selectable_row == -1:
+                    first_selectable_row = self.omnibox_results_list.count() - 1
+
+        if first_selectable_row == -1:
+            empty_item = QListWidgetItem("No matching playbooks or PowerShell scripts found.")
+            empty_item.setFlags(Qt.ItemFlag.NoItemFlags)
+            empty_item.setForeground(QColor("#93A4B8"))
+            self.omnibox_results_list.addItem(empty_item)
+        else:
+            self.omnibox_results_list.setCurrentRow(first_selectable_row)
+
+        self._position_omnibox_popup()
+        self.omnibox_popup.show()
+        self.omnibox_popup.raise_()
+        return response
+
+    def _on_omnibox_item_activated(self, item: QListWidgetItem) -> None:
+        payload = item.data(Qt.ItemDataRole.UserRole)
+        if not isinstance(payload, tuple) or len(payload) != 2:
+            return
+        kind, target = payload
+        split_view = bool(
+            QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier
+        )
+        self.omnibox_popup.hide()
+        if kind == "playbook":
+            self.event_bus.open_playbook_requested.emit(str(target), split_view)
+        elif kind == "script":
+            self.event_bus.open_script_requested.emit(str(target), {}, split_view)
+
     def _sync_all_libraries(self) -> None:
         self.scripts_workspace.sync_and_refresh()
         self.playbooks_workspace.start_reindex()
@@ -453,6 +684,8 @@ class UnifiedShellWindow(QMainWindow):
     def _handle_escape(self) -> None:
         if self.scripts_workspace.runner.is_running:
             self.scripts_workspace._handle_escape()
+        elif self.omnibox_popup.isVisible():
+            self.omnibox_popup.hide()
         elif self._current_mode == MODE_PLAYBOOKS:
             self.playbooks_workspace.handle_escape()
         else:
@@ -461,6 +694,15 @@ class UnifiedShellWindow(QMainWindow):
     # ------------------------------------------------------------------
     # EventBus Cross-Module Orchestration
     # ------------------------------------------------------------------
+
+    def _on_catalog_synced(self) -> None:
+        self.cross_link_service.invalidate_cache()
+        self.playbooks_workspace.refresh_current_playbook()
+        self.playbooks_workspace.refresh_validation()
+
+    def _on_playbooks_reindexed(self) -> None:
+        self.cross_link_service.invalidate_cache()
+        self.scripts_workspace.refresh_reverse_playbook_links()
 
     def _on_open_script_requested(
         self, relative_path: str, params: dict[str, Any], split_view: bool
@@ -482,7 +724,8 @@ class UnifiedShellWindow(QMainWindow):
                 for p in (script.params or [])
                 if p.get("name")
             }
-            merged.update(params or {})
+            validated = coerce_param_overrides(script.params, params)
+            merged.update(validated)
             self.scripts_workspace.clipboard_service.copy_rmm_ready_script(
                 script.relative_path, merged
             )
@@ -495,11 +738,16 @@ class UnifiedShellWindow(QMainWindow):
         found = self.scripts_workspace.select_and_preload_script(relative_path, params or None)
         if found:
             self.set_mode(MODE_SPLIT)
-            self.scripts_workspace._on_run_local_clicked()
+            self.scripts_workspace.run_current_script_locally()
 
     def _on_open_playbook_requested(self, playbook_id: str, split_view: bool) -> None:
         self.playbooks_workspace.navigate_to_playbook(playbook_id)
         self.set_mode(MODE_SPLIT if split_view else MODE_PLAYBOOKS)
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        if hasattr(self, "omnibox_popup") and self.omnibox_popup.isVisible():
+            self._position_omnibox_popup()
 
     # ------------------------------------------------------------------
     # Window Opacity, Tray Icon, Global Hotkey & Lifecycle

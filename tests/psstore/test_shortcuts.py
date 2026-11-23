@@ -12,9 +12,10 @@ from guideit_master.ui.shell_window import MODE_PLAYBOOKS, MODE_SCRIPTS, MODE_SP
 
 def test_all_shortcuts_registered_and_unique(shell_window_factory) -> None:
     win = shell_window_factory()
-    assert len(win.shortcuts) == 31
+    assert len(win.shortcuts) == 32
     assert win.shortcut_sidebar is win.shortcuts["toggle_sidebar"]
     assert "focus_playbook_search" in win.shortcuts
+    assert "focus_unified_search" in win.shortcuts
     assert "useful_tools" in win.shortcuts
     assert "reset_playbook_filters" in win.shortcuts
     assert "playbook_back" in win.shortcuts
@@ -146,6 +147,7 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
     assert "Alt+2" in win.btn_mode_scripts.toolTip()
     assert "Alt+3" in win.btn_mode_split.toolTip()
     assert "Ctrl+T" in win.btn_useful_tools.toolTip()
+    assert "Ctrl+Shift+K" in win.omnibox_input.toolTip()
     assert "Ctrl+K" in win.playbooks_workspace.search_input.toolTip()
     assert "Ctrl+R" in win.playbooks_workspace.filter_sidebar.reset_button.toolTip()
     assert "Ctrl+=" in win.opacity_slider.toolTip()
@@ -178,6 +180,7 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
         "Ctrl+O",
         "Ctrl+F",
         "Ctrl+K",
+        "Ctrl+Shift+K",
         "Ctrl+T",
         "Ctrl+R",
         "Alt+Left",

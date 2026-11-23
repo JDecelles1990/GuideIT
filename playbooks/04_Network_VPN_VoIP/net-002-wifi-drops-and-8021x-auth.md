@@ -41,6 +41,9 @@ related_ids:
   - net-001
   - sec-003
   - mdm-001
+linked_scripts:
+  - 02_Network/Get-WiFiDiagnostics.ps1
+  - 02_Network/Get-NetworkSnapshot.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+import html
 from pathlib import Path
 
-from PySide6.QtCore import QPoint, QRect, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
-    QLayout,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -39,77 +39,10 @@ from guideit_master.guideit.ui.theme import (
     TIER_COLORS,
 )
 from guideit_master.guideit.ui.widgets.code_block import CodeBlockWidget
+from guideit_master.services.cross_link_service import LinkedScriptSummary, parse_psstore_uri
+from guideit_master.ui.flow_layout import FlowLayout
 
-
-class _FlowLayout(QLayout):
-    """Wrapping horizontal flow layout for badges, error codes, and related pills."""
-
-    def __init__(self, parent: QWidget | None = None, spacing: int = 6) -> None:
-        super().__init__(parent)
-        self._items = []
-        self._spacing = spacing
-
-    def addItem(self, item) -> None:
-        self._items.append(item)
-
-    def count(self) -> int:
-        return len(self._items)
-
-    def itemAt(self, index: int):
-        if 0 <= index < len(self._items):
-            return self._items[index]
-        return None
-
-    def takeAt(self, index: int):
-        if 0 <= index < len(self._items):
-            return self._items.pop(index)
-        return None
-
-    def expandingDirections(self) -> Qt.Orientation:
-        return Qt.Orientation(0)
-
-    def hasHeightForWidth(self) -> bool:
-        return True
-
-    def heightForWidth(self, width: int) -> int:
-        return self._do_layout(QRect(0, 0, width, 0), test_only=True)
-
-    def setGeometry(self, rect: QRect) -> None:
-        super().setGeometry(rect)
-        self._do_layout(rect, test_only=False)
-
-    def sizeHint(self) -> QSize:
-        return self.minimumSize()
-
-    def minimumSize(self) -> QSize:
-        size = QSize()
-        for item in self._items:
-            size = size.expandedTo(item.minimumSize())
-        margins = self.contentsMargins()
-        size += QSize(margins.left() + margins.right(), margins.top() + margins.bottom())
-        return size
-
-    def _do_layout(self, rect: QRect, *, test_only: bool) -> int:
-        margins = self.contentsMargins()
-        effective = rect.adjusted(margins.left(), margins.top(), -margins.right(), -margins.bottom())
-        x = effective.x()
-        y = effective.y()
-        line_height = 0
-
-        for item in self._items:
-            hint = item.sizeHint()
-            next_x = x + hint.width() + self._spacing
-            if next_x - self._spacing > effective.right() and line_height > 0:
-                x = effective.x()
-                y = y + line_height + self._spacing
-                next_x = x + hint.width() + self._spacing
-                line_height = 0
-            if not test_only:
-                item.setGeometry(QRect(QPoint(x, y), hint))
-            x = next_x
-            line_height = max(line_height, hint.height())
-
-        return y + line_height - rect.y() + margins.bottom()
+_FlowLayout = FlowLayout
 
 
 def _attach_copy_feedback(button: QPushButton, default_text: str) -> QTimer:
@@ -135,6 +68,9 @@ class PlaybookViewer(QFrame):
     related_playbook_clicked = Signal(str)
     back_requested = Signal()
     status_message = Signal(str)
+    open_script_requested = Signal(str, dict, bool)
+    copy_script_requested = Signal(str, dict, bool)
+    run_script_requested = Signal(str, dict)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -145,6 +81,9 @@ class PlaybookViewer(QFrame):
         self.code_widgets: list[CodeBlockWidget] = []
         self.related_buttons: dict[str, QPushButton] = {}
         self.error_code_buttons: dict[str, QPushButton] = {}
+        self.linked_script_cards: dict[str, QFrame] = {}
+        self.linked_script_buttons: dict[str, dict[str, QPushButton]] = {}
+        self.linked_script_header_pills: dict[str, QPushButton] = {}
         self.copy_en_button: QPushButton | None = None
         self.copy_fr_button: QPushButton | None = None
         self.back_button: QPushButton | None = None
@@ -176,6 +115,9 @@ class PlaybookViewer(QFrame):
         self.code_widgets.clear()
         self.related_buttons.clear()
         self.error_code_buttons.clear()
+        self.linked_script_cards.clear()
+        self.linked_script_buttons.clear()
+        self.linked_script_header_pills.clear()
         self.copy_en_button = None
         self.copy_fr_button = None
         self.back_button = None
@@ -206,16 +148,22 @@ class PlaybookViewer(QFrame):
         can_go_back: bool = False,
         titles_by_id: dict[str, str] | None = None,
         subcategory_label: str = "",
+        linked_scripts: list[LinkedScriptSummary] | None = None,
     ) -> None:
-        """Render full metadata header, L1-L3 sections, code blocks, and EN/FR snippets."""
+        """Render full metadata header, linked script cards, L1-L3 sections, and EN/FR snippets."""
         self._root_dir = root_dir
         self.current_record = record
         self.current_playbook_id = str(record["id"])
         self.code_widgets.clear()
         self.related_buttons.clear()
         self.error_code_buttons.clear()
+        self.linked_script_cards.clear()
+        self.linked_script_buttons.clear()
+        self.linked_script_header_pills.clear()
         self.copy_en_button = None
         self.copy_fr_button = None
+
+        resolved_scripts = list(linked_scripts or [])
 
         container = QWidget()
         container.setStyleSheet("background: transparent;")
@@ -229,8 +177,12 @@ class PlaybookViewer(QFrame):
                 can_go_back=can_go_back,
                 titles_by_id=titles_by_id or {},
                 subcategory_label=subcategory_label,
+                linked_scripts=resolved_scripts,
             )
         )
+
+        if resolved_scripts:
+            root_layout.addWidget(self._build_linked_scripts_section(resolved_scripts))
 
         body_markdown = str(record.get("body_markdown", ""))
         order, sections = extract_sections(body_markdown)
@@ -249,6 +201,7 @@ class PlaybookViewer(QFrame):
         can_go_back: bool,
         titles_by_id: dict[str, str],
         subcategory_label: str,
+        linked_scripts: list[LinkedScriptSummary],
     ) -> QFrame:
         card = QFrame()
         card.setObjectName("headerCard")
@@ -400,6 +353,34 @@ class PlaybookViewer(QFrame):
                 rel_flow.addWidget(btn)
             layout.addWidget(rel_row)
 
+        if linked_scripts:
+            ls_row = QWidget(card)
+            ls_row.setStyleSheet("background: transparent;")
+            ls_flow = FlowLayout(ls_row, spacing=6)
+            ls_lbl = QLabel("⚡ Linked Scripts:", ls_row)
+            ls_lbl.setStyleSheet(
+                f"color: {TEXT_MUTED}; font-size: 12px; font-weight: 600; background: transparent;"
+            )
+            ls_flow.addWidget(ls_lbl)
+            for summary in linked_scripts:
+                btn = QPushButton(Path(summary.relative_path).name, ls_row)
+                btn.setObjectName("linkedScriptPill")
+                btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                btn.setEnabled(summary.exists)
+                btn.setToolTip(
+                    f"{summary.title} ({summary.relative_path}) — Click to open in Split View"
+                    if summary.exists
+                    else f"Missing script: {summary.relative_path}"
+                )
+                btn.clicked.connect(
+                    lambda _checked=False, target=summary.relative_path: (
+                        self.open_script_requested.emit(target, {}, True)
+                    )
+                )
+                self.linked_script_header_pills[summary.relative_path] = btn
+                ls_flow.addWidget(btn)
+            layout.addWidget(ls_row)
+
         # Tools & Bilingual keywords summary
         tools = ", ".join(str(t) for t in record.get("tools", []))
         kw_en = ", ".join(str(k) for k in record.get("keywords_en", []))
@@ -509,6 +490,182 @@ class PlaybookViewer(QFrame):
         outer.addWidget(body_widget, stretch=1)
         return card
 
+    def _build_linked_scripts_section(
+        self,
+        linked_scripts: list[LinkedScriptSummary],
+    ) -> QFrame:
+        card = QFrame()
+        card.setObjectName("linkedScriptsSectionCard")
+
+        accent_color, pill_bg, pill_label = SECTION_ACCENTS.get(
+            "linked_scripts", ("#8B5CF6", "#211938", "POWERSHELLSTORE")
+        )
+
+        outer = QHBoxLayout(card)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        stripe = QFrame(card)
+        stripe.setFixedWidth(4)
+        stripe.setStyleSheet(
+            f"background-color: {accent_color}; border-top-left-radius: 7px; border-bottom-left-radius: 7px;"
+        )
+        outer.addWidget(stripe)
+
+        body_widget = QWidget(card)
+        body_widget.setStyleSheet("background: transparent;")
+        layout = QVBoxLayout(body_widget)
+        layout.setContentsMargins(16, 13, 16, 14)
+        layout.setSpacing(10)
+
+        head_row = QHBoxLayout()
+        head_row.setSpacing(8)
+        heading_lbl = QLabel("⚡ Linked Diagnostic & Remediation Scripts", body_widget)
+        heading_lbl.setStyleSheet(
+            "font-size: 15px; font-weight: 700; color: #F0F6FC; background: transparent;"
+        )
+        head_row.addWidget(heading_lbl)
+        head_row.addWidget(_pill_label(pill_label, pill_bg, accent_color, "#DDD6FE", body_widget))
+        head_row.addStretch(1)
+        layout.addLayout(head_row)
+
+        for summary in linked_scripts:
+            sub_card = QFrame(body_widget)
+            sub_card.setObjectName("linkedScriptCard")
+            sub_layout = QVBoxLayout(sub_card)
+            sub_layout.setContentsMargins(12, 10, 12, 10)
+            sub_layout.setSpacing(6)
+
+            title_lbl = QLabel(summary.title, sub_card)
+            title_lbl.setWordWrap(True)
+            title_lbl.setStyleSheet(
+                "font-size: 13.5px; font-weight: 700; color: #F8FAFC; background: transparent;"
+            )
+            sub_layout.addWidget(title_lbl)
+
+            badges_row = QWidget(sub_card)
+            badges_row.setStyleSheet("background: transparent;")
+            badges_flow = FlowLayout(badges_row, spacing=6)
+            badges_flow.addWidget(
+                _pill_label(summary.category, BG_ELEVATED, "#3A475D", "#93C5FD", badges_row)
+            )
+            if summary.risk_level == "remediation":
+                badges_flow.addWidget(
+                    _pill_label("REMEDIATION", "#2A1A12", "#F59E0B", "#FBBF24", badges_row)
+                )
+            else:
+                badges_flow.addWidget(
+                    _pill_label("READ-ONLY", "#0F2922", "#10B981", "#34D399", badges_row)
+                )
+            if summary.requires_admin:
+                badges_flow.addWidget(
+                    _pill_label("🛡️ Requires Admin", "#1E3A8A", "#3B82F6", "#93C5FD", badges_row)
+                )
+            else:
+                badges_flow.addWidget(
+                    _pill_label("Standard User", BG_ELEVATED, BORDER, TEXT_MUTED, badges_row)
+                )
+            if not summary.exists:
+                badges_flow.addWidget(
+                    _pill_label("⚠ Missing Script", "#2D1518", "#EF4444", "#F87171", badges_row)
+                )
+            sub_layout.addWidget(badges_row)
+
+            path_lbl = QLabel(summary.relative_path, sub_card)
+            path_lbl.setWordWrap(True)
+            path_lbl.setStyleSheet(
+                "color: #7DD3FC; font-family: 'Cascadia Mono', 'Consolas', monospace; "
+                "font-size: 11.5px; background: transparent;"
+            )
+            sub_layout.addWidget(path_lbl)
+
+            if summary.synopsis:
+                syn_lbl = QLabel(summary.synopsis, sub_card)
+                syn_lbl.setWordWrap(True)
+                syn_lbl.setStyleSheet(
+                    f"color: {TEXT_MUTED}; font-size: 12px; background: transparent;"
+                )
+                sub_layout.addWidget(syn_lbl)
+
+            actions_row = QWidget(sub_card)
+            actions_row.setStyleSheet("background: transparent;")
+            actions_flow = FlowLayout(actions_row, spacing=8)
+
+            btn_rmm = QPushButton("⚡ Copy RMM-Ready", actions_row)
+            btn_rmm.setObjectName("accentButton")
+            btn_rmm.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_rmm.setToolTip(
+                f"Copy RMM-ready script with injected defaults ({summary.relative_path})"
+            )
+            rmm_timer = _attach_copy_feedback(btn_rmm, "⚡ Copy RMM-Ready")
+            btn_rmm.clicked.connect(
+                lambda _checked=False, p=summary.relative_path, b=btn_rmm, t=rmm_timer: (
+                    self._emit_copy_script(p, True, b, t)
+                )
+            )
+
+            btn_raw = QPushButton("📋 Copy Raw", actions_row)
+            btn_raw.setObjectName("copyButton")
+            btn_raw.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_raw.setToolTip(f"Copy unmodified raw .ps1 script ({summary.relative_path})")
+            raw_timer = _attach_copy_feedback(btn_raw, "📋 Copy Raw")
+            btn_raw.clicked.connect(
+                lambda _checked=False, p=summary.relative_path, b=btn_raw, t=raw_timer: (
+                    self._emit_copy_script(p, False, b, t)
+                )
+            )
+
+            btn_open = QPushButton("🔧 Open in Workstation", actions_row)
+            btn_open.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_open.setToolTip(
+                f"Switch to PowerShell Scripts workstation and preload {summary.relative_path}"
+            )
+            btn_open.clicked.connect(
+                lambda _checked=False, p=summary.relative_path: (
+                    self.open_script_requested.emit(p, {}, False)
+                )
+            )
+
+            btn_split = QPushButton("🔀 Split View & Run", actions_row)
+            btn_split.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_split.setToolTip(
+                "Open Playbook and PowerShell Script Runner side-by-side in Split View (Alt+3)"
+            )
+            btn_split.clicked.connect(
+                lambda _checked=False, p=summary.relative_path: (
+                    self.open_script_requested.emit(p, {}, True)
+                )
+            )
+
+            for btn in (btn_rmm, btn_raw, btn_open, btn_split):
+                btn.setEnabled(summary.exists)
+                actions_flow.addWidget(btn)
+
+            sub_layout.addWidget(actions_row)
+            layout.addWidget(sub_card)
+
+            self.linked_script_cards[summary.relative_path] = sub_card
+            self.linked_script_buttons[summary.relative_path] = {
+                "copy_rmm": btn_rmm,
+                "copy_raw": btn_raw,
+                "open_workstation": btn_open,
+                "split_view": btn_split,
+            }
+
+        outer.addWidget(body_widget, stretch=1)
+        return card
+
+    def _emit_copy_script(
+        self,
+        relative_path: str,
+        rmm_ready: bool,
+        button: QPushButton,
+        timer: QTimer,
+    ) -> None:
+        button.setText("Copied ✓")
+        timer.start(1500)
+        self.copy_script_requested.emit(relative_path, {}, rmm_ready)
+
     def _build_snippet_box(
         self,
         title: str,
@@ -577,5 +734,13 @@ class PlaybookViewer(QFrame):
             target_id = url.removeprefix("guideit://").strip()
             if target_id:
                 self.related_playbook_clicked.emit(target_id)
+            return
+        if url.lower().startswith("psstore://"):
+            parsed = parse_psstore_uri(html.unescape(url))
+            if parsed is None:
+                self.status_message.emit(f"Invalid PowerShellStore link: {url}")
+                return
+            rel_path, params = parsed
+            self.open_script_requested.emit(rel_path, params, True)
             return
         QDesktopServices.openUrl(QUrl(url))

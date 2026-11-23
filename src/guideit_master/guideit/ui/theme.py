@@ -54,6 +54,7 @@ SECTION_ACCENTS: dict[str, tuple[str, str, str]] = {
     "pivots": ("#22D3EE", "#0E2A35", "PIVOT MATRIX"),
     "links": ("#38BDF8", "#112A3E", "TOOLS & LINKS"),
     "client_snippets": ("#60A5FA", "#132238", "CLIENT UPDATES"),
+    "linked_scripts": ("#8B5CF6", "#211938", "POWERSHELLSTORE"),
     "other": ("#64748B", "#1E2736", "NOTES"),
 }
 
@@ -96,6 +97,35 @@ QFrame#headerCard, QFrame#sectionCard, QFrame#snippetCard, QFrame#emptyStateCard
     background-color: {BG_SURFACE};
     border: 1px solid {BORDER};
     border-radius: 8px;
+}}
+
+QFrame#linkedScriptsSectionCard {{
+    background-color: #141827;
+    border: 1px solid #6D28D9;
+    border-radius: 8px;
+}}
+
+QFrame#linkedScriptCard {{
+    background-color: #0E1525;
+    border: 1px solid {BORDER};
+    border-radius: 6px;
+}}
+
+QPushButton#linkedScriptPill {{
+    background-color: #211938;
+    color: #DDD6FE;
+    border: 1px solid #6D28D9;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: 12px;
+    font-weight: 600;
+}}
+
+QPushButton#linkedScriptPill:hover {{
+    background-color: #2E224F;
+    border-color: #A78BFA;
+    color: #FFFFFF;
 }}
 
 QFrame#remediationSectionCard {{

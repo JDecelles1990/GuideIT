@@ -19,7 +19,8 @@
   ],
   "optional_fields": [
     "subcategory",
-    "related_ids"
+    "related_ids",
+    "linked_scripts"
   ],
   "enums": {
     "tier": ["L1", "L2", "L3"],

@@ -53,7 +53,12 @@ def ensure_index_current(
                     "SELECT value FROM index_meta WHERE key = 'schema_version'"
                 ).fetchone()
                 cols = {row[1] for row in conn.execute("PRAGMA table_info(playbooks)").fetchall()}
-                if ver_row is None or str(ver_row[0]) != SCHEMA_VERSION or "subcategory" not in cols:
+                if (
+                    ver_row is None
+                    or str(ver_row[0]) != SCHEMA_VERSION
+                    or "subcategory" not in cols
+                    or "linked_scripts_json" not in cols
+                ):
                     needs_build = True
         except sqlite3.DatabaseError:
             needs_build = True
@@ -147,6 +152,11 @@ def _row_to_hit(
         triage_summary=str(row["triage_summary"]),
         score=round(score, 4),
         matched_reasons=matched_reasons,
+        linked_scripts=(
+            json.loads(row["linked_scripts_json"])
+            if "linked_scripts_json" in row.keys()
+            else []
+        ),
     )
 
 
@@ -332,6 +342,11 @@ def get_playbook_by_id(db_path: Path, playbook_id: str) -> dict[str, object] | N
         "keywords_fr": json.loads(row["keywords_fr_json"]),
         "tools": json.loads(row["tools_json"]),
         "related_ids": json.loads(row["related_ids_json"]),
+        "linked_scripts": (
+            json.loads(row["linked_scripts_json"])
+            if "linked_scripts_json" in row.keys()
+            else []
+        ),
         "triage_summary": str(row["triage_summary"]),
         "body_markdown": str(row["body_markdown"]),
     }
@@ -381,3 +396,38 @@ def get_playbook_titles(db_path: Path) -> dict[str, str]:
     with closing(sqlite3.connect(str(db_path))) as conn:
         rows = conn.execute("SELECT id, title FROM playbooks ORDER BY id ASC").fetchall()
     return {str(row[0]): str(row[1]) for row in rows}
+
+
+def get_playbook_script_links(db_path: Path) -> list[dict[str, object]]:
+    """Return lightweight playbook metadata paired with linked_scripts for reverse lookups."""
+    if not db_path.is_file():
+        return []
+    with closing(sqlite3.connect(str(db_path))) as conn:
+        conn.row_factory = sqlite3.Row
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(playbooks)").fetchall()}
+        if "linked_scripts_json" not in cols:
+            return []
+        rows = conn.execute(
+            "SELECT id, title, domain, subject, tier, risk_level, path, linked_scripts_json "
+            "FROM playbooks ORDER BY id ASC"
+        ).fetchall()
+
+    results: list[dict[str, object]] = []
+    for row in rows:
+        try:
+            linked = [str(item) for item in json.loads(row["linked_scripts_json"])]
+        except (TypeError, json.JSONDecodeError):
+            linked = []
+        results.append(
+            {
+                "id": str(row["id"]),
+                "title": str(row["title"]),
+                "domain": str(row["domain"]),
+                "subject": str(row["subject"]),
+                "tier": str(row["tier"]),
+                "risk_level": str(row["risk_level"]),
+                "path": str(row["path"]),
+                "linked_scripts": linked,
+            }
+        )
+    return results

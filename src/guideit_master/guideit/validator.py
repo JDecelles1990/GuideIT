@@ -11,7 +11,7 @@ from pathlib import Path
 from guideit_master.guideit.frontmatter import FrontmatterError, extract_sections, parse_frontmatter
 from guideit_master.guideit.models import Playbook, ValidationIssue, ValidationReport
 from guideit_master.guideit.taxonomy import TaxonomyConfig, load_taxonomy
-from guideit_master.paths import get_bundle_dir, get_playbooks_dir, get_taxonomy_dir
+from guideit_master.paths import get_bundle_dir, get_playbooks_dir, get_ps_scripts_dir, get_taxonomy_dir
 
 _SNAKE_CASE_RE = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
 _KEBAB_FILENAME_RE = re.compile(r"^[a-z0-9]+-[a-z0-9-]+\.md$")
@@ -31,7 +31,12 @@ _SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 _MD_REL_LINK_RE = re.compile(
     r"\[[^\]\n]+\]\((?!https?://|mailto:|#)([^)\s#]+\.md)(?:#[^)\s]*)?\)"
 )
+_PSSTORE_LINK_RE = re.compile(r"\[[^\]\n]+\]\(psstore://([^)\s#]*)(?:#[^)\s]*)?\)")
+_CANONICAL_SCRIPT_RELPATH_RE = re.compile(
+    r"^[0-9]{2}_[A-Za-z0-9_]+/[A-Za-z0-9][A-Za-z0-9_-]*\.ps1$"
+)
 _FENCE_LINE_RE = re.compile(r"^\s*```")
+_FENCE_MARKER_RE = re.compile(r"^\s*(```|~~~)")
 
 _SAFE_IPV4_NETWORKS = (
     ipaddress.ip_network("0.0.0.0/8"),
@@ -183,6 +188,30 @@ def _extract_relative_md_links(body_markdown: str) -> list[tuple[int, str]]:
     return links
 
 
+def _extract_psstore_links(body_markdown: str) -> list[tuple[int, str]]:
+    """Extract (body_line, psstore_target) pairs outside fenced code blocks and inline code."""
+    links: list[tuple[int, str]] = []
+    in_fence = False
+    fence_marker = ""
+    for lineno, line in enumerate(body_markdown.replace("\r\n", "\n").split("\n"), start=1):
+        fence_match = _FENCE_MARKER_RE.match(line)
+        if fence_match:
+            marker = fence_match.group(1)
+            if not in_fence:
+                in_fence = True
+                fence_marker = marker
+            elif marker == fence_marker:
+                in_fence = False
+                fence_marker = ""
+            continue
+        if in_fence:
+            continue
+        stripped_code = re.sub(r"`[^`\n]*`", "", line)
+        for match in _PSSTORE_LINK_RE.finditer(stripped_code):
+            links.append((lineno, match.group(1)))
+    return links
+
+
 def _extract_triage_summary(sections: dict[str, str]) -> str:
     """Extract concise Fast Triage text for search hit previews."""
     for heading, content in sections.items():
@@ -228,6 +257,7 @@ def load_playbook_file(root_dir: Path | None, file_path: Path) -> Playbook:
         last_verified=str(meta.get("last_verified", "")),
         subcategory=str(meta.get("subcategory", "") or "").strip(),
         related_ids=_str_list("related_ids"),
+        linked_scripts=_str_list("linked_scripts"),
         sections=sections,
         section_order=section_order,
         body_markdown=body_markdown,
@@ -286,6 +316,7 @@ def validate_repository(
     *,
     max_age_days: int = 180,
     today: date | None = None,
+    ps_scripts_dir: Path | None = None,
 ) -> ValidationReport:
     """Validate taxonomy files, playbook frontmatter/sections, cross-references, and PII rules."""
     issues: list[ValidationIssue] = []
@@ -599,6 +630,9 @@ def validate_repository(
         env_list = _check_string_list(meta, "environment", rel_path, allow_empty=False, issues=issues) or []
         tools = _check_string_list(meta, "tools", rel_path, allow_empty=False, issues=issues) or []
         related_ids = _check_string_list(meta, "related_ids", rel_path, allow_empty=True, issues=issues) or []
+        linked_scripts = _check_string_list(
+            meta, "linked_scripts", rel_path, allow_empty=True, issues=issues
+        ) or []
 
         for tag in tags:
             used_tags.add(tag)
@@ -684,6 +718,7 @@ def validate_repository(
                 last_verified=str(last_verified_val or ""),
                 subcategory=subcategory_val,
                 related_ids=related_ids,
+                linked_scripts=linked_scripts,
                 sections=sections,
                 section_order=section_order,
                 body_markdown=body_markdown,
@@ -691,10 +726,72 @@ def validate_repository(
             )
         )
 
-    # Cross-playbook related_ids & relative .md link checks
+    # Cross-playbook related_ids, relative .md links, and PowerShell linked_scripts checks
     valid_ids = set(seen_ids.keys())
     playbooks_root = playbooks_dir.resolve()
+    scripts_root = (
+        ps_scripts_dir if ps_scripts_dir is not None else get_ps_scripts_dir(resolved_root)
+    ).resolve()
+    available_scripts: set[str] = (
+        {p.relative_to(scripts_root).as_posix() for p in scripts_root.rglob("*.ps1")}
+        if scripts_root.is_dir()
+        else set()
+    )
     for pb in parsed_playbooks:
+        for script_entry in pb.linked_scripts:
+            if not _CANONICAL_SCRIPT_RELPATH_RE.match(script_entry):
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        code="BROKEN_LINKED_SCRIPT",
+                        path=pb.path,
+                        message=(
+                            f"linked_scripts entry '{script_entry}' must use strict canonical "
+                            "'NN_Category/Verb-Noun.ps1' format."
+                        ),
+                    )
+                )
+            elif script_entry not in available_scripts:
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        code="BROKEN_LINKED_SCRIPT",
+                        path=pb.path,
+                        message=(
+                            f"linked_scripts references missing script '{script_entry}' "
+                            "under powershell_scripts/."
+                        ),
+                    )
+                )
+
+        for lineno, raw_target in _extract_psstore_links(pb.body_markdown):
+            script_rel = raw_target.split("?", 1)[0]
+            if not _CANONICAL_SCRIPT_RELPATH_RE.match(script_rel):
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        code="BROKEN_LINKED_SCRIPT",
+                        path=pb.path,
+                        line=lineno,
+                        message=(
+                            f"Inline psstore:// link '{raw_target}' must target a strict "
+                            "canonical 'NN_Category/Verb-Noun.ps1' path."
+                        ),
+                    )
+                )
+            elif script_rel not in available_scripts:
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        code="BROKEN_LINKED_SCRIPT",
+                        path=pb.path,
+                        line=lineno,
+                        message=(
+                            f"Inline psstore:// link '{raw_target}' references missing script "
+                            f"'{script_rel}' under powershell_scripts/."
+                        ),
+                    )
+                )
         for rel_id in pb.related_ids:
             if rel_id not in valid_ids:
                 issues.append(

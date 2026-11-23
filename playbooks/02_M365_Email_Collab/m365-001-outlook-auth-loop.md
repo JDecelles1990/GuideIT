@@ -44,6 +44,10 @@ related_ids:
   - sec-003
   - app-001
   - sec-001
+linked_scripts:
+  - 03_M365/Get-EntraRegistrationStatus.ps1
+  - 03_M365/Get-OfficeActivationStatus.ps1
+  - 03_M365/Clear-OutlookCache.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

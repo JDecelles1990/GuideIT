@@ -46,6 +46,9 @@ related_ids:
   - net-001
   - mdm-001
   - win-005
+linked_scripts:
+  - 01_System/Get-OSInformation.ps1
+  - 03_M365/Get-OfficeActivationStatus.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

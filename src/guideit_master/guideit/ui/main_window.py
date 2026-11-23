@@ -40,6 +40,7 @@ from guideit_master.guideit.ui.widgets import (
 from guideit_master.guideit.ui.workers import ReindexWorker
 from guideit_master.guideit.validator import validate_repository
 from guideit_master.paths import get_bundle_dir, get_guideit_db_path
+from guideit_master.services.cross_link_service import CrossLinkService, LinkedScriptSummary
 
 
 class ValidationDialog(QDialog):
@@ -99,6 +100,7 @@ class PlaybooksWorkspaceWidget(QWidget):
         root_dir: Path | None = None,
         db_path: Path | None = None,
         event_bus: AppEventBus | None = None,
+        cross_link_service: CrossLinkService | None = None,
         embedded_in_shell: bool = False,
         parent: QWidget | None = None,
     ) -> None:
@@ -106,6 +108,7 @@ class PlaybooksWorkspaceWidget(QWidget):
         self.root_dir = (root_dir if root_dir is not None else get_bundle_dir()).resolve()
         self.db_path = db_path.resolve() if db_path is not None else get_guideit_db_path()
         self.event_bus = event_bus
+        self.cross_link_service = cross_link_service
         self._embedded_in_shell = bool(embedded_in_shell)
 
         self._compact_mode = False
@@ -289,6 +292,9 @@ class PlaybooksWorkspaceWidget(QWidget):
         self.viewer.related_playbook_clicked.connect(self.navigate_to_playbook)
         self.viewer.back_requested.connect(self.navigate_back)
         self.viewer.status_message.connect(lambda msg: self._emit_status(msg, 3000))
+        self.viewer.open_script_requested.connect(self._on_viewer_open_script)
+        self.viewer.copy_script_requested.connect(self._on_viewer_copy_script)
+        self.viewer.run_script_requested.connect(self._on_viewer_run_script)
 
     def _setup_shortcuts(self) -> None:
         focus_search = QShortcut(QKeySequence("Ctrl+K"), self)
@@ -437,6 +443,38 @@ class PlaybooksWorkspaceWidget(QWidget):
         self._history.clear()
         self._load_playbook_into_viewer(playbook_id, push_history=False)
 
+    def set_cross_link_service(self, service: CrossLinkService | None) -> None:
+        """Attach CrossLinkService and refresh the active playbook's linked script cards."""
+        self.cross_link_service = service
+        self.refresh_current_playbook()
+
+    def refresh_current_playbook(self) -> None:
+        """Reload the currently displayed playbook so linked script metadata stays fresh."""
+        if self.viewer.current_playbook_id:
+            self._load_playbook_into_viewer(self.viewer.current_playbook_id, push_history=False)
+
+    def refresh_validation(self) -> ValidationReport:
+        """Re-run repository validation and update the Health Pill."""
+        self._last_report = validate_repository(self.root_dir)
+        self._update_health_pill(self._last_report)
+        return self._last_report
+
+    def _on_viewer_open_script(
+        self, relative_path: str, param_overrides: dict, split_view: bool
+    ) -> None:
+        if self.event_bus is not None:
+            self.event_bus.open_script_requested.emit(relative_path, param_overrides, split_view)
+
+    def _on_viewer_copy_script(
+        self, relative_path: str, param_overrides: dict, rmm_ready: bool
+    ) -> None:
+        if self.event_bus is not None:
+            self.event_bus.copy_script_requested.emit(relative_path, param_overrides, rmm_ready)
+
+    def _on_viewer_run_script(self, relative_path: str, param_overrides: dict) -> None:
+        if self.event_bus is not None:
+            self.event_bus.run_script_requested.emit(relative_path, param_overrides)
+
     def _load_playbook_into_viewer(self, playbook_id: str, *, push_history: bool) -> None:
         if push_history and self.viewer.current_playbook_id and self.viewer.current_playbook_id != playbook_id:
             if not self._history or self._history[-1] != self.viewer.current_playbook_id:
@@ -446,6 +484,23 @@ class PlaybooksWorkspaceWidget(QWidget):
         if record is None:
             self._emit_status(f"Playbook '{playbook_id}' was not found in index.", 3000)
             return
+
+        linked_paths = [str(item) for item in record.get("linked_scripts", [])]
+        if self.cross_link_service is not None:
+            linked_summaries = self.cross_link_service.get_scripts_for_paths(linked_paths)
+        else:
+            linked_summaries = [
+                LinkedScriptSummary(
+                    relative_path=p,
+                    title=Path(p).stem,
+                    category=p.split("/", 1)[0] if "/" in p else "Custom",
+                    risk_level="read_only",
+                    requires_admin=False,
+                    synopsis="",
+                    exists=True,
+                )
+                for p in linked_paths
+            ]
 
         subcat_label = self._subcategory_labels.get(
             (str(record.get("domain", "")), str(record.get("subcategory", ""))),
@@ -457,6 +512,7 @@ class PlaybooksWorkspaceWidget(QWidget):
             can_go_back=bool(self._history),
             titles_by_id=self._titles_by_id,
             subcategory_label=subcat_label,
+            linked_scripts=linked_summaries,
         )
 
     def navigate_to_playbook(self, playbook_id: str) -> None:

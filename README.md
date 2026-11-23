@@ -2,15 +2,16 @@
 
 A unified, offline-capable **Python 3.11+ / PySide6 / SQLite** Windows desktop workstation combining **PowerShellStore** (production Windows PowerShell 5.1 diagnostic & remediation workstation) and **GuideIT** (L1–L3 bilingual EN/FR troubleshooting playbook library).
 
-> **Build Status:** **Phase 2 Complete** — Root project scaffolding, PyInstaller-ready `paths.py`, `AppEventBus`, `UnifiedShellWindow` (with Split View layout, tray, global `Win+F8` hotkey, opacity slider, and cyber-aurora frosted-glass UI), the complete **PowerShellStore** 38-script workstation, and the full **GuideIT** 65-playbook bilingual (EN/FR) library, FTS5 search engine, strict PII/redaction validator, and 3-pane viewer UI are active and tested. Bidirectional cross-linking (`Phase 3`) and PyInstaller packaging (`Phase 4`) follow next.
+> **Build Status:** **Phase 3 Complete** — Root project scaffolding, PyInstaller-ready `paths.py`, `AppEventBus`, `UnifiedShellWindow` (with Split View layout, tray, global `Win+F8` hotkey, opacity slider, and cyber-aurora frosted-glass UI), the **PowerShellStore** 38-script workstation, the **GuideIT** 65-playbook bilingual (EN/FR) library, and **Phase 3 Bidirectional Cross-Linking & Unified FTS5 Search** (Playbook `linked_scripts` action cards, `psstore://` parameter-preloading links, reverse `📘 Used in Playbooks` pills, `scripts_fts` + Unified Omnibox `Ctrl+Shift+K`, and strict `BROKEN_LINKED_SCRIPT` validation) are active and tested. PyInstaller packaging (`Phase 4`) follows next.
 
 ---
 
-## 🚀 Phase 1 & Phase 2 Key Features
+## 🚀 Key Features (Phases 1–3)
 
 - **65 Bilingual (EN/FR) L1–L3 Playbooks Across 9 Domains & 23 Subcategories:** Canonical troubleshooting workflows under `playbooks/` (`01_Identity_AD_Entra` through `09_Apps_LOB`) with progressive triage, read-only diagnostics, confirmation-gated remediations, verification checks, and 1-click EN/FR client update snippets.
-- **Accent-Insensitive SQLite FTS5 Search & Taxonomy Expansion:** `data/guideit.db` indexes titles, error codes, tags, EN/FR keywords, tools, and full Markdown bodies, expanding colloquial EN/FR ticket phrases via `taxonomy/keyword_map.json`.
-- **Curated External Tools Directory (`Ctrl+T`) & Multi-Tenant PII Health Pill:** Searchable `ResourcesDialog` (`taxonomy/resources.json`) with 31+ MSP lookup sites and live `ValidationDialog` enforcing zero non-placeholder emails, public IPs, raw GUIDs, or secret tokens.
+- **Accent-Insensitive SQLite FTS5 Search & Taxonomy Expansion:** `data/guideit.db` (`playbooks_fts`) and `data/powershell_store.db` (`scripts_fts`) power unified EN/FR symptom expansion via `taxonomy/keyword_map.json`, boosting PowerShell scripts linked to top-matching playbooks in both the Unified Omnibox (`Ctrl+Shift+K`) and `tools/search_cli.py`.
+- **Bidirectional Playbook ↔ Script Deep Linking:** 20 curated playbooks link directly to canonical `NN_Category/Verb-Noun.ps1` scripts via `linked_scripts` frontmatter and `psstore://` URIs—rendering 1-click **`⚡ Linked Diagnostic & Remediation Scripts`** action cards (`Copy RMM-Ready`, `Copy Raw`, `Open in Workstation`, `Split View & Run`) inside `PlaybookViewer` and reverse **`📘 Used in Playbooks`** pills inside PowerShellStore's inspector pane.
+- **Curated External Tools Directory (`Ctrl+T`) & Multi-Tenant PII + Cross-Link Health Pill:** Searchable `ResourcesDialog` (`taxonomy/resources.json`) with 31+ MSP lookup sites and live `ValidationDialog` enforcing zero non-placeholder emails, public IPs, raw GUIDs, secret tokens, or broken `linked_scripts` (`BROKEN_LINKED_SCRIPT`).
 - **38 Ready-to-Use PowerShell 5.1 Scripts Across 6 Categories:** Production diagnostics and remediations under `powershell_scripts/` (`01_System`, `02_Network`, `03_M365`, `04_Devices`, `05_Security_Defender`, and `99_Custom`).
 - **Unified Shell Window & Mode Switcher (`Alt+1` / `Alt+2` / `Alt+3`):** Permanent top-level `QSplitter` housing `PlaybooksWorkspaceWidget` and `ScriptsWorkspaceWidget` with compact-mode Split View (`Alt+3`) without widget reparenting or duplicate runners.
 - **Single Shell Owner for System Services:** `UnifiedShellWindow` exclusively owns the system tray icon (`QSystemTrayIcon`), minimize-to-tray `closeEvent`, global `Win+F8` Win32 hotkey (`hotkey_service.py`), Windows login startup (`startup_service.py`), and the **60%–100% window opacity slider**.
@@ -43,21 +44,21 @@ python main.py
 pythonw main.py --startup
 ```
 
-### Phase 2 Verification & CLI Commands
+### Phase 3 Verification & CLI Commands
 ```powershell
-# Strictly validate all 65 playbooks (schema, sections, links, and multi-tenant PII rules)
+# Strictly validate all 65 playbooks (schema, sections, linked_scripts, and multi-tenant PII rules)
 python tools/validate_playbooks.py --strict
 
 # Build or rebuild the GuideIT SQLite FTS5 search index (data/guideit.db)
 python tools/build_index.py
 
-# Search playbooks from the CLI using EN/FR symptoms or error codes
+# Unified EN/FR search across both playbooks and PowerShell scripts
 python tools/search_cli.py "compte verrouille" --json
 
 # Lint all 38 PowerShell scripts against the .PSSTORE_META and PS 5.1 AST contract
 python tools/lint_scripts.py
 
-# Run the complete unified test suite (Paths + PowerShellStore + GuideIT)
+# Run the complete unified test suite (Paths + PowerShellStore + GuideIT + Cross-Linking)
 python -m pytest tests/ -v
 ```
 
@@ -95,6 +96,7 @@ Standard text-editing shortcuts (`Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+Z
 | Shortcut | Scope | Action / Function | Behavior & Notes |
 | :--- | :--- | :--- | :--- |
 | `Ctrl+K` | In-App | **Focus Playbook Search** (`_focus_playbook_search`) | Switches to Playbooks mode (`Alt+1`) if needed, focuses the EN/FR playbook search bar, and selects existing text. |
+| `Ctrl+Shift+K` | In-App | **Focus Unified Omnibox Search** (`_focus_unified_search`) | Focuses the global header Unified Omnibox to search both GuideIT playbooks and PowerShellStore scripts simultaneously. |
 | `Ctrl+T` | In-App | **Useful Websites & External Tools** (`open_resources_dialog`) | Opens the searchable `ResourcesDialog` directory of 31+ curated MSP & Data Center websites (`taxonomy/resources.json`). |
 | `Ctrl+R` | In-App | **Reset Playbook Search & Filters** (`reset_all`) | Clears the playbook search query, resets Tier/Subjects/OS/Environment/Risk filters, and clears viewer navigation history. |
 | `Alt+Left` | In-App | **Back to Previous Playbook** (`navigate_back`) | Steps back through visited playbooks after clicking related `[id-NNN]` pills or inline `guideit://` links. |

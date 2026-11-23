@@ -43,6 +43,8 @@ related_ids:
   - mdm-001
   - win-001
   - win-005
+linked_scripts:
+  - 05_Security_Defender/Get-BitLockerStatus.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

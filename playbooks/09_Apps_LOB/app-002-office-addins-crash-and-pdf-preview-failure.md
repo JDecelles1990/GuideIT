@@ -41,6 +41,9 @@ related_ids:
   - sec-002
   - app-003
   - srv-016
+linked_scripts:
+  - 03_M365/Get-OutlookAddins.ps1
+  - 03_M365/Clear-OutlookCache.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

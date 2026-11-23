@@ -42,6 +42,10 @@ related_ids:
   - win-006
   - prt-003
   - win-001
+linked_scripts:
+  - 01_System/Get-SystemCrashHistory.ps1
+  - 04_Devices/Get-DeviceDrivers.ps1
+  - 04_Devices/Get-ProblemDevices.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

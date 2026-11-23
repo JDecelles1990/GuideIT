@@ -49,6 +49,8 @@ related_ids:
   - app-004
   - net-002
   - m365-001
+linked_scripts:
+  - 05_Security_Defender/Get-ExpiringCertificates.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

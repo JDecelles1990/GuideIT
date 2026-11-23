@@ -15,7 +15,7 @@ from guideit_master.guideit.validator import load_playbook_file
 from guideit_master.paths import get_bundle_dir, get_guideit_db_path, get_playbooks_dir
 
 DEFAULT_DB_RELPATH = Path("data/guideit.db")
-SCHEMA_VERSION = "2"
+SCHEMA_VERSION = "3"
 
 
 def _discover_playbook_files(root_dir: Path) -> list[Path]:
@@ -90,6 +90,7 @@ def build_index(root_dir: Path | None = None, db_path: Path | None = None) -> In
                     keywords_fr_json TEXT NOT NULL,
                     tools_json TEXT NOT NULL,
                     related_ids_json TEXT NOT NULL,
+                    linked_scripts_json TEXT NOT NULL DEFAULT '[]',
                     triage_summary TEXT NOT NULL,
                     body_markdown TEXT NOT NULL
                 );
@@ -125,8 +126,9 @@ def build_index(root_dir: Path | None = None, db_path: Path | None = None) -> In
                         id, path, domain, subject, subcategory, title, tier, risk_level,
                         requires_admin, last_verified, os_json, environment_json,
                         tags_json, error_codes_json, keywords_en_json, keywords_fr_json,
-                        tools_json, related_ids_json, triage_summary, body_markdown
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        tools_json, related_ids_json, linked_scripts_json,
+                        triage_summary, body_markdown
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         pb.id,
@@ -147,6 +149,7 @@ def build_index(root_dir: Path | None = None, db_path: Path | None = None) -> In
                         json.dumps(pb.keywords_fr, ensure_ascii=False),
                         json.dumps(pb.tools, ensure_ascii=False),
                         json.dumps(pb.related_ids, ensure_ascii=False),
+                        json.dumps(pb.linked_scripts, ensure_ascii=False),
                         pb.triage_summary,
                         pb.body_markdown,
                     ),

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from guideit_master.guideit.indexer import build_index
+from guideit_master.guideit.indexer import SCHEMA_VERSION, build_index
 from guideit_master.guideit.search import (
     ensure_index_current,
     get_domain_and_subcategory_counts,
@@ -265,4 +265,4 @@ def test_ensure_index_current_and_domain_subcategory_counts(tmp_path: Path) -> N
     ensure_index_current(REPO_ROOT, db_path=db_path)
     with closing(sqlite3.connect(str(db_path))) as conn:
         row = conn.execute("SELECT value FROM index_meta WHERE key = 'schema_version'").fetchone()
-    assert row is not None and row[0] == "2"
+    assert row is not None and row[0] == SCHEMA_VERSION

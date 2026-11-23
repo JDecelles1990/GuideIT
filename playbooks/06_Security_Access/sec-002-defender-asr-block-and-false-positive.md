@@ -42,6 +42,9 @@ related_ids:
   - app-002
   - win-006
   - sec-001
+linked_scripts:
+  - 05_Security_Defender/Get-DefenderStatus.ps1
+  - 05_Security_Defender/Invoke-DefenderUpdateAndScan.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

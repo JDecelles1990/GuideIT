@@ -44,6 +44,10 @@ related_ids:
   - win-002
   - win-005
   - prt-001
+linked_scripts:
+  - 01_System/Get-PendingRebootStatus.ps1
+  - 01_System/Update-Windows.ps1
+  - 01_System/Invoke-DeepSystemCleanup.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

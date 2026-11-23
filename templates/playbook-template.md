@@ -26,6 +26,7 @@ risk_level: low
 requires_admin: false
 last_verified: 2026-11-22
 related_ids: []
+linked_scripts: []
 ---
 
 ## Fast Triage (Under 2 Minutes)
