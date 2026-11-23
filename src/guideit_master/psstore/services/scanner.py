@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from guideit_master.paths import get_ps_scripts_dir
+from guideit_master.paths import get_ps_scripts_dir, get_user_custom_scripts_dir, is_frozen
 from guideit_master.psstore.repositories.catalog_repo import CatalogRepo, ScriptRecord
 
 logger = logging.getLogger(__name__)
@@ -31,13 +31,47 @@ class ScriptScanner:
         self,
         scripts_dir: Path | str | None = None,
         repo: CatalogRepo | None = None,
+        user_scripts_dir: Path | str | None = None,
+        include_user_scripts: bool | None = None,
     ) -> None:
         if scripts_dir is None:
             self.scripts_dir = get_ps_scripts_dir()
+            default_include_user = True
         else:
             self.scripts_dir = Path(scripts_dir)
+            default_include_user = False
 
+        if user_scripts_dir is not None:
+            resolved_user: Path | None = Path(user_scripts_dir)
+        else:
+            should_include = (
+                include_user_scripts
+                if include_user_scripts is not None
+                else default_include_user
+            )
+            resolved_user = get_user_custom_scripts_dir() if should_include else None
+
+        if resolved_user is not None and resolved_user.resolve() == self.scripts_dir.resolve():
+            resolved_user = None
+
+        self.user_scripts_dir: Path | None = resolved_user
         self.repo = repo if repo is not None else CatalogRepo()
+
+    def resolve_script_path(self, relative_path: str) -> Path | None:
+        """Resolve relative_path with user_scripts_dir taking precedence over scripts_dir."""
+        rel_clean = relative_path.replace("\\", "/").lstrip("/")
+        if not rel_clean:
+            return None
+        roots = [r for r in (self.user_scripts_dir, self.scripts_dir) if r is not None]
+        for root in roots:
+            root_resolved = root.resolve()
+            try:
+                candidate = (root_resolved / rel_clean).resolve()
+            except OSError:
+                continue
+            if candidate.is_relative_to(root_resolved) and candidate.is_file():
+                return candidate
+        return None
 
     @staticmethod
     def derive_category(folder_name: str) -> str:
@@ -96,10 +130,20 @@ class ScriptScanner:
 
         return meta, synopsis
 
-    def scan_file(self, file_path: Path) -> ScriptRecord:
+    def scan_file(
+        self,
+        file_path: Path,
+        *,
+        root_dir: Path | None = None,
+        source: str = "bundled",
+    ) -> ScriptRecord:
         """Parses a single .ps1 file and returns a ScriptRecord."""
-        relative_path = file_path.relative_to(self.scripts_dir).as_posix()
-        folder_category = self.derive_category(file_path.parent.name)
+        base_dir = Path(root_dir) if root_dir is not None else self.scripts_dir
+        relative_path = file_path.relative_to(base_dir).as_posix()
+        if file_path.parent.resolve() == base_dir.resolve():
+            folder_category = "Custom"
+        else:
+            folder_category = self.derive_category(file_path.parent.name)
 
         try:
             content = file_path.read_text(encoding="utf-8")
@@ -134,32 +178,53 @@ class ScriptScanner:
             output_mode=output_mode,
             params=params,
             sha256=sha256,
+            source=source,
+            file_path=str(file_path.resolve()),
         )
 
     def sync_catalog(self) -> ScanSummary:
-        """Scans all .ps1 files in scripts_dir, compares hashes with DB, and syncs SQLite."""
+        """Scans bundled and optional user_scripts directories, compares hashes, and syncs SQLite."""
         summary = ScanSummary()
 
-        if not self.scripts_dir.exists():
+        if (
+            not self.scripts_dir.exists()
+            and not is_frozen()
+            and self.user_scripts_dir is None
+        ):
             self.scripts_dir.mkdir(parents=True, exist_ok=True)
             return summary
 
-        found_paths: list[str] = []
+        candidates: dict[str, tuple[Path, Path, str]] = {}
+        if self.scripts_dir.is_dir():
+            for ps1_file in sorted(self.scripts_dir.rglob("*.ps1")):
+                rel_path = ps1_file.relative_to(self.scripts_dir).as_posix()
+                candidates[rel_path] = (ps1_file, self.scripts_dir, "bundled")
 
-        for ps1_file in self.scripts_dir.rglob("*.ps1"):
+        if self.user_scripts_dir is not None and self.user_scripts_dir.is_dir():
+            for ps1_file in sorted(self.user_scripts_dir.rglob("*.ps1")):
+                rel_path = ps1_file.relative_to(self.user_scripts_dir).as_posix()
+                candidates[rel_path] = (ps1_file, self.user_scripts_dir, "user")
+
+        found_paths = list(candidates.keys())
+
+        for rel_path, (ps1_file, base_root, source) in candidates.items():
             summary.total_found += 1
-            rel_path = ps1_file.relative_to(self.scripts_dir).as_posix()
-            found_paths.append(rel_path)
 
             try:
                 current_sha = self.compute_sha256(ps1_file)
+                resolved_file_str = str(ps1_file.resolve())
                 existing = self.repo.get_script_by_path(rel_path)
 
-                if existing and existing.sha256 == current_sha:
+                if (
+                    existing
+                    and existing.sha256 == current_sha
+                    and existing.source == source
+                    and existing.file_path == resolved_file_str
+                ):
                     summary.unchanged += 1
                     continue
 
-                record = self.scan_file(ps1_file)
+                record = self.scan_file(ps1_file, root_dir=base_root, source=source)
                 self.repo.upsert_script(record)
 
                 if existing:

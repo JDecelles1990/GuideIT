@@ -43,6 +43,8 @@ class ScriptRecord:
     sha256: str = ""
     id: int | None = None
     updated_at: str = ""
+    source: str = "bundled"
+    file_path: str = ""
 
     @property
     def params_json(self) -> str:
@@ -100,7 +102,9 @@ class CatalogRepo:
                     output_mode TEXT NOT NULL DEFAULT 'json',
                     params_json TEXT,
                     sha256 TEXT NOT NULL,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    source TEXT NOT NULL DEFAULT 'bundled',
+                    file_path TEXT NOT NULL DEFAULT ''
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_scripts_category ON scripts(category);
@@ -133,6 +137,11 @@ class CatalogRepo:
                 );
                 """
             )
+            cols = {row["name"] for row in conn.execute("PRAGMA table_info(scripts)").fetchall()}
+            if "source" not in cols:
+                conn.execute("ALTER TABLE scripts ADD COLUMN source TEXT NOT NULL DEFAULT 'bundled'")
+            if "file_path" not in cols:
+                conn.execute("ALTER TABLE scripts ADD COLUMN file_path TEXT NOT NULL DEFAULT ''")
             scripts_count = int(conn.execute("SELECT COUNT(*) FROM scripts").fetchone()[0])
             fts_count = int(conn.execute("SELECT COUNT(*) FROM scripts_fts").fetchone()[0])
             if scripts_count != fts_count:
@@ -150,6 +159,7 @@ class CatalogRepo:
             except json.JSONDecodeError:
                 params = []
 
+        row_keys = set(row.keys())
         return ScriptRecord(
             id=row["id"],
             relative_path=row["relative_path"],
@@ -165,6 +175,8 @@ class CatalogRepo:
             params=params,
             sha256=row["sha256"],
             updated_at=str(row["updated_at"]),
+            source=row["source"] if "source" in row_keys else "bundled",
+            file_path=row["file_path"] if "file_path" in row_keys else "",
         )
 
     def _upsert_fts_row(self, conn: sqlite3.Connection, script: ScriptRecord) -> None:
@@ -192,11 +204,11 @@ class CatalogRepo:
         INSERT INTO scripts (
             relative_path, category, filename, title, synopsis,
             risk_level, ps_edition, requires_admin, timeout_seconds,
-            output_mode, params_json, sha256, updated_at
+            output_mode, params_json, sha256, source, file_path, updated_at
         ) VALUES (
             :relative_path, :category, :filename, :title, :synopsis,
             :risk_level, :ps_edition, :requires_admin, :timeout_seconds,
-            :output_mode, :params_json, :sha256, CURRENT_TIMESTAMP
+            :output_mode, :params_json, :sha256, :source, :file_path, CURRENT_TIMESTAMP
         )
         ON CONFLICT(relative_path) DO UPDATE SET
             category = excluded.category,
@@ -210,6 +222,8 @@ class CatalogRepo:
             output_mode = excluded.output_mode,
             params_json = excluded.params_json,
             sha256 = excluded.sha256,
+            source = excluded.source,
+            file_path = excluded.file_path,
             updated_at = CURRENT_TIMESTAMP;
         """
         params = {
@@ -225,6 +239,8 @@ class CatalogRepo:
             "output_mode": script.output_mode,
             "params_json": json.dumps(script.params),
             "sha256": script.sha256,
+            "source": script.source or "bundled",
+            "file_path": script.file_path or "",
         }
 
         with self._get_connection() as conn:
@@ -303,6 +319,7 @@ class CatalogRepo:
         search: str | None = None,
         risk_level: str | None = None,
         ps_edition: str | None = None,
+        source: str | None = None,
     ) -> list[ScriptRecord]:
         query = "SELECT * FROM scripts WHERE 1=1"
         args: list[Any] = []
@@ -318,6 +335,10 @@ class CatalogRepo:
         if ps_edition and ps_edition != "All":
             query += " AND ps_edition = ?"
             args.append(ps_edition)
+
+        if source and source != "All":
+            query += " AND source = ?"
+            args.append(source)
 
         if search:
             like_term = f"%{search.strip()}%"

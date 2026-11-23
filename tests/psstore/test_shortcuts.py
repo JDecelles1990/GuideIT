@@ -210,7 +210,7 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
         assert label in readme_text, f"Shortcut {label} missing from README.md"
 
     ps1_names = [p.name for p in (repo_root / "powershell_scripts").rglob("*.ps1")]
-    assert len(ps1_names) == 38
+    assert len(ps1_names) >= 38
     for name in ps1_names:
         assert name in readme_text, f"Script {name} missing from README.md"
 

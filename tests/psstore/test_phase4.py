@@ -15,16 +15,18 @@ from tools.lint_scripts import run_linter
 
 def test_production_catalog_syncs_all_38_scripts(tmp_path: Path) -> None:
     scripts_dir = get_ps_scripts_dir()
+    expected_count = len(list(scripts_dir.rglob("*.ps1")))
+    assert expected_count >= 38
     repo = CatalogRepo(db_path=tmp_path / "prod_catalog.db")
     scanner = ScriptScanner(scripts_dir=scripts_dir, repo=repo)
 
     summary = scanner.sync_catalog()
     assert summary.errors == []
-    assert summary.total_found >= 38
-    assert summary.added >= 38
+    assert summary.total_found == expected_count
+    assert summary.added == expected_count
 
     all_scripts = repo.get_all_scripts()
-    assert len(all_scripts) >= 38
+    assert len(all_scripts) == expected_count
 
 
 @pytest.mark.parametrize(
@@ -111,7 +113,10 @@ def test_production_scripts_parameter_injection(
 
 
 def test_lint_scripts_passes_all_production_scripts() -> None:
-    results = run_linter(get_ps_scripts_dir())
-    assert len(results) >= 38
+    scripts_dir = get_ps_scripts_dir()
+    expected_count = len(list(scripts_dir.rglob("*.ps1")))
+    assert expected_count >= 38
+    results = run_linter(scripts_dir)
+    assert len(results) == expected_count
     failed = [(r.relative_path, r.errors) for r in results if not r.passed]
     assert failed == []

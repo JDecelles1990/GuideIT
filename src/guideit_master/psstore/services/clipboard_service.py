@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from guideit_master.paths import get_ps_scripts_dir
+from guideit_master.paths import get_ps_scripts_dir, get_user_custom_scripts_dir
 
 logger = logging.getLogger(__name__)
 
@@ -111,17 +111,42 @@ def combine_scripts_bundle(
 
 
 class ClipboardService:
-    def __init__(self, scripts_dir: Path | str | None = None) -> None:
+    def __init__(
+        self,
+        scripts_dir: Path | str | None = None,
+        user_scripts_dir: Path | str | None = None,
+    ) -> None:
         if scripts_dir is None:
             self.scripts_dir = get_ps_scripts_dir()
+            self.user_scripts_dir: Path | None = (
+                Path(user_scripts_dir)
+                if user_scripts_dir is not None
+                else get_user_custom_scripts_dir()
+            )
         else:
             self.scripts_dir = Path(scripts_dir)
+            self.user_scripts_dir = (
+                Path(user_scripts_dir) if user_scripts_dir is not None else None
+            )
+
+    def resolve_script_path(self, relative_path: str) -> Path:
+        """Resolves a relative script path, preferring user_scripts_dir over scripts_dir."""
+        rel_clean = relative_path.replace("\\", "/").lstrip("/")
+        if rel_clean:
+            roots = [r for r in (self.user_scripts_dir, self.scripts_dir) if r is not None]
+            for root in roots:
+                root_resolved = root.resolve()
+                try:
+                    candidate = (root_resolved / rel_clean).resolve()
+                except OSError:
+                    continue
+                if candidate.is_relative_to(root_resolved) and candidate.is_file():
+                    return candidate
+        raise FileNotFoundError(f"Script not found at {self.scripts_dir / relative_path}")
 
     def read_script(self, relative_path: str) -> str:
         """Reads script content from disk."""
-        target_path = self.scripts_dir / relative_path
-        if not target_path.exists():
-            raise FileNotFoundError(f"Script not found at {target_path}")
+        target_path = self.resolve_script_path(relative_path)
 
         try:
             return target_path.read_text(encoding="utf-8")

@@ -2,6 +2,7 @@
 data/*.db
 data/*.db-*
 data/logs/
+data/user_scripts/
 index/*.db
 index/*.db-*
 

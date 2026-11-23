@@ -15,7 +15,7 @@ from typing import Any
 
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
-from guideit_master.paths import get_ps_scripts_dir
+from guideit_master.paths import get_ps_scripts_dir, get_user_custom_scripts_dir
 from guideit_master.psstore.repositories.catalog_repo import (
     CatalogRepo,
     RunHistoryRecord,
@@ -77,9 +77,21 @@ class ScriptRunner(QObject):
         scripts_dir: Path | str | None = None,
         repo: CatalogRepo | None = None,
         parent: QObject | None = None,
+        user_scripts_dir: Path | str | None = None,
     ) -> None:
         super().__init__(parent)
-        self.scripts_dir = Path(scripts_dir) if scripts_dir else get_ps_scripts_dir()
+        if scripts_dir is None:
+            self.scripts_dir = get_ps_scripts_dir()
+            self.user_scripts_dir: Path | None = (
+                Path(user_scripts_dir)
+                if user_scripts_dir is not None
+                else get_user_custom_scripts_dir()
+            )
+        else:
+            self.scripts_dir = Path(scripts_dir)
+            self.user_scripts_dir = (
+                Path(user_scripts_dir) if user_scripts_dir is not None else None
+            )
         self.repo = repo if repo is not None else CatalogRepo()
 
         self._process: QProcess | None = None
@@ -105,6 +117,25 @@ class ScriptRunner(QObject):
         return self._batch_active or (
             self._process is not None and self._process.state() != QProcess.ProcessState.NotRunning
         )
+
+    def _resolve_script_file(self, script: ScriptRecord) -> Path:
+        """Resolves the backing .ps1 path, honoring user_scripts_dir overrides and file_path."""
+        rel_clean = script.relative_path.replace("\\", "/").lstrip("/")
+        if rel_clean and self.user_scripts_dir is not None:
+            user_root = self.user_scripts_dir.resolve()
+            try:
+                user_candidate = (user_root / rel_clean).resolve()
+                if user_candidate.is_relative_to(user_root) and user_candidate.is_file():
+                    return user_candidate
+            except OSError:
+                pass
+
+        if script.file_path:
+            recorded_path = Path(script.file_path)
+            if recorded_path.is_file():
+                return recorded_path
+
+        return self.scripts_dir / script.relative_path
 
     def _select_executable(self, ps_edition: str) -> str:
         """Selects pwsh.exe for Core if available, otherwise powershell.exe."""
@@ -168,7 +199,7 @@ class ScriptRunner(QObject):
 
         started = self._start_single_process(script, params, emit_started=False)
         if not started:
-            err_msg = f"Script file not found: {self.scripts_dir / script.relative_path}"
+            err_msg = f"Script file not found: {self._resolve_script_file(script)}"
             self.output_received.emit(f"[ERROR] {err_msg}\n")
             self._batch_results.append(
                 RunResult(
@@ -191,7 +222,7 @@ class ScriptRunner(QObject):
         param_values: dict[str, Any] | None = None,
         emit_started: bool = True,
     ) -> bool:
-        script_file = self.scripts_dir / script.relative_path
+        script_file = self._resolve_script_file(script)
         if not script_file.exists():
             msg = f"Script file not found: {script_file}"
             if emit_started:
@@ -533,7 +564,7 @@ class ScriptRunner(QObject):
         ]
 
         for idx, (script, param_values) in enumerate(items, start=1):
-            script_file = self.scripts_dir / script.relative_path
+            script_file = self._resolve_script_file(script)
             if not script_file.exists():
                 self.error_occurred.emit(f"Script file not found: {script_file}")
                 return False
@@ -581,7 +612,7 @@ class ScriptRunner(QObject):
         param_values: dict[str, Any] | None = None,
     ) -> bool:
         """Spawns an elevated PowerShell session via Windows UAC runas verb."""
-        script_file = self.scripts_dir / script.relative_path
+        script_file = self._resolve_script_file(script)
         if not script_file.exists():
             self.error_occurred.emit(f"Script file not found: {script_file}")
             return False

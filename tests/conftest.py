@@ -109,16 +109,20 @@ def shell_window_factory(
         startup_service: object | None = None,
         hotkey_manager: object | None = None,
         event_bus: AppEventBus | None = None,
+        user_scripts_dir: Path | None = None,
     ) -> UnifiedShellWindow:
         nonlocal counter
         counter += 1
         effective_db = db_path if db_path is not None else (tmp_path / f"catalog_{counter}.db")
         repo = CatalogRepo(db_path=effective_db)
-        scanner = (
-            ScriptScanner(scripts_dir=scripts_dir, repo=repo)
-            if scripts_dir is not None
-            else ScriptScanner(repo=repo)
-        )
+        if scripts_dir is not None:
+            scanner = ScriptScanner(
+                scripts_dir=scripts_dir,
+                repo=repo,
+                user_scripts_dir=user_scripts_dir,
+            )
+        else:
+            scanner = ScriptScanner(repo=repo, user_scripts_dir=user_scripts_dir)
         win = UnifiedShellWindow(
             repo=repo,
             scanner=scanner,

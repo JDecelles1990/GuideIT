@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from guideit_master.core.event_bus import AppEventBus
+from guideit_master.paths import is_frozen
 from guideit_master.psstore.repositories.catalog_repo import CatalogRepo, ScriptRecord
 from guideit_master.psstore.services.clipboard_service import ClipboardService
 from guideit_master.psstore.services.report_service import ReportService
@@ -73,12 +74,19 @@ class ScriptsWorkspaceWidget(QWidget):
         self.clipboard_service = (
             clipboard_service
             if clipboard_service is not None
-            else ClipboardService(scripts_dir=self.scanner.scripts_dir)
+            else ClipboardService(
+                scripts_dir=self.scanner.scripts_dir,
+                user_scripts_dir=self.scanner.user_scripts_dir,
+            )
         )
         self.runner = (
             runner
             if runner is not None
-            else ScriptRunner(scripts_dir=self.scanner.scripts_dir, repo=self.repo)
+            else ScriptRunner(
+                scripts_dir=self.scanner.scripts_dir,
+                repo=self.repo,
+                user_scripts_dir=self.scanner.user_scripts_dir,
+            )
         )
         self.report_service = (
             report_service if report_service is not None else ReportService()
@@ -181,6 +189,15 @@ class ScriptsWorkspaceWidget(QWidget):
         )
         chips_layout.addWidget(self.timeout_chip)
 
+        self.source_chip = QLabel("👤 USER SCRIPT")
+        self.source_chip.setStyleSheet(
+            "background-color: #3b0764; color: #e9d5ff; padding: 2px 8px; "
+            "border-radius: 4px; font-weight: 600;"
+        )
+        self.source_chip.setToolTip("Custom user script loaded from user_scripts/ overlay")
+        self.source_chip.setVisible(False)
+        chips_layout.addWidget(self.source_chip)
+
         chips_layout.addStretch()
         layout.addLayout(chips_layout)
 
@@ -239,21 +256,36 @@ class ScriptsWorkspaceWidget(QWidget):
         self.console_view = ConsoleView(report_service=self.report_service)
         layout.addWidget(self.console_view, 1)
 
+    def _refresh_watched_dirs(self) -> None:
+        """Registers bundled and writable user script directories in QFileSystemWatcher."""
+        candidate_roots = [
+            d
+            for d in (self.scanner.scripts_dir, self.scanner.user_scripts_dir)
+            if d is not None
+        ]
+        desired: set[str] = set()
+        for root_path in candidate_roots:
+            if root_path.exists():
+                desired.add(str(root_path.resolve()))
+                for sub in root_path.glob("*/"):
+                    if sub.is_dir():
+                        desired.add(str(sub.resolve()))
+        existing = set(self.watcher.directories())
+        to_add = sorted(desired - existing)
+        if to_add:
+            self.watcher.addPaths(to_add)
+
     def _init_watcher(self) -> None:
         """Sets up live filesystem watching for automatic catalog reload."""
         self.watcher = QFileSystemWatcher(self)
-        scripts_path = self.scanner.scripts_dir
-        if scripts_path.exists():
-            self.watcher.addPath(str(scripts_path.resolve()))
-            for sub in scripts_path.glob("*/"):
-                if sub.is_dir():
-                    self.watcher.addPath(str(sub.resolve()))
+        self._refresh_watched_dirs()
 
         self.watcher.directoryChanged.connect(self._on_fs_changed)
         self.watcher.fileChanged.connect(self._on_fs_changed)
 
     def _on_fs_changed(self, path: str) -> None:
         logger.info("Filesystem change detected at %s. Syncing catalog...", path)
+        self._refresh_watched_dirs()
         self.sync_and_refresh(show_toast=False)
 
     def _connect_signals(self) -> None:
@@ -303,10 +335,17 @@ class ScriptsWorkspaceWidget(QWidget):
         self._emit_status(state_msg, 2500)
 
     def open_scripts_folder(self) -> None:
-        """Opens the local powershell_scripts/ catalog directory in Windows File Explorer."""
-        scripts_dir = self.scanner.scripts_dir.resolve()
+        """Opens user_scripts/ overlay when frozen or powershell_scripts/ in development."""
+        if is_frozen() and self.scanner.user_scripts_dir is not None:
+            scripts_dir = self.scanner.user_scripts_dir.resolve()
+            create_if_missing = True
+        else:
+            scripts_dir = self.scanner.scripts_dir.resolve()
+            create_if_missing = not is_frozen()
+
         try:
-            scripts_dir.mkdir(parents=True, exist_ok=True)
+            if create_if_missing:
+                scripts_dir.mkdir(parents=True, exist_ok=True)
             opened = QDesktopServices.openUrl(QUrl.fromLocalFile(str(scripts_dir)))
         except Exception as exc:
             logger.warning("Failed to open scripts folder %s: %s", scripts_dir, exc)
@@ -581,6 +620,7 @@ class ScriptsWorkspaceWidget(QWidget):
 
         self.edition_chip.setText(f"PowerShell {script.ps_edition}")
         self.timeout_chip.setText(f"{script.timeout_seconds}s Timeout")
+        self.source_chip.setVisible(script.source == "user")
 
         self.synopsis_label.setText(script.synopsis or "No synopsis available.")
         self.console_view.set_script_context(script.title, script.category)

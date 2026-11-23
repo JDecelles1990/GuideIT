@@ -23,7 +23,16 @@ def test_permanent_splitter_split_view_without_reparenting(shell_window_factory)
     pb = win.playbooks_workspace
     sc = win.scripts_workspace
     assert isinstance(pb, PlaybooksWorkspaceWidget)
-    assert win.health_pill_btn.text() == "✓ 65 Valid"
+    playbooks_dir = Path(__file__).resolve().parents[2] / "playbooks"
+    expected_playbooks = len(
+        [
+            p
+            for p in playbooks_dir.rglob("*.md")
+            if p.parent != playbooks_dir and p.name.lower() != "readme.md"
+        ]
+    )
+    assert expected_playbooks >= 65
+    assert win.health_pill_btn.text() == f"✓ {expected_playbooks} Valid"
     assert pb.parentWidget() is win.mode_splitter
     assert sc.parentWidget() is win.mode_splitter
     assert win.mode_splitter.indexOf(pb) == 0

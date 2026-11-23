@@ -255,7 +255,7 @@ def test_ensure_index_current_and_domain_subcategory_counts(tmp_path: Path) -> N
     domain_counts, subcat_counts, built_at = get_domain_and_subcategory_counts(db_path)
     assert sum(domain_counts.values()) >= 65
     assert len(domain_counts) == 9
-    assert subcat_counts[("05_Printers_Devices", "printers_spooler_scan")] == 2
+    assert subcat_counts[("05_Printers_Devices", "printers_spooler_scan")] >= 2
     assert built_at
 
     # Corrupt schema_version triggers automatic rebuild

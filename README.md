@@ -2,24 +2,24 @@
 
 A unified, offline-capable **Python 3.11+ / PySide6 / SQLite** Windows desktop workstation combining **PowerShellStore** (production Windows PowerShell 5.1 diagnostic & remediation workstation) and **GuideIT** (L1–L3 bilingual EN/FR troubleshooting playbook library).
 
-> **Build Status:** **Phase 3 Complete** — Root project scaffolding, PyInstaller-ready `paths.py`, `AppEventBus`, `UnifiedShellWindow` (with Split View layout, tray, global `Win+F8` hotkey, opacity slider, and cyber-aurora frosted-glass UI), the **PowerShellStore** 38-script workstation, the **GuideIT** 65-playbook bilingual (EN/FR) library, and **Phase 3 Bidirectional Cross-Linking & Unified FTS5 Search** (Playbook `linked_scripts` action cards, `psstore://` parameter-preloading links, reverse `📘 Used in Playbooks` pills, `scripts_fts` + Unified Omnibox `Ctrl+Shift+K`, and strict `BROKEN_LINKED_SCRIPT` validation) are active and tested. PyInstaller packaging (`Phase 4`) follows next.
+> **Build Status:** **Phase 4 Complete** — Unified root project scaffolding, PyInstaller-ready `paths.py` with writable `user_scripts/` overlay support, `AppEventBus`, `UnifiedShellWindow` (Playbooks | Scripts | Split View, Unified Omnibox `Ctrl+Shift+K`, tray, global `Win+F8` hotkey, opacity slider, and cyber-aurora frosted-glass UI), the **PowerShellStore** Windows PowerShell 5.1 workstation, the **GuideIT** bilingual (EN/FR) troubleshooting library, bidirectional `linked_scripts` / `psstore://` / `📘 Used in Playbooks` cross-linking, `guideit_master.spec`, and cross-PowerShell `build.ps1` (`-VerifyOnly` / `-Package`) are implemented and verified.
 
 ---
 
-## 🚀 Key Features (Phases 1–3)
+## 🚀 Key Features (Phases 1–4)
 
-- **65 Bilingual (EN/FR) L1–L3 Playbooks Across 9 Domains & 23 Subcategories:** Canonical troubleshooting workflows under `playbooks/` (`01_Identity_AD_Entra` through `09_Apps_LOB`) with progressive triage, read-only diagnostics, confirmation-gated remediations, verification checks, and 1-click EN/FR client update snippets.
+- **Bilingual (EN/FR) L1–L3 Playbooks Across Numbered Operational Domains:** Canonical troubleshooting workflows under `playbooks/` (`01_Identity_AD_Entra` through `09_Apps_LOB`) organized into domain subcategories with progressive triage, read-only diagnostics, confirmation-gated remediations, verification checks, and 1-click EN/FR client update snippets.
 - **Accent-Insensitive SQLite FTS5 Search & Taxonomy Expansion:** `data/guideit.db` (`playbooks_fts`) and `data/powershell_store.db` (`scripts_fts`) power unified EN/FR symptom expansion via `taxonomy/keyword_map.json`, boosting PowerShell scripts linked to top-matching playbooks in both the Unified Omnibox (`Ctrl+Shift+K`) and `tools/search_cli.py`.
-- **Bidirectional Playbook ↔ Script Deep Linking:** 20 curated playbooks link directly to canonical `NN_Category/Verb-Noun.ps1` scripts via `linked_scripts` frontmatter and `psstore://` URIs—rendering 1-click **`⚡ Linked Diagnostic & Remediation Scripts`** action cards (`Copy RMM-Ready`, `Copy Raw`, `Open in Workstation`, `Split View & Run`) inside `PlaybookViewer` and reverse **`📘 Used in Playbooks`** pills inside PowerShellStore's inspector pane.
-- **Curated External Tools Directory (`Ctrl+T`) & Multi-Tenant PII + Cross-Link Health Pill:** Searchable `ResourcesDialog` (`taxonomy/resources.json`) with 31+ MSP lookup sites and live `ValidationDialog` enforcing zero non-placeholder emails, public IPs, raw GUIDs, secret tokens, or broken `linked_scripts` (`BROKEN_LINKED_SCRIPT`).
-- **38 Ready-to-Use PowerShell 5.1 Scripts Across 6 Categories:** Production diagnostics and remediations under `powershell_scripts/` (`01_System`, `02_Network`, `03_M365`, `04_Devices`, `05_Security_Defender`, and `99_Custom`).
+- **Bidirectional Playbook ↔ Script Deep Linking:** Playbooks link directly to canonical `NN_Category/Verb-Noun.ps1` scripts via `linked_scripts` frontmatter and `psstore://` URIs—rendering 1-click **`⚡ Linked Diagnostic & Remediation Scripts`** action cards (`Copy RMM-Ready`, `Copy Raw`, `Open in Workstation`, `Split View & Run`) inside `PlaybookViewer` and reverse **`📘 Used in Playbooks`** pills inside PowerShellStore's inspector pane.
+- **Curated External Tools Directory (`Ctrl+T`) & Multi-Tenant PII + Cross-Link Health Pill:** Searchable `ResourcesDialog` (`taxonomy/resources.json`) of curated MSP & Data Center lookup sites and live `ValidationDialog` enforcing zero non-placeholder emails, public IPs, raw GUIDs, secret tokens, or broken `linked_scripts` (`BROKEN_LINKED_SCRIPT`).
+- **Ready-to-Use PowerShell 5.1 Scripts + Writable `user_scripts/` Overlay:** Production diagnostics and remediations under `powershell_scripts/` (`01_System`, `02_Network`, `03_M365`, `04_Devices`, `05_Security_Defender`, and `99_Custom`), plus optional writable `data/user_scripts/` (or `%LOCALAPPDATA%\GuideIT_Master\user_scripts\` when frozen) overlay scanning where custom technician `.ps1` files take precedence over bundled paths without modifying read-only `_MEIPASS` assets.
 - **Unified Shell Window & Mode Switcher (`Alt+1` / `Alt+2` / `Alt+3`):** Permanent top-level `QSplitter` housing `PlaybooksWorkspaceWidget` and `ScriptsWorkspaceWidget` with compact-mode Split View (`Alt+3`) without widget reparenting or duplicate runners.
 - **Single Shell Owner for System Services:** `UnifiedShellWindow` exclusively owns the system tray icon (`QSystemTrayIcon`), minimize-to-tray `closeEvent`, global `Win+F8` Win32 hotkey (`hotkey_service.py`), Windows login startup (`startup_service.py`), and the **60%–100% window opacity slider**.
 - **Multi-Script Checkboxes & Clickable Sorting:** Click column headers (`Title`, `Risk Level`, `Admin`) to sort alphanumerically or by risk/admin flags, and check multiple scripts across categories/filters (including one-click **Read-Only** `Ctrl+Shift+O` selection) to copy combined PowerShell 5.1 `& { ... }` bundles or run sequentially locally / in one UAC-elevated session.
-- **File-First Architecture with Live Sync:** Real `.ps1` files under `powershell_scripts/` are the single source of truth. `ScriptScanner` parses `.PSSTORE_META` JSON headers, computes SHA-256 hashes, and indexes scripts into SQLite (`data/powershell_store.db`) automatically via `QFileSystemWatcher`.
+- **File-First Architecture with Live Sync:** Real `.ps1` files under `powershell_scripts/` and `user_scripts/` are scanned via `.PSSTORE_META` JSON headers and SHA-256 hashes into SQLite (`data/powershell_store.db`) automatically via `QFileSystemWatcher`.
 - **Dynamic Parameter Forms & Dual-Mode Clipboard:** Generates typed controls (`string`, `int` with bounds, `bool`) from `.PSSTORE_META.params`, preserves parameter edits across selections, and copies either **Raw Script** (`Ctrl+Shift+C`) or **RMM-Ready Script** (`Ctrl+Shift+R`, in-memory `param()` default injection).
 - **Local Testing Sandbox & Rich-Text Ticket Reports:** Non-blocking `QProcess` execution with live stdout/stderr streaming, per-script `QTimer` timeouts, remediation safety gates, UAC elevation prompts, SQLite **Run History**, Rich-Text HTML + Markdown clipboard copy (`Ctrl+Shift+T`), and standalone `.html` audit export (`Ctrl+S`).
-- **PyInstaller-Ready Path Resolution (`src/guideit_master/paths.py`):** Clean separation between read-only bundled assets (`get_bundle_dir()`) and writable user data (`get_user_data_dir()` → `data/` in dev, `%LOCALAPPDATA%\GuideIT_Master` when frozen).
+- **PyInstaller Onedir Packaging & Dual-Shell Build Pipeline (`guideit_master.spec` + `build.ps1`):** Clean separation between read-only bundled assets (`get_bundle_dir()`) and writable user data (`get_user_data_dir()` → `data/` in dev, `%LOCALAPPDATA%\GuideIT_Master` when frozen, or `GUIDEIT_DATA_DIR` override), with automated `--smoke-test` verification for frozen builds.
 
 ---
 
@@ -44,9 +44,16 @@ python main.py
 pythonw main.py --startup
 ```
 
-### Phase 3 Verification & CLI Commands
+### Custom User Scripts Overlay (`user_scripts/`)
+Drop custom `.PSSTORE_META`-compliant `.ps1` scripts into:
+- **Source / Development:** `data/user_scripts/`
+- **Frozen `.exe` Build:** `%LOCALAPPDATA%\GuideIT_Master\user_scripts\` (opened directly by `Ctrl+O` when frozen)
+
+Custom scripts placed directly in `user_scripts/` default to the `Custom` category (unless `"category"` is specified in `.PSSTORE_META`), and scripts placed in matching `NN_Category/Verb-Noun.ps1` paths cleanly override bundled scripts without touching read-only `_MEIPASS` bundle files.
+
+### Verification, CLI Tools & PyInstaller Packaging (`build.ps1`)
 ```powershell
-# Strictly validate all 65 playbooks (schema, sections, linked_scripts, and multi-tenant PII rules)
+# Strictly validate all playbooks (schema, sections, linked_scripts, and multi-tenant PII rules)
 python tools/validate_playbooks.py --strict
 
 # Build or rebuild the GuideIT SQLite FTS5 search index (data/guideit.db)
@@ -55,12 +62,39 @@ python tools/build_index.py
 # Unified EN/FR search across both playbooks and PowerShell scripts
 python tools/search_cli.py "compte verrouille" --json
 
-# Lint all 38 PowerShell scripts against the .PSSTORE_META and PS 5.1 AST contract
+# Lint all bundled PowerShell scripts against the .PSSTORE_META and PS 5.1 AST contract
 python tools/lint_scripts.py
 
-# Run the complete unified test suite (Paths + PowerShellStore + GuideIT + Cross-Linking)
+# Run the complete unified test suite (Paths + PSStore + GuideIT + Cross-Linking + Phase 4 E2E)
 python -m pytest tests/ -v
+
+# Run full Phase 4 verification gate & PyInstaller spec audit (works in Windows PowerShell 5.1 & pwsh 7+)
+powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1 -VerifyOnly
+pwsh -NoProfile -File build.ps1 -VerifyOnly
+
+# Compile dist\GuideIT_Master\GuideIT_Master.exe via guideit_master.spec and run isolated GUIDEIT_DATA_DIR smoke test
+# (Requires PyInstaller: pip install pyinstaller>=6.0)
+.\build.ps1 -Package
+
+# Launch compiled standalone workstation
+.\dist\GuideIT_Master\GuideIT_Master.exe
 ```
+
+---
+
+## 📚 Playbook Library Domain Architecture
+
+| Domain Folder | Subject | ID Prefix | Core Scope |
+| :--- | :--- | :--- | :--- |
+| `01_Identity_AD_Entra` | Identity / AD & Entra ID | `id-NNN` | Account lockouts, MFA/2SV, Kerberos, GPO, hybrid sync, Conditional Access |
+| `02_M365_Email_Collab` | Microsoft 365 / Email & Collaboration | `m365-NNN` | Outlook auth, Exchange mail flow, OneDrive, Teams, SharePoint & Workspace |
+| `03_Windows_Endpoints` | Windows Endpoints | `win-NNN` | Windows Update, BitLocker, BSODs, licensing, user profiles, audio/video |
+| `04_Network_VPN_VoIP` | Network, VPN & VoIP | `net-NNN` | DNS, DHCP, APIPA, Wi-Fi, VoIP jitter, SMB drives, IPsec VPN tunnels |
+| `05_Printers_Devices` | Printers & Peripherals | `prt-NNN` | Print Spooler, RPC errors, scan-to-email, Bluetooth headsets, USB-C docks |
+| `06_Security_Access` | Security & Access | `sec-NNN` | Phishing/BEC containment, Defender ASR, TLS/SSL certificates, Purview DLP |
+| `07_macOS_Mobile_MDM` | macOS, Mobile & MDM | `mdm-NNN` | Intune enrollment, Autopilot, compliance, macOS apps, Keychain, SMB & recovery |
+| `08_Servers_Cloud_Infra` | Servers, Cloud & Infrastructure | `srv-NNN` | Windows Server, Linux systemd/OOM/SSH, RAID/IPMI, SFP+ optics, Azure/GCP |
+| `09_Apps_LOB` | Applications & LOB | `app-NNN` | Browser SSO loops, Office add-ins, Adobe licensing, LOB runtime certs |
 
 ---
 
@@ -84,7 +118,7 @@ Standard text-editing shortcuts (`Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+Z
 | Shortcut | Scope | Action / Function | Behavior & Notes |
 | :--- | :--- | :--- | :--- |
 | `Ctrl+B` | In-App | **Toggle Active Sidebar** (`_toggle_active_sidebar`) | Collapses or expands the active workspace's left filter/category sidebar (exits Split View to Scripts if pressed in Split mode). |
-| `Ctrl+O` | In-App | **Open Scripts Folder** (`open_scripts_folder`) | Opens the local `powershell_scripts/` catalog directory in Windows File Explorer. |
+| `Ctrl+O` | In-App | **Open Scripts Folder** (`open_scripts_folder`) | Opens `powershell_scripts/` in development, or writable `%LOCALAPPDATA%\GuideIT_Master\user_scripts\` when running as a frozen `.exe`. |
 | `Ctrl+F` | In-App | **Focus Script Search Box** (`_focus_search_input`) | Expands the sidebar if collapsed, switches out of Playbooks-only mode if needed, focuses the script search input, and selects existing query text. |
 | `F5` | In-App | **Sync Scripts & Re-Index Playbooks** (`_sync_all_libraries`) | Rescans `powershell_scripts/` into `powershell_store.db` AND validates & rebuilds `guideit.db` in the background. |
 | `Esc` | In-App | **Stop / Clear Active Search** (`_handle_escape`) | Context-aware: stops the active script if currently running; otherwise clears the Playbooks search bar (in Playbooks mode) or the Scripts search filter. |
@@ -97,7 +131,7 @@ Standard text-editing shortcuts (`Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+Z
 | :--- | :--- | :--- | :--- |
 | `Ctrl+K` | In-App | **Focus Playbook Search** (`_focus_playbook_search`) | Switches to Playbooks mode (`Alt+1`) if needed, focuses the EN/FR playbook search bar, and selects existing text. |
 | `Ctrl+Shift+K` | In-App | **Focus Unified Omnibox Search** (`_focus_unified_search`) | Focuses the global header Unified Omnibox to search both GuideIT playbooks and PowerShellStore scripts simultaneously. |
-| `Ctrl+T` | In-App | **Useful Websites & External Tools** (`open_resources_dialog`) | Opens the searchable `ResourcesDialog` directory of 31+ curated MSP & Data Center websites (`taxonomy/resources.json`). |
+| `Ctrl+T` | In-App | **Useful Websites & External Tools** (`open_resources_dialog`) | Opens the searchable `ResourcesDialog` directory of curated MSP & Data Center websites (`taxonomy/resources.json`). |
 | `Ctrl+R` | In-App | **Reset Playbook Search & Filters** (`reset_all`) | Clears the playbook search query, resets Tier/Subjects/OS/Environment/Risk filters, and clears viewer navigation history. |
 | `Alt+Left` | In-App | **Back to Previous Playbook** (`navigate_back`) | Steps back through visited playbooks after clicking related `[id-NNN]` pills or inline `guideit://` links. |
 
@@ -131,11 +165,11 @@ Standard text-editing shortcuts (`Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+Z
 
 ---
 
-## 📦 Built-In PowerShell Script Catalog (38 Scripts)
+## 📦 Built-In PowerShell Script Catalog
 
-All **38** built-in scripts live under `powershell_scripts/`, target Windows PowerShell 5.1 (`Desktop`) for maximum RMM compatibility, pass static + PowerShell 5.1 AST validation via `tools/lint_scripts.py`, and wrap execution in `try / catch / finally` with `$ErrorActionPreference = 'Stop'`.
+All built-in scripts live under `powershell_scripts/`, target Windows PowerShell 5.1 (`Desktop`) for maximum RMM compatibility, pass static + PowerShell 5.1 AST validation via `tools/lint_scripts.py`, and wrap execution in `try / catch / finally` with `$ErrorActionPreference = 'Stop'`.
 
-### `01_System` (11 Scripts)
+### `01_System`
 | Script | Title | Risk / Admin | Parameters (Defaults & Range) | Explanation & Behavior |
 | :--- | :--- | :--- | :--- | :--- |
 | `Get-BatteryHealthReport.ps1` | Get Battery Health & Power Status | `read_only` · No · `30s` | `WearThresholdPercent=30` *(int, 5–80)* | Inspects `.NET PowerStatus` for live charge %, AC line status, and battery presence, then extracts `powercfg.exe /batteryreport /xml` design vs. full-charge capacity, cycle count, and wear %. |
@@ -150,7 +184,7 @@ All **38** built-in scripts live under `powershell_scripts/`, target Windows Pow
 | `Invoke-DeepSystemCleanup.ps1` | Deep System Cleanup & Health Repair | `remediation` · **Yes** · `600s` | `ClearUserTemps=true`, `ClearSystemTemp=true`, `ClearWindowsUpdateCache=true`, `EmptyRecycleBins=true`, `RunDismCleanup=true`, `RunSfcScan=true` *(all bool)* | Clears user/system Temp, Windows Update cache, and Recycle Bins, runs `DISM /Online /Cleanup-Image /StartComponentCleanup` and `sfc /scannow`, and reports space reclaimed. |
 | `Update-Windows.ps1` | Install Windows Updates | `remediation` · **Yes** · `900s` | `ScanOnly=false` *(bool)*, `AutoReboot=false` *(bool)*, `MaxUpdates=25` *(int, 1–100)* | Uses `Microsoft.Update.Session` COM API to search, download, and install pending updates (or scan only), reporting KB IDs and `reboot_required`. |
 
-### `02_Network` (6 Scripts)
+### `02_Network`
 | Script | Title | Risk / Admin | Parameters (Defaults & Range) | Explanation & Behavior |
 | :--- | :--- | :--- | :--- | :--- |
 | `Get-ListeningPorts.ps1` | Get Active Listening Ports | `read_only` · No · `20s` | `Protocol="All"` *(string: `All` \| `TCP` \| `UDP`)*, `PortFilter=0` *(int, 0–65535)* | Lists active TCP listeners and UDP endpoints mapped to local address, PID, process name, and executable path (with `netstat.exe -ano` fallback). |
@@ -160,7 +194,7 @@ All **38** built-in scripts live under `powershell_scripts/`, target Windows Pow
 | `Test-NetworkQuality.ps1` | Test Network Quality & Jitter | `read_only` · No · `45s` | `TargetHost="1.1.1.1"`, `PingCount=10` *(int, 4–50)*, `MaxAcceptableLatencyMs=100` *(int, 10–1000)* | Runs ICMP echo probes (falling back to TCP 443/80), computing min/avg/max latency, jitter, packet loss %, and `QualityRating`. |
 | `Test-PortConnectivity.ps1` | Test TCP Port Connectivity | `read_only` · No · `15s` | `TargetHost="1.1.1.1"`, `Port=443` *(int, 1–65535)*, `TimeoutMs=3000` *(int, 500–15000)* | Opens an async `.NET TcpClient` connection test to `TargetHost:Port` with explicit millisecond timeout control. |
 
-### `03_M365` (7 Scripts)
+### `03_M365`
 | Script | Title | Risk / Admin | Parameters (Defaults & Range) | Explanation & Behavior |
 | :--- | :--- | :--- | :--- | :--- |
 | `Clear-BrowserCache.ps1` | Clear Browser Cache (Edge & Chrome) | `remediation` · No · `30s` | `TargetBrowser="All"` *(string: `All` \| `Edge` \| `Chrome`)*, `CloseRunningBrowsers=true` *(bool)* | Optionally closes `msedge`/`chrome` and purges `Cache`, `Code Cache`, and `GPUCache` while preserving bookmarks, passwords, and history. |
@@ -171,7 +205,7 @@ All **38** built-in scripts live under `powershell_scripts/`, target Windows Pow
 | `Get-OutlookAddins.ps1` | Get Outlook COM Add-ins & Cache Status | `read_only` · No · `20s` | `CheckOSTSize=true` *(bool)* | Audits HKCU/HKLM Outlook COM Add-ins (`ProgId`, name, scope, `LoadBehavior`) and optionally inspects `.ost` mailbox file sizes. |
 | `Reset-OneDriveSync.ps1` | Reset Microsoft OneDrive Sync | `remediation` · No · `45s` | `KillRunningProcess=true`, `RunResetCommand=true`, `RelaunchOneDrive=true` *(all bool)* | Stops `OneDrive.exe`, cleans temporary sync lock/cache artifacts without deleting user files, runs `OneDrive.exe /reset`, and relaunches OneDrive. |
 
-### `04_Devices` (6 Scripts)
+### `04_Devices`
 | Script | Title | Risk / Admin | Parameters (Defaults & Range) | Explanation & Behavior |
 | :--- | :--- | :--- | :--- | :--- |
 | `Get-DeviceDrivers.ps1` | Get Installed Device Drivers | `read_only` · No · `45s` | `DeviceClass="*"` *(wildcard)*, `OnlySigned=false` *(bool)*, `MaxResults=50` *(int, 1–1000)* | Inventories PnP drivers via CIM `Win32_PnPSignedDriver`, Registry Class keys, and `driverquery` fallback. |
@@ -181,7 +215,7 @@ All **38** built-in scripts live under `powershell_scripts/`, target Windows Pow
 | `Reset-PrintSpooler.ps1` | Reset Print Spooler | `remediation` · **Yes** · `30s` | `ClearQueueFiles=true` *(bool)* | **Output Mode: `text`.** Stops `Spooler`, optionally clears `%SystemRoot%\System32\spool\PRINTERS\*`, restarts `Spooler`, and outputs service state. |
 | `Update-DeviceDrivers.ps1` | Update All Device Drivers | `remediation` · **Yes** · `600s` | `IncludeOptional=true`, `RescanPnPDevices=true`, `RebootIfRequired=false` *(all bool)* | Uses `Microsoft.Update.Session` (`Type='Driver'`) to download/install pending drivers, runs `pnputil.exe /scan-devices`, and optionally schedules a 60s reboot. |
 
-### `05_Security_Defender` (7 Scripts)
+### `05_Security_Defender`
 | Script | Title | Risk / Admin | Parameters (Defaults & Range) | Explanation & Behavior |
 | :--- | :--- | :--- | :--- | :--- |
 | `Get-BitLockerStatus.ps1` | Get BitLocker Encryption Status | `read_only` · **Yes** · `30s` | `MountPoint=""` *(string)* | Queries `Get-BitLockerVolume` (with `manage-bde.exe -status` fallback) to audit encryption %, protection status, and key protectors. |
@@ -192,7 +226,7 @@ All **38** built-in scripts live under `powershell_scripts/`, target Windows Pow
 | `Get-LocalAdministrators.ps1` | Audit Local Administrators | `read_only` · **Yes** · `20s` | `IncludeBuiltInAdmin=true` *(bool)* | Enumerates members of local `Administrators`, classifying `Local`, `Active Directory Domain`, or `Microsoft Entra ID` principals. |
 | `Invoke-DefenderUpdateAndScan.ps1` | Update Defender Signatures & Trigger Scan | `remediation` · **Yes** · `300s` | `ScanType="QuickScan"` *(string: `QuickScan` \| `FullScan`)*, `UpdateSignatures=true` *(bool)* | Updates Defender signatures (`Update-MpSignature`), runs `Start-MpScan` (`MpCmdRun.exe` fallback), and checks `Get-MpThreatDetection`. |
 
-### `99_Custom` (1 Script)
+### `99_Custom`
 | Script | Title | Risk / Admin | Parameters (Defaults & Range) | Explanation & Behavior |
 | :--- | :--- | :--- | :--- | :--- |
 | `Sample-CustomDiagnostic.ps1` | Sample Custom Diagnostic | `read_only` · No · `15s` | `Message="Hello from PowerShellStore"` *(string)* | Minimal starter template demonstrating `.PSSTORE_META`, typed `param()`, CIM query, ASCII table output, and single-line JSON envelope. |

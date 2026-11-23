@@ -79,7 +79,7 @@ def get_psstore_db_path(data_dir: Path | None = None) -> Path:
 
 
 def get_user_custom_scripts_dir(data_dir: Path | None = None) -> Path:
-    """Reserved writable directory for user custom scripts (overlay scanning wired in Phase 4)."""
+    """Return the writable directory for user custom scripts overlaid atop bundled scripts."""
     custom_dir = ((data_dir or get_user_data_dir()) / "user_scripts").resolve()
     custom_dir.mkdir(parents=True, exist_ok=True)
     return custom_dir
