@@ -388,6 +388,28 @@ class CatalogTableView(QFrame):
         self.checked_scripts_changed.emit(self.get_checked_scripts())
         return checked_count
 
+    def set_checked_scripts(self, scripts: list[ScriptRecord]) -> None:
+        """Replace checked scripts with the given deduplicated list in order."""
+        self._checked_scripts = {
+            s.relative_path: s for s in scripts if s.relative_path
+        }
+        self.table.blockSignals(True)
+        try:
+            for row in range(self.table.rowCount()):
+                item = self.table.item(row, 0)
+                if not item:
+                    continue
+                script: ScriptRecord | None = item.data(Qt.ItemDataRole.UserRole)
+                is_checked = bool(script and script.relative_path in self._checked_scripts)
+                item.setCheckState(
+                    Qt.CheckState.Checked if is_checked else Qt.CheckState.Unchecked
+                )
+        finally:
+            self.table.blockSignals(False)
+
+        self._update_checked_ui()
+        self.checked_scripts_changed.emit(self.get_checked_scripts())
+
     def clear_checked_scripts(self) -> None:
         self._checked_scripts.clear()
         self.table.blockSignals(True)
@@ -442,4 +464,5 @@ class CatalogTableView(QFrame):
                 script: ScriptRecord = item.data(Qt.ItemDataRole.UserRole)
                 if script and script.id == script_id:
                     self.table.selectRow(row)
+                    self.table.scrollToItem(item)
                     break

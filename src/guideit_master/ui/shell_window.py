@@ -310,6 +310,12 @@ class UnifiedShellWindow(QMainWindow):
         self.event_bus.status_toast_requested.connect(self.status_bar.showMessage)
         self.event_bus.open_script_requested.connect(self._on_open_script_requested)
         self.event_bus.copy_script_requested.connect(self._on_copy_script_requested)
+        self.event_bus.copy_scripts_bundle_requested.connect(
+            self._on_copy_scripts_bundle_requested
+        )
+        self.event_bus.select_scripts_batch_requested.connect(
+            self._on_select_scripts_batch_requested
+        )
         self.event_bus.run_script_requested.connect(self._on_run_script_requested)
         self.event_bus.open_playbook_requested.connect(self._on_open_playbook_requested)
         self.event_bus.catalog_synced.connect(self._on_catalog_synced)
@@ -401,6 +407,11 @@ class UnifiedShellWindow(QMainWindow):
         )
         self._register_shortcut(
             "playbook_back", "Alt+Left", self.playbooks_workspace.navigate_back
+        )
+        self._register_shortcut(
+            "copy_linked_readonly_bundle",
+            "Ctrl+Shift+B",
+            self._shortcut_copy_linked_readonly_bundle,
         )
         self._register_shortcut("sync_catalog", "F5", self._sync_all_libraries)
         self._register_shortcut("escape_action", "Esc", self._handle_escape)
@@ -743,6 +754,55 @@ class UnifiedShellWindow(QMainWindow):
     def _on_open_playbook_requested(self, playbook_id: str, split_view: bool) -> None:
         self.playbooks_workspace.navigate_to_playbook(playbook_id)
         self.set_mode(MODE_SPLIT if split_view else MODE_PLAYBOOKS)
+
+    def _shortcut_copy_linked_readonly_bundle(self) -> None:
+        if self._current_mode not in (MODE_PLAYBOOKS, MODE_SPLIT):
+            self.status_bar.showMessage(
+                "Switch to Playbooks (Alt+1) or Split View (Alt+3) to copy a playbook's read-only script bundle.",
+                3000,
+            )
+            return
+        if not self.playbooks_workspace.trigger_copy_readonly_bundle():
+            self.status_bar.showMessage(
+                "Current playbook has fewer than 2 linked read-only scripts to bundle.",
+                3000,
+            )
+
+    def _playbook_excluded_remediation_count(self, relative_paths: list[str]) -> int:
+        normalized = [
+            str(p).strip().replace("\\", "/")
+            for p in relative_paths
+            if str(p).strip()
+        ]
+        viewer = self.playbooks_workspace.viewer
+        if (
+            normalized
+            and set(normalized) == set(viewer.linked_readonly_paths)
+            and viewer.linked_remediation_count > 0
+        ):
+            return viewer.linked_remediation_count
+        return 0
+
+    def _on_copy_scripts_bundle_requested(
+        self, relative_paths: list[str], rmm_ready: bool
+    ) -> None:
+        excluded_hint = self._playbook_excluded_remediation_count(relative_paths)
+        self.scripts_workspace.copy_readonly_scripts_bundle(
+            relative_paths,
+            rmm_ready=rmm_ready,
+            excluded_remediation_count=excluded_hint,
+        )
+
+    def _on_select_scripts_batch_requested(self, relative_paths: list[str]) -> None:
+        excluded_hint = self._playbook_excluded_remediation_count(relative_paths)
+        loaded_count, _excluded, toast_msg = self.scripts_workspace.load_readonly_scripts_batch(
+            relative_paths,
+            excluded_remediation_count=excluded_hint,
+            emit_status=False,
+        )
+        if loaded_count > 0:
+            self.set_mode(MODE_SCRIPTS)
+        self.status_bar.showMessage(toast_msg, 5000)
 
     def resizeEvent(self, event) -> None:  # noqa: N802
         super().resizeEvent(event)

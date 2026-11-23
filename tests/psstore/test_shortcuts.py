@@ -12,13 +12,14 @@ from guideit_master.ui.shell_window import MODE_PLAYBOOKS, MODE_SCRIPTS, MODE_SP
 
 def test_all_shortcuts_registered_and_unique(shell_window_factory) -> None:
     win = shell_window_factory()
-    assert len(win.shortcuts) == 32
+    assert len(win.shortcuts) == 33
     assert win.shortcut_sidebar is win.shortcuts["toggle_sidebar"]
     assert "focus_playbook_search" in win.shortcuts
     assert "focus_unified_search" in win.shortcuts
     assert "useful_tools" in win.shortcuts
     assert "reset_playbook_filters" in win.shortcuts
     assert "playbook_back" in win.shortcuts
+    assert "copy_linked_readonly_bundle" in win.shortcuts
 
     seen_sequences: dict[str, str] = {}
     for name, sc in win.shortcuts.items():
@@ -184,6 +185,7 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
         "Ctrl+T",
         "Ctrl+R",
         "Alt+Left",
+        "Ctrl+Shift+B",
         "F5",
         "Esc",
         "Ctrl+Shift+A",

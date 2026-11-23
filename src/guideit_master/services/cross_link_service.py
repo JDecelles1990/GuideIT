@@ -172,6 +172,19 @@ def script_record_to_summary(record: ScriptRecord) -> LinkedScriptSummary:
     )
 
 
+def partition_linked_scripts(
+    linked_scripts: list[LinkedScriptSummary],
+) -> tuple[list[LinkedScriptSummary], list[LinkedScriptSummary]]:
+    """Partition linked scripts into existing read-only scripts and remediation scripts."""
+    readonly_existing = [
+        s for s in linked_scripts if s.exists and s.risk_level == "read_only"
+    ]
+    remediation_scripts = [
+        s for s in linked_scripts if s.risk_level == "remediation"
+    ]
+    return readonly_existing, remediation_scripts
+
+
 class CrossLinkService:
     """Resolves bidirectional Playbook <-> Script metadata without cross-module UI imports."""
 

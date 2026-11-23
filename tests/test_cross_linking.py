@@ -25,6 +25,7 @@ from guideit_master.services.cross_link_service import (
     CrossLinkService,
     coerce_param_overrides,
     parse_psstore_uri,
+    partition_linked_scripts,
 )
 from guideit_master.services.unified_search import search_all
 from guideit_master.ui.shell_window import MODE_PLAYBOOKS, MODE_SCRIPTS, MODE_SPLIT
@@ -580,3 +581,245 @@ def test_bidirectional_zero_ui_cross_imports_and_clean_services_layer() -> None:
                 assert top not in {"PySide6", "sqlite3"}, (
                     f"Service {py_file} must stay UI/SQLite agnostic (found '{mod_name}')"
                 )
+
+
+def test_playbook_readonly_bundle_excludes_remediation_and_respects_saved_params(
+    shell_window_factory, qapp
+) -> None:
+    win = shell_window_factory()
+    win.show()
+    sc = win.scripts_workspace
+    viewer = win.playbooks_workspace.viewer
+
+    svc = CrossLinkService(
+        guideit_db_path=win.playbooks_workspace.db_path,
+        catalog_repo=sc.repo,
+    )
+    ro_net, rem_net = partition_linked_scripts(svc.get_scripts_for_playbook("net-001"))
+    assert len(ro_net) >= 2
+    assert len(rem_net) >= 1
+    ro_paths = [s.relative_path for s in ro_net]
+    rem_paths = [s.relative_path for s in rem_net]
+
+    # Pre-edit parameters for one linked read-only script in Scripts workspace, then move away
+    assert sc.select_and_preload_script(
+        "02_Network/Test-PortConnectivity.ps1",
+        {"TargetHost": "dc01.domain.local", "Port": 636},
+    )
+    assert sc.select_and_preload_script("01_System/Get-OSInformation.ps1")
+    qapp.processEvents()
+
+    win.set_mode(MODE_PLAYBOOKS)
+    win.playbooks_workspace.navigate_to_playbook("net-001")
+    qapp.processEvents()
+
+    assert viewer.current_playbook_id == "net-001"
+    assert viewer.can_copy_readonly_bundle() is True
+    assert viewer.copy_readonly_bundle_button is not None
+    assert viewer.load_readonly_batch_button is not None
+    assert f"({len(ro_net)})" in viewer.copy_readonly_bundle_button.text()
+    assert f"({len(ro_net)})" in viewer.load_readonly_batch_button.text()
+    assert "remediation" in viewer.copy_readonly_bundle_button.toolTip().lower()
+    assert "Ctrl+Shift+B" in viewer.copy_readonly_bundle_button.toolTip()
+    assert "remediation" in viewer.load_readonly_batch_button.toolTip().lower()
+
+    sc.clipboard_service.copy_to_clipboard = MagicMock(return_value=True)
+    viewer.copy_readonly_bundle_button.click()
+    qapp.processEvents()
+
+    sc.clipboard_service.copy_to_clipboard.assert_called_once()
+    bundled = sc.clipboard_service.copy_to_clipboard.call_args[0][0]
+    assert bundled.count("& {") == len(ro_net)
+    for rel_path in ro_paths:
+        assert rel_path in bundled
+    for rem_path in rem_paths:
+        assert rem_path not in bundled
+        assert Path(rem_path).stem not in bundled
+    assert "dc01.domain.local" in bundled
+    assert "[int]$Port = 636" in bundled
+
+    toast = win.status_bar.currentMessage()
+    assert f"{len(ro_net)} read-only" in toast
+    assert f"excluded {len(rem_net)} remediation" in toast
+
+    # Pure read-only playbook (win-003) bundles all linked scripts without exclusion note
+    ro_win3, rem_win3 = partition_linked_scripts(svc.get_scripts_for_playbook("win-003"))
+    assert len(ro_win3) >= 2
+    assert len(rem_win3) == 0
+
+    win.playbooks_workspace.navigate_to_playbook("win-003")
+    qapp.processEvents()
+    assert viewer.copy_readonly_bundle_button is not None
+    assert f"({len(ro_win3)})" in viewer.copy_readonly_bundle_button.text()
+
+    sc.clipboard_service.copy_to_clipboard.reset_mock()
+    viewer.copy_readonly_bundle_button.click()
+    qapp.processEvents()
+
+    sc.clipboard_service.copy_to_clipboard.assert_called_once()
+    win3_bundle = sc.clipboard_service.copy_to_clipboard.call_args[0][0]
+    assert win3_bundle.count("& {") == len(ro_win3)
+    for item in ro_win3:
+        assert item.relative_path in win3_bundle
+    assert "excluded" not in win.status_bar.currentMessage().lower()
+
+    # Defense-in-depth: direct EventBus emit containing a remediation script still excludes it
+    sc.clipboard_service.copy_to_clipboard.reset_mock()
+    win.event_bus.copy_scripts_bundle_requested.emit(ro_paths + rem_paths, True)
+    qapp.processEvents()
+    sc.clipboard_service.copy_to_clipboard.assert_called_once()
+    guarded_bundle = sc.clipboard_service.copy_to_clipboard.call_args[0][0]
+    assert guarded_bundle.count("& {") == len(ro_net)
+    for rem_path in rem_paths:
+        assert rem_path not in guarded_bundle
+    assert f"excluded {len(rem_net)} remediation" in win.status_bar.currentMessage()
+
+
+def test_playbook_hides_bundle_buttons_when_fewer_than_two_readonly_scripts(
+    shell_window_factory, qapp
+) -> None:
+    win = shell_window_factory()
+    win.show()
+    win.set_mode(MODE_PLAYBOOKS)
+    viewer = win.playbooks_workspace.viewer
+
+    svc = CrossLinkService(
+        guideit_db_path=win.playbooks_workspace.db_path,
+        catalog_repo=win.scripts_workspace.repo,
+    )
+    for pb_id in ("prt-001", "win-001", "win-002", "m365-005"):
+        ro_items, _ = partition_linked_scripts(svc.get_scripts_for_playbook(pb_id))
+        assert len(ro_items) < 2
+
+        win.playbooks_workspace.navigate_to_playbook(pb_id)
+        qapp.processEvents()
+
+        assert viewer.current_playbook_id == pb_id
+        assert viewer.can_copy_readonly_bundle() is False
+        assert viewer.copy_readonly_bundle_button is None
+        assert viewer.load_readonly_batch_button is None
+
+
+def test_load_readonly_batch_switches_mode_clears_prior_checks_and_excludes_remediation(
+    shell_window_factory, qapp
+) -> None:
+    win = shell_window_factory()
+    win.show()
+    sc = win.scripts_workspace
+    viewer = win.playbooks_workspace.viewer
+
+    svc = CrossLinkService(
+        guideit_db_path=win.playbooks_workspace.db_path,
+        catalog_repo=sc.repo,
+    )
+    ro_net, rem_net = partition_linked_scripts(svc.get_scripts_for_playbook("net-001"))
+    assert len(ro_net) >= 2
+    assert len(rem_net) >= 1
+    expected_ro_paths = [s.relative_path for s in ro_net]
+    rem_path_set = {s.relative_path for s in rem_net}
+
+    # Pre-check an unrelated read-only script + a remediation script and set a restrictive filter
+    sc.catalog_view.set_script_checked("01_System/Get-OSInformation.ps1", True)
+    sc.catalog_view.set_script_checked("04_Devices/Reset-PrintSpooler.ps1", True)
+    assert sc.catalog_view.get_checked_count() == 2
+    sc.sidebar.search_input.setText("Disk")
+    qapp.processEvents()
+    assert sc.sidebar.has_active_filters() is True
+
+    win.set_mode(MODE_PLAYBOOKS)
+    win.playbooks_workspace.navigate_to_playbook("net-001")
+    qapp.processEvents()
+
+    assert viewer.load_readonly_batch_button is not None
+    viewer.load_readonly_batch_button.click()
+    qapp.processEvents()
+
+    assert win.current_mode == MODE_SCRIPTS
+    assert sc.sidebar.has_active_filters() is False
+    checked_paths = [s.relative_path for s in sc.catalog_view.get_checked_scripts()]
+    assert checked_paths == expected_ro_paths
+    assert set(checked_paths).isdisjoint(rem_path_set)
+    assert "01_System/Get-OSInformation.ps1" not in checked_paths
+    assert "04_Devices/Reset-PrintSpooler.ps1" not in checked_paths
+
+    # Verify table row checkboxes visually reflect ONLY expected read-only scripts
+    row_checked_paths: list[str] = []
+    for row in range(sc.catalog_view.table.rowCount()):
+        item = sc.catalog_view.table.item(row, 0)
+        assert item is not None
+        script = item.data(Qt.ItemDataRole.UserRole)
+        if item.checkState() == Qt.CheckState.Checked:
+            row_checked_paths.append(script.relative_path)
+    assert set(row_checked_paths) == set(expected_ro_paths)
+
+    assert sc._current_script is not None
+    assert sc._current_script.relative_path == expected_ro_paths[0]
+    toast = win.status_bar.currentMessage()
+    assert f"{len(expected_ro_paths)} read-only" in toast
+    assert f"excluded {len(rem_net)} remediation" in toast
+
+    # Defense-in-depth: direct EventBus batch load with a remediation path excludes it
+    sc.catalog_view.set_script_checked("01_System/Get-OSInformation.ps1", True)
+    win.event_bus.select_scripts_batch_requested.emit(
+        expected_ro_paths + list(rem_path_set)
+    )
+    qapp.processEvents()
+    assert [s.relative_path for s in sc.catalog_view.get_checked_scripts()] == expected_ro_paths
+
+
+def test_ctrl_shift_b_shortcut_triggers_readonly_bundle_copy(
+    shell_window_factory, qapp
+) -> None:
+    win = shell_window_factory()
+    win.show()
+    sc = win.scripts_workspace
+    sc.clipboard_service.copy_to_clipboard = MagicMock(return_value=True)
+
+    shortcut = win.shortcuts["copy_linked_readonly_bundle"]
+    assert [seq.toString() for seq in shortcut.keys()] == ["Ctrl+Shift+B"]
+
+    svc = CrossLinkService(
+        guideit_db_path=win.playbooks_workspace.db_path,
+        catalog_repo=sc.repo,
+    )
+    ro_net, rem_net = partition_linked_scripts(svc.get_scripts_for_playbook("net-001"))
+
+    # 1. Playbooks mode with 2+ read-only scripts -> copies read-only bundle
+    win.set_mode(MODE_PLAYBOOKS)
+    win.playbooks_workspace.navigate_to_playbook("net-001")
+    qapp.processEvents()
+    shortcut.activated.emit()
+    qapp.processEvents()
+
+    sc.clipboard_service.copy_to_clipboard.assert_called_once()
+    copied = sc.clipboard_service.copy_to_clipboard.call_args[0][0]
+    assert copied.count("& {") == len(ro_net)
+    for rem_item in rem_net:
+        assert rem_item.relative_path not in copied
+
+    # 2. Split View mode with 2+ read-only scripts -> also copies cleanly
+    sc.clipboard_service.copy_to_clipboard.reset_mock()
+    win.set_mode(MODE_SPLIT)
+    qapp.processEvents()
+    shortcut.activated.emit()
+    qapp.processEvents()
+    sc.clipboard_service.copy_to_clipboard.assert_called_once()
+
+    # 3. Playbooks mode with < 2 read-only scripts (prt-001) -> no clipboard write
+    sc.clipboard_service.copy_to_clipboard.reset_mock()
+    win.set_mode(MODE_PLAYBOOKS)
+    win.playbooks_workspace.navigate_to_playbook("prt-001")
+    qapp.processEvents()
+    shortcut.activated.emit()
+    qapp.processEvents()
+    sc.clipboard_service.copy_to_clipboard.assert_not_called()
+    assert "fewer than 2" in win.status_bar.currentMessage().lower()
+
+    # 4. Scripts mode -> context-aware guard prevents bundle copy from hidden playbook
+    win.playbooks_workspace.navigate_to_playbook("net-001")
+    win.set_mode(MODE_SCRIPTS)
+    qapp.processEvents()
+    shortcut.activated.emit()
+    qapp.processEvents()
+    sc.clipboard_service.copy_to_clipboard.assert_not_called()
+    assert "playbooks" in win.status_bar.currentMessage().lower()

@@ -128,6 +128,38 @@ QPushButton#linkedScriptPill:hover {{
     color: #FFFFFF;
 }}
 
+QPushButton#readOnlyBundleButton {{
+    background-color: #0F2922;
+    color: #34D399;
+    border: 1px solid #10B981;
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}}
+
+QPushButton#readOnlyBundleButton:hover {{
+    background-color: #133A2E;
+    border-color: #34D399;
+    color: #FFFFFF;
+}}
+
+QPushButton#readOnlyBatchButton {{
+    background-color: #112A3E;
+    color: #38BDF8;
+    border: 1px solid #1E5D82;
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}}
+
+QPushButton#readOnlyBatchButton:hover {{
+    background-color: #163954;
+    border-color: #38BDF8;
+    color: #FFFFFF;
+}}
+
 QFrame#remediationSectionCard {{
     background-color: #1B1715;
     border: 1px solid {REMEDIATION_BORDER};

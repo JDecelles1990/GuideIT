@@ -121,6 +121,45 @@ class SidebarView(QFrame):
         hotkey_layout.addWidget(hotkey_text, 1)
         layout.addWidget(hotkey_box)
 
+    def has_active_filters(self) -> bool:
+        """Return True if any category, search, risk, or edition filter is active."""
+        if self._current_category != "All":
+            return True
+        if bool(self.search_input.text().strip()):
+            return True
+        if self.risk_combo.currentText() not in ("All", "All Risks"):
+            return True
+        if self.edition_combo.currentText() not in ("All", "All Editions"):
+            return True
+        return False
+
+    def reset_filters(self, emit_signal: bool = True) -> None:
+        """Reset category, search, risk, and edition filters to show all scripts."""
+        self._current_category = "All"
+        self.search_input.blockSignals(True)
+        self.risk_combo.blockSignals(True)
+        self.edition_combo.blockSignals(True)
+        self.category_list.blockSignals(True)
+        try:
+            self.search_input.clear()
+            self.risk_combo.setCurrentIndex(0)
+            self.edition_combo.setCurrentIndex(0)
+            for idx in range(self.category_list.count()):
+                item = self.category_list.item(idx)
+                is_all = bool(item and item.data(100) == "All")
+                if item is not None:
+                    item.setSelected(is_all)
+                    if is_all:
+                        self.category_list.setCurrentItem(item)
+        finally:
+            self.search_input.blockSignals(False)
+            self.risk_combo.blockSignals(False)
+            self.edition_combo.blockSignals(False)
+            self.category_list.blockSignals(False)
+
+        if emit_signal:
+            self._on_filter_changed()
+
     def set_startup_checked(self, enabled: bool) -> None:
         """Sets the startup checkbox state without emitting signals."""
         self.startup_checkbox.blockSignals(True)

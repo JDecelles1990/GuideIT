@@ -39,7 +39,11 @@ from guideit_master.guideit.ui.theme import (
     TIER_COLORS,
 )
 from guideit_master.guideit.ui.widgets.code_block import CodeBlockWidget
-from guideit_master.services.cross_link_service import LinkedScriptSummary, parse_psstore_uri
+from guideit_master.services.cross_link_service import (
+    LinkedScriptSummary,
+    parse_psstore_uri,
+    partition_linked_scripts,
+)
 from guideit_master.ui.flow_layout import FlowLayout
 
 _FlowLayout = FlowLayout
@@ -70,6 +74,8 @@ class PlaybookViewer(QFrame):
     status_message = Signal(str)
     open_script_requested = Signal(str, dict, bool)
     copy_script_requested = Signal(str, dict, bool)
+    copy_scripts_bundle_requested = Signal(list, bool)
+    select_scripts_batch_requested = Signal(list)
     run_script_requested = Signal(str, dict)
 
     def __init__(self, parent=None) -> None:
@@ -84,6 +90,11 @@ class PlaybookViewer(QFrame):
         self.linked_script_cards: dict[str, QFrame] = {}
         self.linked_script_buttons: dict[str, dict[str, QPushButton]] = {}
         self.linked_script_header_pills: dict[str, QPushButton] = {}
+        self.copy_readonly_bundle_button: QPushButton | None = None
+        self.load_readonly_batch_button: QPushButton | None = None
+        self._linked_readonly_paths: list[str] = []
+        self._linked_remediation_count: int = 0
+        self._copy_readonly_bundle_timer: QTimer | None = None
         self.copy_en_button: QPushButton | None = None
         self.copy_fr_button: QPushButton | None = None
         self.back_button: QPushButton | None = None
@@ -105,6 +116,38 @@ class PlaybookViewer(QFrame):
         if self.back_button is not None:
             self.back_button.setEnabled(enabled)
 
+    @property
+    def linked_readonly_paths(self) -> list[str]:
+        return list(self._linked_readonly_paths)
+
+    @property
+    def linked_remediation_count(self) -> int:
+        return self._linked_remediation_count
+
+    def can_copy_readonly_bundle(self) -> bool:
+        """Return True when the active playbook has 2+ linked existing read-only scripts."""
+        return len(self._linked_readonly_paths) >= 2
+
+    def trigger_copy_readonly_bundle(self) -> bool:
+        """Emit bundle-copy request for linked read-only scripts if 2+ exist."""
+        if not self.can_copy_readonly_bundle():
+            return False
+        if (
+            self.copy_readonly_bundle_button is not None
+            and self._copy_readonly_bundle_timer is not None
+        ):
+            self.copy_readonly_bundle_button.setText("Copied ✓")
+            self._copy_readonly_bundle_timer.start(1500)
+        self.copy_scripts_bundle_requested.emit(list(self._linked_readonly_paths), True)
+        return True
+
+    def trigger_load_readonly_batch(self) -> bool:
+        """Emit batch-select request for linked read-only scripts if 2+ exist."""
+        if not self.can_copy_readonly_bundle():
+            return False
+        self.select_scripts_batch_requested.emit(list(self._linked_readonly_paths))
+        return True
+
     def clear_view(
         self,
         message: str = "Select a playbook from the results pane to inspect L1–L3 diagnostics.",
@@ -118,6 +161,11 @@ class PlaybookViewer(QFrame):
         self.linked_script_cards.clear()
         self.linked_script_buttons.clear()
         self.linked_script_header_pills.clear()
+        self.copy_readonly_bundle_button = None
+        self.load_readonly_batch_button = None
+        self._linked_readonly_paths = []
+        self._linked_remediation_count = 0
+        self._copy_readonly_bundle_timer = None
         self.copy_en_button = None
         self.copy_fr_button = None
         self.back_button = None
@@ -160,6 +208,11 @@ class PlaybookViewer(QFrame):
         self.linked_script_cards.clear()
         self.linked_script_buttons.clear()
         self.linked_script_header_pills.clear()
+        self.copy_readonly_bundle_button = None
+        self.load_readonly_batch_button = None
+        self._linked_readonly_paths = []
+        self._linked_remediation_count = 0
+        self._copy_readonly_bundle_timer = None
         self.copy_en_button = None
         self.copy_fr_button = None
 
@@ -518,16 +571,72 @@ class PlaybookViewer(QFrame):
         layout.setContentsMargins(16, 13, 16, 14)
         layout.setSpacing(10)
 
-        head_row = QHBoxLayout()
-        head_row.setSpacing(8)
-        heading_lbl = QLabel("⚡ Linked Diagnostic & Remediation Scripts", body_widget)
+        readonly_scripts, remediation_scripts = partition_linked_scripts(linked_scripts)
+        self._linked_readonly_paths = [s.relative_path for s in readonly_scripts]
+        self._linked_remediation_count = len(remediation_scripts)
+
+        head_wrap = QWidget(body_widget)
+        head_wrap.setStyleSheet("background: transparent;")
+        head_flow = FlowLayout(head_wrap, spacing=8)
+        head_flow.setContentsMargins(0, 0, 0, 0)
+
+        title_group = QWidget(head_wrap)
+        title_group.setStyleSheet("background: transparent;")
+        title_row = QHBoxLayout(title_group)
+        title_row.setContentsMargins(0, 0, 0, 0)
+        title_row.setSpacing(8)
+        heading_lbl = QLabel("⚡ Linked Diagnostic & Remediation Scripts", title_group)
         heading_lbl.setStyleSheet(
             "font-size: 15px; font-weight: 700; color: #F0F6FC; background: transparent;"
         )
-        head_row.addWidget(heading_lbl)
-        head_row.addWidget(_pill_label(pill_label, pill_bg, accent_color, "#DDD6FE", body_widget))
-        head_row.addStretch(1)
-        layout.addLayout(head_row)
+        title_row.addWidget(heading_lbl)
+        title_row.addWidget(
+            _pill_label(pill_label, pill_bg, accent_color, "#DDD6FE", title_group)
+        )
+        head_flow.addWidget(title_group)
+
+        if len(readonly_scripts) >= 2:
+            ro_count = len(readonly_scripts)
+            rem_count = len(remediation_scripts)
+            excl_note = (
+                f"excludes {rem_count} remediation script{'s' if rem_count != 1 else ''}"
+                if rem_count > 0
+                else "remediation scripts are always excluded"
+            )
+
+            actions_group = QWidget(head_wrap)
+            actions_group.setStyleSheet("background: transparent;")
+            actions_row = QHBoxLayout(actions_group)
+            actions_row.setContentsMargins(0, 0, 0, 0)
+            actions_row.setSpacing(6)
+
+            bundle_label = f"📦 Copy Read-Only Bundle ({ro_count})"
+            btn_bundle = QPushButton(bundle_label, actions_group)
+            btn_bundle.setObjectName("readOnlyBundleButton")
+            btn_bundle.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_bundle.setToolTip(
+                f"Copy {ro_count} linked READ-ONLY scripts as a single RMM-ready "
+                f"PowerShell 5.1 bundle ({excl_note}) (Ctrl+Shift+B)"
+            )
+            self._copy_readonly_bundle_timer = _attach_copy_feedback(btn_bundle, bundle_label)
+            btn_bundle.clicked.connect(self.trigger_copy_readonly_bundle)
+            self.copy_readonly_bundle_button = btn_bundle
+            actions_row.addWidget(btn_bundle)
+
+            btn_batch = QPushButton(f"☑ Load Read-Only Batch ({ro_count})", actions_group)
+            btn_batch.setObjectName("readOnlyBatchButton")
+            btn_batch.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_batch.setToolTip(
+                f"Switch to Scripts workstation (Alt+2), clear prior checkboxes, and check "
+                f"only the {ro_count} linked READ-ONLY scripts ({excl_note})"
+            )
+            btn_batch.clicked.connect(self.trigger_load_readonly_batch)
+            self.load_readonly_batch_button = btn_batch
+            actions_row.addWidget(btn_batch)
+
+            head_flow.addWidget(actions_group)
+
+        layout.addWidget(head_wrap)
 
         for summary in linked_scripts:
             sub_card = QFrame(body_widget)

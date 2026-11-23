@@ -546,6 +546,142 @@ class ScriptsWorkspaceWidget(QWidget):
 
         return True
 
+    def _resolve_readonly_scripts(
+        self,
+        relative_paths: list[str],
+        *,
+        excluded_remediation_count: int = 0,
+    ) -> tuple[list[ScriptRecord], int]:
+        """Resolve canonical paths to read-only ScriptRecords, strictly excluding remediations."""
+        readonly_scripts: list[ScriptRecord] = []
+        seen: set[str] = set()
+        excluded_in_input = 0
+
+        for raw in relative_paths:
+            norm_rel = str(raw).strip().replace("\\", "/")
+            if not norm_rel or norm_rel in seen:
+                continue
+            seen.add(norm_rel)
+            script = self.repo.get_script_by_path(norm_rel)
+            if script is None:
+                continue
+            if script.risk_level == "remediation":
+                excluded_in_input += 1
+                continue
+            if script.risk_level == "read_only":
+                readonly_scripts.append(script)
+
+        effective_excluded = (
+            excluded_in_input
+            if excluded_in_input > 0
+            else max(0, int(excluded_remediation_count))
+        )
+        return readonly_scripts, effective_excluded
+
+    @staticmethod
+    def _format_readonly_toast(
+        action: str,
+        count: int,
+        excluded_remediation: int,
+        *,
+        rmm_ready: bool = True,
+    ) -> str:
+        script_word = "script" if count == 1 else "scripts"
+        rem_note = (
+            f" (excluded {excluded_remediation} remediation script"
+            f"{'s' if excluded_remediation != 1 else ''})"
+            if excluded_remediation > 0
+            else ""
+        )
+        if action == "copy":
+            mode_str = "RMM" if rmm_ready else "raw"
+            return f"📦 Copied {count} read-only {mode_str} {script_word} as bundle{rem_note}"
+        return f"☑ Loaded {count} read-only {script_word} into batch{rem_note}"
+
+    def copy_readonly_scripts_bundle(
+        self,
+        relative_paths: list[str],
+        *,
+        rmm_ready: bool = True,
+        excluded_remediation_count: int = 0,
+        emit_status: bool = True,
+    ) -> str:
+        """Bundle and copy ONLY linked read_only scripts, respecting saved parameters."""
+        readonly_scripts, excluded = self._resolve_readonly_scripts(
+            relative_paths,
+            excluded_remediation_count=excluded_remediation_count,
+        )
+        if not readonly_scripts:
+            if emit_status:
+                self._emit_status(
+                    "No read-only scripts available to bundle (remediation scripts are excluded).",
+                    4000,
+                )
+            return ""
+
+        try:
+            if rmm_ready:
+                items = [
+                    (s.title, s.relative_path, self._get_effective_params(s))
+                    for s in readonly_scripts
+                ]
+                content = self.clipboard_service.copy_rmm_ready_scripts(items)
+            else:
+                items_raw = [(s.title, s.relative_path) for s in readonly_scripts]
+                content = self.clipboard_service.copy_raw_scripts(items_raw)
+        except Exception as exc:
+            logger.warning("Failed to copy read-only script bundle: %s", exc)
+            if emit_status:
+                self._emit_status(f"Failed to copy read-only script bundle: {exc}", 5000)
+            return ""
+
+        msg = self._format_readonly_toast(
+            "copy",
+            len(readonly_scripts),
+            excluded,
+            rmm_ready=rmm_ready,
+        )
+        if emit_status:
+            self._emit_status(msg, 5000)
+        return content
+
+    def load_readonly_scripts_batch(
+        self,
+        relative_paths: list[str],
+        *,
+        excluded_remediation_count: int = 0,
+        emit_status: bool = True,
+    ) -> tuple[int, int, str]:
+        """Clear prior checkboxes, check ONLY linked read_only scripts, and select the first."""
+        readonly_scripts, excluded = self._resolve_readonly_scripts(
+            relative_paths,
+            excluded_remediation_count=excluded_remediation_count,
+        )
+        if not readonly_scripts:
+            msg = "No read-only scripts available to load into batch (remediation scripts are excluded)."
+            if emit_status:
+                self._emit_status(msg, 4000)
+            return 0, excluded, msg
+
+        if self.sidebar.has_active_filters():
+            self.sidebar.reset_filters(emit_signal=False)
+            self._on_filters_changed("All", "", "All", "All")
+
+        self.catalog_view.set_checked_scripts(readonly_scripts)
+        first = readonly_scripts[0]
+        if first.id is not None:
+            self.catalog_view.select_script_by_id(first.id)
+        if (
+            self._current_script is None
+            or self._current_script.relative_path != first.relative_path
+        ):
+            self._on_script_selected(first)
+
+        msg = self._format_readonly_toast("batch", len(readonly_scripts), excluded)
+        if emit_status:
+            self._emit_status(msg, 5000)
+        return len(readonly_scripts), excluded, msg
+
     def sync_and_refresh(self, show_toast: bool = True) -> None:
         summary = self.scanner.sync_catalog()
         categories = self.repo.get_categories_with_counts()

@@ -111,6 +111,8 @@ def combine_scripts_bundle(
 
 
 class ClipboardService:
+    combine_scripts_bundle = staticmethod(combine_scripts_bundle)
+
     def __init__(
         self,
         scripts_dir: Path | str | None = None,

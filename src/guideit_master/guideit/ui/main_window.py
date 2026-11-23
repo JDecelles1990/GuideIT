@@ -294,6 +294,8 @@ class PlaybooksWorkspaceWidget(QWidget):
         self.viewer.status_message.connect(lambda msg: self._emit_status(msg, 3000))
         self.viewer.open_script_requested.connect(self._on_viewer_open_script)
         self.viewer.copy_script_requested.connect(self._on_viewer_copy_script)
+        self.viewer.copy_scripts_bundle_requested.connect(self._on_viewer_copy_scripts_bundle)
+        self.viewer.select_scripts_batch_requested.connect(self._on_viewer_select_scripts_batch)
         self.viewer.run_script_requested.connect(self._on_viewer_run_script)
 
     def _setup_shortcuts(self) -> None:
@@ -311,6 +313,9 @@ class PlaybooksWorkspaceWidget(QWidget):
 
         back_sc = QShortcut(QKeySequence("Alt+Left"), self)
         back_sc.activated.connect(self.navigate_back)
+
+        bundle_sc = QShortcut(QKeySequence("Ctrl+Shift+B"), self)
+        bundle_sc.activated.connect(self.trigger_copy_readonly_bundle)
 
         esc_sc = QShortcut(QKeySequence("Escape"), self.search_input)
         esc_sc.activated.connect(self.handle_escape)
@@ -470,6 +475,20 @@ class PlaybooksWorkspaceWidget(QWidget):
     ) -> None:
         if self.event_bus is not None:
             self.event_bus.copy_script_requested.emit(relative_path, param_overrides, rmm_ready)
+
+    def _on_viewer_copy_scripts_bundle(
+        self, relative_paths: list[str], rmm_ready: bool
+    ) -> None:
+        if self.event_bus is not None:
+            self.event_bus.copy_scripts_bundle_requested.emit(relative_paths, rmm_ready)
+
+    def _on_viewer_select_scripts_batch(self, relative_paths: list[str]) -> None:
+        if self.event_bus is not None:
+            self.event_bus.select_scripts_batch_requested.emit(relative_paths)
+
+    def trigger_copy_readonly_bundle(self) -> bool:
+        """Trigger copying the active playbook's linked read-only RMM script bundle."""
+        return self.viewer.trigger_copy_readonly_bundle()
 
     def _on_viewer_run_script(self, relative_path: str, param_overrides: dict) -> None:
         if self.event_bus is not None:

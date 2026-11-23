@@ -14,6 +14,8 @@ class AppEventBus(QObject):
 
     open_script_requested = Signal(str, dict, bool)  # (relative_path, param_overrides, split_view)
     copy_script_requested = Signal(str, dict, bool)  # (relative_path, param_overrides, rmm_ready)
+    copy_scripts_bundle_requested = Signal(list, bool)  # (relative_paths, rmm_ready)
+    select_scripts_batch_requested = Signal(list)       # (relative_paths,)
     run_script_requested = Signal(str, dict)         # (relative_path, param_overrides)
     open_playbook_requested = Signal(str, bool)      # (playbook_id, split_view)
     catalog_synced = Signal()
