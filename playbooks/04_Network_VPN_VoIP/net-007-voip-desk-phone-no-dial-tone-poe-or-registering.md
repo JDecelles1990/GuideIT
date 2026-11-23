@@ -101,6 +101,10 @@ linked_scripts:
 - **Phone gets 169.254.x.x or no IP alongside workstation PC on same drop:** [net-001 — No Internet, APIPA 169.254.x.x, DNS, and VPN Split-Tunnel Triage](./net-001-dns-apipa-vpn-triage.md)
 - **Entire Voice VLAN scope ran out of DHCP leases on Windows Server:** [srv-012 — Windows Server DHCP Scope Exhausted, DNS AD Load Failure, and Kerberos Time Skew](../08_Servers_Cloud_Infra/srv-012-windows-dhcp-exhausted-dns-forwarder-and-ntp-skew.md)
 
+
+## Useful Links & External Tools
+- **[IPv4 CIDR Subnet Calculator (ipcalc)](https://jodies.de/ipcalc)** — Verify Voice VLAN subnet mask, gateway, and DHCP pool boundaries.
+- **[Downdetector](https://downdetector.com/)** — Check upstream SIP trunk / VoIP provider outage reports.
 ## Client Update Snippets (EN / FR)
 - **EN:** We checked the VoIP desk phone cabling / PoE link and SIP registration, re-synced the line profile, and verified dial tone and two-way call audio. Could you try picking up the handset and placing a quick test call?
 - **FR:** Nous avons vérifié le câblage / alimentation PoE et l'enregistrement SIP de votre poste téléphonique VoIP, resynchronisé le profil de ligne et validé la tonalité. Pouvez-vous effectuer un court appel test pour confirmer que tout fonctionne ?

@@ -102,6 +102,9 @@ linked_scripts:
 - **Microsoft Defender real-time AV/ASR scanning pins CPU/disk on LOB databases:** [sec-002 — Microsoft Defender ASR Rule or Antivirus Blocking Legitimate LOB App or Macro](../06_Security_Access/sec-002-defender-asr-block-and-false-positive.md)
 - **Stuck TrustedInstaller (TiWorker.exe) update cycle saturates CPU and disk I/O:** [win-001 — Windows Update Failure and Component Store Corruption](./win-001-windows-update-corruption.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Rule out known Windows update/Defender CPU or disk regressions.
 ## Client Update Snippets (EN / FR)
 - **EN:** We traced the high CPU / disk / memory bottleneck on `PC-LAB-01`, cleaned up the runaway startup/driver workload, and verified responsive system performance after a clean reboot. Could you test your applications now and confirm the slowdown is resolved?
 - **FR:** Nous avons identifié la cause de la saturation processeur / disque / mémoire sur `PC-LAB-01`, corrigé le processus / pilote en cause et vérifié la fluidité après un redémarrage complet. Pouvez-vous tester vos logiciels et confirmer que la lenteur est réglée ?

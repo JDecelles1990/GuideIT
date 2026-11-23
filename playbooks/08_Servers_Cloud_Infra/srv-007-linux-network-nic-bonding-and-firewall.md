@@ -114,6 +114,11 @@ related_ids:
 - **Firewall rules (ufw/firewalld/nftables) block SSH TCP port 22 access:** [srv-008 — Linux SSH Permission Denied, Key Auth, Host Key Mismatch, and PAM Lockout](./srv-008-linux-ssh-permission-denied-and-pam-lockout.md)
 - **systemd-networkd or NetworkManager daemon crashed after configuration edit:** [srv-004 — Linux systemd Service Crash, Exit Codes, and journalctl Diagnostics](./srv-004-linux-systemd-service-crash-and-journalctl.md)
 
+
+## Useful Links & External Tools
+- **[IPv4 CIDR Subnet Calculator (ipcalc)](https://jodies.de/ipcalc)** — Validate server CIDR masks, broadcast, and gateway IPs.
+- **[Visual Subnet Calculator](https://www.davidc.net/sites/default/subnets/subnets.html)** — Plan non-overlapping VLAN/rack subnet splits.
+- **[Hurricane Electric BGP Toolkit](https://bgp.he.net/)** — Verify upstream ASN and public prefix routing.
 ## Client Update Snippets (EN / FR)
 - **EN:** We traced the Linux server network / bond / firewall fault (`NO-CARRIER` / routing / host firewall rule), applied the scoped configuration fix, and verified end-to-end reachability.
 - **FR:** Nous avons diagnostiqué l'incident réseau / pare-feu / agrégation LACP sur le serveur Linux, appliqué le correctif ciblé et validé le rétablissement complet de la connectivité.

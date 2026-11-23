@@ -40,6 +40,7 @@ related_ids:
   - app-003
   - sec-002
 linked_scripts:
+  - 05_Security_Defender/Get-PersistenceAndConnectionsAudit.ps1
   - 03_M365/Clear-BrowserCache.ps1
 ---
 
@@ -99,6 +100,10 @@ linked_scripts:
 - **Adobe Acrobat opens PDFs cleanly as default yet asks for sign-in / fails activation:** [app-003 — Adobe Acrobat and Creative Cloud Licensing Errors, Sign-In Loops, and Repair](./app-003-adobe-acrobat-creative-cloud-licensing-and-repair.md)
 - **Suspicious download / adware triggered Microsoft Defender alert or ASR block:** [sec-002 — Microsoft Defender ASR Rule or Antivirus Blocking Legitimate LOB App or Macro](../06_Security_Access/sec-002-defender-asr-block-and-false-positive.md)
 
+
+## Useful Links & External Tools
+- **[VirusTotal](https://www.virustotal.com/)** — Check suspicious extension IDs or downloaded installer SHA-256 hashes.
+- **[URLScan.io](https://urlscan.io/)** — Safely inspect suspicious popup/redirect URLs in an unlisted sandbox.
 ## Client Update Snippets (EN / FR)
 - **EN:** We removed the unwanted browser notification permissions / extensions, refreshed the browser cache safely without erasing your bookmarks, and restored your default PDF / email handler settings on `PC-LAB-01`. Could you test opening your browser and a PDF file to confirm everything looks clean?
 - **FR:** Nous avons supprimé les notifications et extensions indésirables du navigateur, vidé le cache en toute sécurité (tout en conservant vos favoris) et rétabli les applications par défaut PDF / courriel sur `PC-LAB-01`. Pouvez-vous tester votre navigateur et l'ouverture d'un PDF pour confirmer que tout est revenu à la normale ?

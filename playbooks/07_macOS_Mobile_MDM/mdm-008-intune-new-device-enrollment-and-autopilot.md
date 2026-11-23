@@ -109,6 +109,11 @@ related_ids:
 - **Autopilot OOBE / ESP (80072ee7) fails because DNS or proxy blocks Intune/Entra URLs:** [net-001 — No Internet, APIPA 169.254.x.x, DNS, and VPN Split-Tunnel Triage](../04_Network_VPN_VoIP/net-001-dns-apipa-vpn-triage.md)
 - **Hybrid Entra Join Autopilot hangs on ODJ domain-join connector or GPO retrieval:** [id-004 — Active Directory GPO Not Applying, SYSVOL Permissions, and DFSR Replication Errors](../01_Identity_AD_Entra/id-004-ad-gpo-not-applying-replication-and-dfsr.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Verify Autopilot hardware hash import, ESP profile, and enrollment restrictions.
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Check MDM user scope and device limit quotas.
+- **[M365 Maps (Microsoft Licensing Matrix)](https://m365maps.com/)** — Confirm user holds an Intune-entitled M365 license.
 ## Client Update Snippets (EN / FR)
 - **EN:** We imported the device into Intune / Autopilot, cleared the enrollment restriction, and verified successful MDM provisioning. Please sign in with `jsmith@example.com` and allow 10–15 minutes for company policies and apps to finish syncing.
 - **FR:** Nous avons enregistré l'appareil dans Intune / Autopilot, levé l'erreur d'inscription et confirmé le déploiement MDM. Veuillez vous connecter avec `jsmith@example.com` et patienter 10 à 15 minutes pour la synchronisation finale des stratégies et applications.

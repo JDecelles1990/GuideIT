@@ -60,9 +60,9 @@ linked_scripts:
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Web & Admin Center GUI)
 1. **Quick Shared Mailbox Workaround & Check (`Outlook Web` + `Exchange Admin Center`):**
-   - Have `jsmith@example.com` open **`https://outlook.office.com` -> click top-right Avatar -> Open another mailbox -> type `sales@example.org`**: if it opens cleanly on the Web, permissions ARE active and Desktop Outlook just needs propagation time or manual folder add!
-   - In **Exchange Admin Center (`admin.exchange.microsoft.com`) -> Recipients -> Mailboxes -> `sales@example.org` -> Delegation**: check whether `Read and manage (Full Access)` was given **directly** to `jsmith@example.com` vs nested inside a **Security Group** (Security Groups don't automap in Outlook!).
-2. **Check Quarantine & Message Trace in GUI:** Open **`security.microsoft.com` -> Email & collaboration -> Review -> Quarantine** (filter by sender/recipient) and **Exchange Admin Center -> Mail flow -> Message trace** to see `Delivered` vs `Quarantined` vs `Failed`!
+   - Have `jsmith@example.com` open **[Outlook on the Web](https://outlook.office.com/) -> click top-right Avatar -> Open another mailbox -> type `sales@example.org`**: if it opens cleanly on the Web, permissions ARE active and Desktop Outlook just needs propagation time or manual folder add!
+   - In **Exchange Admin Center ([Exchange Admin Center](https://admin.exchange.microsoft.com/)) -> Recipients -> Mailboxes -> `sales@example.org` -> Delegation**: check whether `Read and manage (Full Access)` was given **directly** to `jsmith@example.com` vs nested inside a **Security Group** (Security Groups don't automap in Outlook!).
+2. **Check Quarantine & Message Trace in GUI:** Open **[Microsoft Defender Portal](https://security.microsoft.com/) -> Email & collaboration -> Review -> Quarantine** (filter by sender/recipient) and **Exchange Admin Center -> Mail flow -> Message trace** to see `Delivered` vs `Quarantined` vs `Failed`!
 
 ### L2 Technical Diagnostics
 1. **Inspect Exchange Online Message Trace & Defender Quarantine (read-only):**
@@ -71,7 +71,7 @@ linked_scripts:
    Get-MessageTrace -SenderAddress "jsmith@example.com" -StartDate (Get-Date).AddDays(-2) -EndDate (Get-Date) |
        Select-Object Received, RecipientAddress, Subject, Status | Format-Table -AutoSize
    ```
-   Also check **Microsoft Defender Portal -> Review -> Quarantine** (`security.microsoft.com`) for held inbound/outbound messages.
+   Also check **Microsoft Defender Portal -> Review -> Quarantine** ([Microsoft Defender Portal](https://security.microsoft.com/)) for held inbound/outbound messages.
 2. **Check Shared Mailbox Permissions & Automapping State (read-only):**
    ```powershell
    Get-MailboxPermission -Identity "sales@example.org" |
@@ -111,6 +111,9 @@ linked_scripts:
 - **[MXToolbox SuperTool](https://mxtoolbox.com/SuperTool.aspx)** — Run `mx:`, `spf:`, `dmarc:`, and `blacklist:` checks on sending domains/IPs when diagnosing `550 5.7.1` bounces.
 - **[Microsoft Remote Connectivity Analyzer](https://testconnectivity.microsoft.com/)** — Run **Office 365 -> Outlook Connectivity** or **Inbound/Outbound SMTP** diagnostics for Autodiscover and TLS mail flow.
 - **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Check global Exchange Online / Outlook service advisories alongside Tenant Admin Center.
+- **[Exchange Admin Center](https://admin.exchange.microsoft.com/)** — Run Message Trace, inspect delivery failures, and manage shared mailbox permissions.
+- **[Microsoft Defender Portal](https://security.microsoft.com/)** — Inspect and release quarantined emails or verify anti-spam/phishing holds.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Manage Shared Mailboxes, user licenses, and tenant mail service health.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We traced the Exchange Online mail delivery error / shared mailbox permission issue and applied the fix. Could you test sending a message or restart Outlook in 15 minutes to confirm everything works?

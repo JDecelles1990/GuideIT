@@ -55,7 +55,7 @@ related_ids:
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
 1. **Check Backup Methods & Phone Notifications First:** Ask `jsmith@example.com` to test **"Sign in another way"** (SMS/voice/email/second device). If using Authenticator push, verify the mobile phone has **Automatic date & time ON** (wrong time breaks 6-digit TOTP codes!), **Notifications allowed**, **Low Power / Battery Optimization off** for Authenticator, and open Authenticator directly -> **pull down to refresh**!
-2. **View Registered MFA Methods in Entra GUI (`entra.microsoft.com` -> Users -> `jsmith@example.com` -> Authentication methods):** Check which phone models are listed and delete zero entries before verifying which phone is physically in front of the user!
+2. **View Registered MFA Methods in Entra GUI ([Microsoft Entra Admin Center](https://entra.microsoft.com/) -> Users -> `jsmith@example.com` -> Authentication methods):** Check which phone models are listed and delete zero entries before verifying which phone is physically in front of the user!
 
 ### L2 Technical Diagnostics
 1. Inspect the user's currently registered authentication methods in **Entra Admin Center -> Users -> `jsmith@example.com` -> Authentication methods** (or via Microsoft Graph PowerShell, read-only):
@@ -80,7 +80,7 @@ related_ids:
        -LifetimeInMinutes 60 `
        -IsUsableOnce:$true
    ```
-3. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Walk `jsmith@example.com` through signing into `https://aka.ms/mysecurityinfo` to pair the new Microsoft Authenticator app (or Passkey) and confirm Cloud Backup is enabled for future phone upgrades.
+3. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Walk `jsmith@example.com` through signing into [My Security Info](https://mysignins.microsoft.com/security-info) to pair the new Microsoft Authenticator app (or Passkey) and confirm Cloud Backup is enabled for future phone upgrades.
 
 ## Verification & Post-Fix Checks
 1. Confirm `Get-MgUserAuthenticationMethod -UserId "jsmith@example.com"` lists the newly registered Authenticator / phone method.
@@ -90,6 +90,11 @@ related_ids:
 - **Repeated wrong MFA or password attempts triggered Entra Smart Lockout (AADSTS50053):** [id-001 — Account Lockout Investigation](./id-001-account-lockout.md)
 - **Suspicious MFA device registration change or session token theft alert detected:** [sec-001 — Suspected Business Email Compromise and Session Token Theft](../06_Security_Access/sec-001-bec-token-compromise.md)
 - **Conditional Access blocks sign-in even after MFA succeeds due to non-compliant device state:** [mdm-001 — macOS and iOS Intune MDM Sync and Conditional Access Compliance Failure](../07_macOS_Mobile_MDM/mdm-001-intune-compliance-sync.md)
+
+## Useful Links & External Tools
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Self-service portal for users to pair Microsoft Authenticator, passkeys, or phone methods using a Temporary Access Pass (TAP).
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Issue a one-time Temporary Access Pass (TAP) or require MFA re-registration under Users -> Authentication methods.
+- **[Microsoft Entra AADSTS Error Code Lookup](https://login.microsoftonline.com/error)** — Decode AADSTS50074 / AADSTS50076 MFA challenge errors.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** Following identity verification, we reset your old MFA device registration and helped pair Microsoft Authenticator on your new phone. Please confirm you can now sign in and approve prompts normally.

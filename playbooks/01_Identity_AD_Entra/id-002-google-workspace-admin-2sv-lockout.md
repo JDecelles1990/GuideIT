@@ -52,11 +52,11 @@ related_ids:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Isolate Multi-Account Browser Confusion (`403` on `admin.google.com`):** Have `admin@contoso.com` open an **Incognito / InPrivate** window and sign directly into `https://admin.google.com` using ONLY the corporate Workspace account (fixes ~60% of admin `403` errors!).
-2. **Check Google Account Status in Admin Console (`admin.google.com`):** Go to **Directory -> Users -> `jsmith@example.com` -> Security** -> verify whether **Account status** shows `Active`, `Suspended — Admin`, or `Suspended — Risk / Abuse` (never unsuspend `Risk / Abuse` without checking compromise logs first!).
+1. **Isolate Multi-Account Browser Confusion (`403` on [Google Workspace Admin Console](https://admin.google.com/)):** Have `admin@contoso.com` open an **Incognito / InPrivate** window and sign directly into [Google Workspace Admin Console](https://admin.google.com/) using ONLY the corporate Workspace account (fixes ~60% of admin `403` errors!).
+2. **Check Google Account Status in Admin Console ([Google Workspace Admin Console](https://admin.google.com/)):** Go to **Directory -> Users -> `jsmith@example.com` -> Security** -> verify whether **Account status** shows `Active`, `Suspended — Admin`, or `Suspended — Risk / Abuse` (never unsuspend `Risk / Abuse` without checking compromise logs first!).
 
 ### L2 Technical Diagnostics
-1. **Inspect Account, Admin Roles, and 2SV Enforcement in Google Admin Console (`admin.google.com`):**
+1. **Inspect Account, Admin Roles, and 2SV Enforcement in Google Admin Console ([Google Workspace Admin Console](https://admin.google.com/)):**
    - Navigate to **Directory -> Users -> `jsmith@example.com` -> Security**:
      - Check **Account status** (`Active` vs `Suspended — Admin` vs `Suspended — Risk / Abuse`).
      - Check **2-Step Verification** enrollment, **Login challenge** status, and whether the user's **Organizational Unit (OU)** enforces mandatory 2SV without a grace period.
@@ -65,7 +65,7 @@ related_ids:
 
 ## Deep-Dive Investigation (L3)
 1. **Abuse / Suspicious Activity Auto-Suspension:** If Google automatically suspended `jsmith@example.com` for spam/compromise, inspect **Gmail logs** and **OAuth token grants** (`Security -> API controls -> Manage Third-Party App Access`) BEFORE reactivating so compromised sessions do not keep abusing the mailbox.
-2. **Third-Party SAML SSO Loop / Admin Lockout:** If the Workspace domain routes logins to an external IdP (Entra ID / Okta), Super Admins normally bypass SSO when signing in directly (`admin.google.com`), whereas standard users fail if the IdP certificate expired or SAML NameID doesn't match the Workspace primary email.
+2. **Third-Party SAML SSO Loop / Admin Lockout:** If the Workspace domain routes logins to an external IdP (Entra ID / Okta), Super Admins normally bypass SSO when signing in directly ([Google Workspace Admin Console](https://admin.google.com/)), whereas standard users fail if the IdP certificate expired or SAML NameID doesn't match the Workspace primary email.
 3. **Lost Last Super Admin Access:** If ALL Super Admins lost 2SV, prepare the domain's DNS registrar access for Google's **Super Admin Account Recovery** TXT/CNAME DNS verification challenge.
 
 ## Remediation (Confirm Before Running)
@@ -83,6 +83,7 @@ related_ids:
 - **Third-party OAuth/SSO developer app permissions or admin consent block user sign-in:** [id-006 — Entra ID App Registration Permissions, Admin Consent & Developer Secret Failures](./id-006-entra-app-registration-permissions-and-admin-consent.md)
 
 ## Useful Links & External Tools
+- **[Google Account Security & 2-Step Verification](https://myaccount.google.com/security)** — User self-service portal to update password, enroll Google Authenticator / passkeys, and generate 2SV backup codes.
 - **[Google Workspace Admin Console](https://admin.google.com/)** — Manage user suspensions, 2SV backup verification codes, admin roles, and audit log events (always use an isolated Incognito/work profile).
 - **[Google Workspace Status Dashboard](https://www.google.com/appsstatus/dashboard/)** — Confirm whether Workspace sign-in or Admin Console is experiencing a service outage.
 

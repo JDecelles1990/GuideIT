@@ -113,6 +113,9 @@ linked_scripts:
 - **USB-C / Thunderbolt dock firmware or DisplayLink driver triggers bugcheck:** [prt-003 — USB-C / Thunderbolt Docking Station External Monitors Blank or Flickering](../05_Printers_Devices/prt-003-usbc-dock-monitors-not-detected.md)
 - **Faulty cumulative driver/kernel update requires DISM health repair or KB uninstall:** [win-001 — Windows Update Failure and Component Store Corruption](./win-001-windows-update-corruption.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check whether a recent Windows cumulative update triggered known BSOD stop codes.
 ## Client Update Snippets (EN / FR)
 - **EN:** We analyzed the Windows crash dump on `PC-LAB-01`, identified the faulting driver / system component, and applied the verified update and OS integrity check. Please monitor the workstation today and let us know immediately if any reboot or blue screen recurs.
 - **FR:** Nous avons analysé le vidage mémoire du plantage sur `PC-LAB-01`, identifié le pilote / composant en cause et appliqué la mise à jour ainsi que la vérification système. Veuillez utiliser le poste aujourd'hui et nous aviser sans délai si un écran bleu réapparaît.

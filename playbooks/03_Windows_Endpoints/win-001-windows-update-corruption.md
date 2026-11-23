@@ -118,6 +118,10 @@ linked_scripts:
 - **Broken Windows Update Servicing Stack blocks Intune Windows 11 Feature Update:** [win-005 — Intune Windows 10 to Windows 11 Migration, Feature Updates, and Safeguard Holds](./win-005-intune-windows-11-migration-and-safeguard-holds.md)
 - **Recent Windows security KB triggers RPC network printer error 0x0000011b:** [prt-001 — Print Spooler Stuck, Offline Printer, and RPC Print Error 0x0000011b](../05_Printers_Devices/prt-001-spooler-and-0x0000011b.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for active Windows 10/11 KB regressions or known update failures.
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Verify Update Rings, Feature Update policies, and WUfB deployment reports.
 ## Client Update Snippets (EN / FR)
 - **EN:** We repaired corrupted Windows system update components on `PC-LAB-01` and cleared the stalled update cache. Windows Update is now installing cleanly; a reboot may be required to finalize installation.
 - **FR:** Nous avons réparé les composants Windows Update corrompus sur `PC-LAB-01` et réinitialisé le cache des mises à jour. Les mises à jour s'installent maintenant correctement ; un redémarrage peut être requis pour finaliser l'installation.

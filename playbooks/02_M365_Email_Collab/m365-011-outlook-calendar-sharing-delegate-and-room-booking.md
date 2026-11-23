@@ -49,7 +49,7 @@ linked_scripts:
 ## Fast Triage (Under 2 Minutes)
 ### Questions to Ask the User (Classify the Issue)
 1. Are you trying to **view/edit a coworker's calendar**, **manage meetings as a Delegate** (missing meeting invites/Send on Behalf), or **book a Conference Room (`Boardroom`)** that immediately declines?
-2. Does the calendar or room work properly in **Outlook on the Web (`https://outlook.office.com`)**, or fail in both Outlook Web and Desktop?
+2. Does the calendar or room work properly in **Outlook on the Web ([Outlook on the Web](https://outlook.office.com/))**, or fail in both Outlook Web and Desktop?
 3. Did the coworker grant permission **recently** (within the last hour) or is the user an **external partner** (`fabrikam.com`)?
 4. When booking a Room, did the auto-decline message say **Conflict**, **Insufficient permissions**, or **No response** at all?
 
@@ -58,7 +58,7 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Test in Outlook on the Web (`outlook.office.com`) first:** Click **Calendar -> Add calendar -> Add from directory**, select the coworker/room, and compare behavior with desktop Outlook.
+1. **Test in Outlook on the Web ([Outlook on the Web](https://outlook.office.com/)) first:** Click **Calendar -> Add calendar -> Add from directory**, select the coworker/room, and compare behavior with desktop Outlook.
    - If **Outlook Web works** while **Desktop Outlook shows old/missing events** -> Desktop cached shared calendar state or `"Shared Calendar Improvements"` toggle needs a refresh!
 2. **Verify Calendar Permission Level with Owner (GUI):** Have the calendar owner open **Outlook -> Calendar -> Share / Calendar Permissions** and verify `jsmith@example.com` is listed as **`Can edit`** / **`Delegate`** (not just *Can view when I'm busy*!).
 3. **Check Room Busy Availability BEFORE Booking:** Open **Scheduling Assistant** in Outlook to verify another recurring meeting isn't genuinely occupying the room (including private/cancelled meetings!).
@@ -112,6 +112,11 @@ linked_scripts:
 - **User also cannot see Shared Mailbox folders in Outlook sidebar (Automapping):** [m365-006 — Exchange Online NDR Bounces (550 5.7.1 / 5.4.1) and Missing Shared Mailbox Automapping](./m365-006-exchange-ndr-550-and-shared-mailbox-missing.md)
 - **Outlook Desktop fails to update any shared calendar due to broken Modern Auth token:** [m365-001 — Outlook Password Prompt Loop and Modern Auth Failure](./m365-001-outlook-auth-loop.md)
 - **Corrupted local Outlook OST cache hides calendar searches or throws errors:** [m365-009 — Outlook Search Not Working, Indexing Broken, or OST File Corrupted](./m365-009-outlook-search-not-working-indexing-and-ost-repair.md)
+
+## Useful Links & External Tools
+- **[Exchange Admin Center](https://admin.exchange.microsoft.com/)** — Inspect room resource mailbox settings, delegates, and mail flow rules.
+- **[Microsoft Remote Connectivity Analyzer](https://testconnectivity.microsoft.com/)** — Test Free/Busy Availability service and Autodiscover.
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Rule out Exchange Online calendar sharing advisories.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** With approval from the calendar / room owner, we updated the Exchange Online calendar permissions / auto-booking policy and refreshed your shared calendar sync. Please try viewing the calendar or booking the meeting room now and confirm it succeeds.

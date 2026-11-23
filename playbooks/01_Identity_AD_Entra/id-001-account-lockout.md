@@ -128,6 +128,12 @@ linked_scripts:
 - **Workstation Kerberos secure channel (5722) fails alongside domain logon attempts:** [id-005 — Windows Domain Trust Relationship Failed (Event ID 5722 / 3210 / 0xC000018B)](./id-005-windows-domain-trust-relationship-failed.md)
 - **Cached SMB credentials in Windows Credential Manager lock out AD on drive reconnect:** [net-004 — Windows SMB Mapped Network Drives Red X, 0x80070035, and Error 1219](../04_Network_VPN_VoIP/net-004-smb-mapped-drives-missing-and-error-1219.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Self-Service Password Reset (SSPR)](https://passwordreset.microsoftonline.com/)** — Allow Entra/hybrid users to unlock their own account or reset a forgotten password after identity verification.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Have users verify or update registered Authenticator, phone, and SSPR methods.
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Inspect Sign-in logs (AADSTS50053 Smart Lockout) and source IPs.
+- **[Have I Been Pwned](https://haveibeenpwned.com/)** — Check whether the user's email appeared in external credential breaches during repeated lockout investigations.
 ## Client Update Snippets (EN / FR)
 - **EN:** We identified the source device (`PC-LAB-01`) sending outdated cached credentials, cleared the stale entry, and unlocked your account. Please sign back in and let us know if any prompt reappears.
 - **FR:** Nous avons identifié l'appareil source (`PC-LAB-01`) qui envoyait d'anciens identifiants en cache, nettoyé l'entrée obsolète et déverrouillé votre compte. Veuillez vous reconnecter et nous confirmer si tout reste stable.

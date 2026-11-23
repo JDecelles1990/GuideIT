@@ -108,6 +108,11 @@ linked_scripts:
 - **COM add-in freeze crashed Word/Excel before AutoRecover flushed:** [app-002 — Excel/Word Freezing on Open, COM Add-in Conflict, and PDF Previewer Failure](../09_Apps_LOB/app-002-office-addins-crash-and-pdf-preview-failure.md)
 - **External B2B guest collaborator lost Teams/SharePoint co-authoring access mid-session:** [m365-007 — Microsoft Teams External Federation & B2B Guest Access Blocked](./m365-007-teams-external-guest-access-and-federation.md)
 
+## Useful Links & External Tools
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Check for SharePoint/OneDrive sync or AutoSave service advisories.
+- **[Microsoft 365 Apps Update History](https://learn.microsoft.com/en-us/officeupdates/update-history-microsoft365-apps-by-date)** — Verify Office Click-to-Run build currency for AutoSave stability.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Confirm user M365 license assignment and OneDrive/SharePoint access.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We located a prior version / AutoRecover copy of your document containing the missing changes and saved a safe recovered copy so nothing else is overwritten. Could you review the file and confirm your edits are back?
 - **FR:** Nous avons retrouvé une version antérieure / copie de récupération automatique contenant vos modifications perdues et créé une copie sécurisée afin de ne rien écraser. Pouvez-vous vérifier le fichier et confirmer que vos changements sont bien présents ?

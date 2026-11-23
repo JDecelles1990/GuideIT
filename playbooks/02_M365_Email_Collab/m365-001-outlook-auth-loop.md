@@ -53,7 +53,7 @@ linked_scripts:
 
 ## Fast Triage (Under 2 Minutes)
 ### Questions to Ask the User (Classify the Issue)
-1. Can you sign into **Outlook on the Web (`https://outlook.office.com`)** right now, or does your browser also reject your password/MFA (`[id-001]`)?
+1. Can you sign into **Outlook on the Web ([Outlook on the Web](https://outlook.office.com/))** right now, or does your browser also reject your password/MFA (`[id-001]`)?
 2. Did you **just change your Windows/M365 password**, switch phones for Microsoft Authenticator (`[id-003]`), or get a new laptop?
 3. Look at the very bottom-right status bar of Classic Outlook: does it say **`Need Password`**, **`Trying to connect`**, or **`Disconnected`**?
 4. Do Teams or OneDrive also show a yellow exclamation mark / sign-in prompt?
@@ -63,7 +63,7 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Unblock Email via Outlook Web (`outlook.office.com`) Immediately:** Verify password/MFA works in Edge/Chrome Incognito (`[id-001]` if locked!).
+1. **Unblock Email via Outlook Web ([Outlook on the Web](https://outlook.office.com/)) Immediately:** Verify password/MFA works in Edge/Chrome Incognito (`[id-001]` if locked!).
 2. **Test Signing Out Inside Office + Inspect Credential Manager GUI:**
    - Open Outlook -> **File -> Office Account -> Sign out** (do NOT click Manage Account blindly without confirming!), quit Outlook (`Ctrl+Shift+Esc` -> verify `OUTLOOK.EXE` closed!), then check **Control Panel -> Credential Manager -> Windows Credentials** for old `MicrosoftOffice16_Data` / `ADAL` / `OneAuth` entries!
 3. **Check `Work Offline` Toggle & Add-ins:** In Outlook **Send / Receive** tab, verify **Work Offline** isn't accidentally toggled blue! Try opening `outlook.exe /safe`.
@@ -118,6 +118,13 @@ linked_scripts:
 - **Expired TLS certificate or untrusted proxy CA intercepts Outlook HTTPS Autodiscover calls:** [sec-003 — TLS/SSL Certificate Expired, Missing Intermediate Chain, and Untrusted Root CA](../06_Security_Access/sec-003-tls-ssl-certificate-expired-and-untrusted-ca.md)
 - **Embedded WebView2/browser SSO cookie loop breaks Microsoft 365 modern authentication:** [app-001 — Browser SSO Redirect Loop, Profile Conflict, and LOB App Crash Triage](../09_Apps_LOB/app-001-browser-sso-and-lob-crash.md)
 - **Unexpected MFA fatigue or unfamiliar session location points to token compromise:** [sec-001 — Suspected Business Email Compromise and Session Token Theft](../06_Security_Access/sec-001-bec-token-compromise.md)
+
+## Useful Links & External Tools
+- **[Microsoft My Account](https://myaccount.microsoft.com/)** — Verify active M365/Office license assignment and connected work devices.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Confirm the user's MFA methods are up to date before clearing cached tokens.
+- **[Microsoft Remote Connectivity Analyzer](https://testconnectivity.microsoft.com/)** — Run Outlook Connectivity & Autodiscover tests when desktop auth loops persist.
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Rule out active Entra ID or Exchange Online authentication incidents.
+- **[Microsoft 365 Apps Admin Center](https://config.office.com/)** — Inspect Office Click-to-Run update channels, build inventory, and cloud policy overrides.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the corrupted Office authentication token cache on `PC-LAB-01` and re-authenticated Outlook using Modern Auth. Please test sending and receiving emails and confirm no password prompt reappears.

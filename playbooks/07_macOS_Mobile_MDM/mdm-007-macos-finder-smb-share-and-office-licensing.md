@@ -58,7 +58,7 @@ related_ids:
 1. **Check Active VPN & Finder Quick Connect (`⌘ + K` GUI):**
    - If working from home, connect **VPN** (`[net-001]`) FIRST!
    - In **Finder** (blue smiley Dock icon), press **`⌘ + K`** (`Go -> Connect to Server...`), verify path starts with **`smb://`**, and test both hostname (`smb://SRV-FILE-01.domain.local/Share`) AND IP (`smb://10.0.10.25/Share`) to separate DNS vs SMB issues!
-2. **Verify User License & Profile in Office Mac & M365 Admin Center:** Open **Word -> File -> Open / Word menu -> About Microsoft Word** -> check active `Belongs to:` email + check `https://admin.microsoft.com/` -> **Licenses**!
+2. **Verify User License & Profile in Office Mac & M365 Admin Center:** Open **Word -> File -> Open / Word menu -> About Microsoft Word** -> check active `Belongs to:` email + check [Microsoft 365 Admin Center](https://admin.microsoft.com/) -> **Licenses**!
 
 ### L2 Technical Diagnostics
 1. **Test DNS Resolution & TCP Port `445` (SMB) from Mac Terminal (`⌘ + Space` -> `Terminal`, read-only):**
@@ -103,6 +103,10 @@ related_ids:
 - **Mac fails resolving internal .domain.local names over corporate VPN split-tunnel DNS:** [net-001 — No Internet, APIPA 169.254.x.x, DNS, and VPN Split-Tunnel Triage](../04_Network_VPN_VoIP/net-001-dns-apipa-vpn-triage.md)
 - **macOS Login Keychain stores stale SMB password blocking reconnect:** [mdm-002 — macOS Login Keychain Password Loop and Platform SSO / FileVault Desync](./mdm-002-macos-keychain-loop-and-platform-sso.md)
 - **Creative Cloud sign-in/licensing repair alongside Microsoft Office Mac serializer cleanup:** [app-003 — Adobe Acrobat and Creative Cloud Licensing Errors, Sign-In Loops, and Repair](../09_Apps_LOB/app-003-adobe-acrobat-creative-cloud-licensing-and-repair.md)
+
+## Useful Links & External Tools
+- **[Microsoft My Account](https://myaccount.microsoft.com/)** — Verify the user's active Office for Mac license assignment.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Confirm M365 Apps for Mac license is assigned to the user.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We mapped the shared network folder via Finder (`⌘ + K`) / refreshed your Microsoft 365 Office license on your Mac. Could you confirm you can open files on the shared drive and edit documents in Word/Excel normally?

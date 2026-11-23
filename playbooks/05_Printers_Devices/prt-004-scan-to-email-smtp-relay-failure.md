@@ -45,6 +45,7 @@ related_ids:
   - id-003
 linked_scripts:
   - 03_M365/Get-MailDNSRecords.ps1
+  - 04_Devices/Get-PrinterPortsAndScannerHealth.ps1
   - 02_Network/Test-PortConnectivity.ps1
 ---
 
@@ -109,6 +110,8 @@ linked_scripts:
 ## Useful Links & External Tools
 - **[MXToolbox SuperTool](https://mxtoolbox.com/SuperTool.aspx)** — Verify `spf:contoso.com` includes `ip4:198.51.100.10` (within 10 DNS lookups) and check `mx:contoso.com` for Direct Send hostname.
 - **[Microsoft Remote Connectivity Analyzer](https://testconnectivity.microsoft.com/)** — Test **Inbound SMTP Email** delivery and TLS negotiation to the tenant MX endpoint.
+- **[Exchange Admin Center](https://admin.exchange.microsoft.com/)** — Configure SMTP AUTH settings, inbound connectors, and run Message Trace for scan-to-email.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Enable or verify Authenticated SMTP per mailbox under Active users -> Mail -> Manage email apps.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We updated the printer's SMTP relay / Exchange authentication configuration on `PRT-FIN-01` and tested a live scan delivery. Could you try scanning a test page to your email and confirm you receive it?

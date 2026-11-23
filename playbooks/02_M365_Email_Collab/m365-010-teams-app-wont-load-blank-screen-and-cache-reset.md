@@ -52,7 +52,7 @@ linked_scripts:
 ## Fast Triage (Under 2 Minutes)
 ### Questions to Ask the User (Classify the Issue)
 1. Does Teams show a **blank white/purple screen**, an endless **"Loading Microsoft Teams..." spinner**, or an error code (`CAA2000B`, `80090016`, *"We ran into a problem — Reconnecting"*)?
-2. Can you open **`https://teams.microsoft.com`** in Edge/Chrome **normally** right now? *(Always give the Web link immediately if the user has an urgent meeting starting in 2 minutes!)*
+2. Can you open **[Microsoft Teams Web](https://teams.microsoft.com/)** in Edge/Chrome **normally** right now? *(Always give the Web link immediately if the user has an urgent meeting starting in 2 minutes!)*
 3. Did you recently **change your password**, switch between **Work & Guest organizations**, or run a Windows update?
 
 ### Initial Scope & Classification
@@ -60,9 +60,9 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Unblock urgent meetings via Teams Web:** Direct `jsmith@example.com` to `https://teams.microsoft.com` (Edge or Chrome). If Teams Web works -> the M365 license and network are healthy, and the issue is purely the desktop app cache/WebView2 on `PC-LAB-01`!
+1. **Unblock urgent meetings via Teams Web:** Direct `jsmith@example.com` to [Microsoft Teams Web](https://teams.microsoft.com/) (Edge or Chrome). If Teams Web works -> the M365 license and network are healthy, and the issue is purely the desktop app cache/WebView2 on `PC-LAB-01`!
 2. **Make sure Teams actually closed (`Quit` vs `X`):** Closing the window leaves Teams running in the system tray! Right-click the Teams tray icon -> **Quit** (or check Task Manager for `ms-teams.exe` / `msedgewebview2.exe`).
-3. **Check M365 Status & License:** Confirm Microsoft Teams isn't suffering a global service incident (`https://status.cloud.microsoft/`) and the user's M365 license has **Microsoft Teams** enabled.
+3. **Check M365 Status & License:** Confirm Microsoft Teams isn't suffering a global service incident ([Microsoft 365 Service Health](https://status.cloud.microsoft/)) and the user's M365 license has **Microsoft Teams** enabled.
 
 ### L2 Technical Diagnostics
 1. **Inspect New Teams MSIX Package, WebView2 Runtime, and Auth Broker State (`PC-LAB-01`, read-only):**
@@ -75,7 +75,7 @@ linked_scripts:
    - `CAA2000B` / `80090016`: Web Account Manager (`Microsoft.AAD.BrokerPlugin`) or TPM keyset token failure (`[m365-001]`).
 
 ### Escalation Handoff Checklist (Before Sending to L2 / L3)
-- Confirm whether `https://teams.microsoft.com` works, whether New Teams cache reset / MSIX Repair was tested, and exact error code (`CAA2000B` / `80090016`) + timestamp.
+- Confirm whether [Microsoft Teams Web](https://teams.microsoft.com/) works, whether New Teams cache reset / MSIX Repair was tested, and exact error code (`CAA2000B` / `80090016`) + timestamp.
 
 ## Deep-Dive Investigation (L3)
 1. **WebView2 Runtime Corruption / TLS Proxy Inspection:** If both New Teams and Office add-in panes render white screens, verify Microsoft Edge WebView2 Runtime (`Evergreen`) isn't corrupted or blocked from loopback/localhost by EDR/proxy policies (`[app-001]`).
@@ -109,6 +109,11 @@ linked_scripts:
 - **WebView2 / browser SSO loop affects both Teams Web and enterprise portals:** [app-001 — Browser SSO Redirect Loop, Profile Conflict, and LOB App Crash Triage](../09_Apps_LOB/app-001-browser-sso-and-lob-crash.md)
 - **Teams opens yet external partner chat or guest tenant switching is blocked:** [m365-007 — Microsoft Teams External Federation & B2B Guest Access Blocked](./m365-007-teams-external-guest-access-and-federation.md)
 - **Teams opens cleanly yet audio calls chop or drop:** [net-003 — Teams and VoIP Choppy Audio, High Jitter, and One-Way Sound Triage](../04_Network_VPN_VoIP/net-003-teams-voip-choppy-audio-and-jitter.md)
+
+## Useful Links & External Tools
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Check for active Microsoft Teams client/web sign-in incidents.
+- **[Microsoft 365 Network Connectivity Test](https://connectivity.office.com/)** — Test Teams media/front-door reachability and proxy SSL inspection.
+- **[Microsoft Teams Admin Center](https://admin.teams.microsoft.com/)** — Verify Teams client policy and user license/enablement.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the corrupted Microsoft Teams desktop cache and reset the local app state on `PC-LAB-01`. Could you relaunch Teams, sign back in, and confirm your chats and calendar load normally?

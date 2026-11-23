@@ -133,6 +133,7 @@ linked_scripts:
 - **[Windows 11 Supported Processors & Hardware Specs](https://learn.microsoft.com/en-us/windows-hardware/design/minimum/windows-processor-requirements)** — Verify whether older Windows 10 Intel/AMD CPUs are officially supported before targeting Intune Feature Updates.
 - **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Review Windows 11 Readiness reports, Safeguard Hold IDs, and Update Ring deferrals.
 - **[M365 Maps (Microsoft Licensing Matrix)](https://m365maps.com/)** — Confirm client licensing entitlements for Intune & Windows 11 Enterprise upgrades.
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Inspect active Windows 11 safeguard holds and feature-update known issues.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We verified Windows 11 hardware compatibility, cleared the upgrade blocker on `PC-LAB-01`, and queued the Intune Windows 11 feature update. Please keep your workstation plugged into AC power and allow the scheduled reboot to complete the migration.

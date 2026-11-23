@@ -1150,6 +1150,144 @@
       "tags": ["windows_firewall_block", "listening_port_conflict"],
       "domains": ["06_Security_Access"],
       "error_codes": ["WSAEADDRINUSE", "0x80072740", "FIREWALL_BLOCK", "5152"]
+    },
+    {
+      "phrases": [
+        "outlook email stuck in outbox",
+        "outlook won't send email",
+        "email stays stuck in outbox",
+        "email stuck in outbox",
+        "outlook outbox not sending",
+        "outlook work offline",
+        "courriel bloque boite d'envoi",
+        "courriel bloque boite envoi",
+        "outlook n'envoie pas les courriels",
+        "email reste bloque dans boite d'envoi",
+        "outlook hors connexion"
+      ],
+      "tags": ["outlook_outbox_stuck", "outlook_wont_send"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["0x8004010F", "0x80040115", "0x800CCC0E", "OUTBOX_STUCK", "WORK_OFFLINE"]
+    },
+    {
+      "phrases": [
+        "ethernet not working cable unplugged",
+        "slow wired internet capped 100 mbps",
+        "network cable disconnected ethernet",
+        "dock ethernet not working wrong vlan",
+        "switch port shut down 802.1x wired",
+        "cable ethernet ne fonctionne pas debranche",
+        "reseau filaire lent bloque 100 mbps",
+        "port ethernet station accueil vlan"
+      ],
+      "tags": ["ethernet_no_link", "slow_link_speed_100mbps", "vlan_switch_port"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["MEDIA_DISCONNECTED", "LINK_100MBPS", "VLAN_MISMATCH", "8021X_PORT_BLOCK"]
+    },
+    {
+      "phrases": [
+        "website blocked work network",
+        "saas app won't load proxy error",
+        "web filter content block fortiguard umbrella",
+        "pac proxy configuration error",
+        "hosts file blocking site",
+        "site web bloque reseau entreprise",
+        "erreur proxy pac navigateur",
+        "filtre web bloque application saas"
+      ],
+      "tags": ["website_blocked_filter", "proxy_pac_misconfig", "split_dns_ssl_inspection"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["ERR_CONNECTION_RESET", "ERR_PROXY_CONNECTION_FAILED", "ERR_NAME_NOT_RESOLVED", "HTTP_403_WEB_FILTER", "SSL_INSPECTION_BLOCK"]
+    },
+    {
+      "phrases": [
+        "scan to smb failed",
+        "scan to folder smb failed",
+        "copier scanner not sending to shared folder",
+        "scanner not found wia twain windows",
+        "windows update broke scan to folder",
+        "numerisation vers dossier smb echouee",
+        "scan vers dossier partage ne fonctionne plus",
+        "scanner non detecte wia windows"
+      ],
+      "tags": ["scan_to_smb_failed", "scanner_wia_twain", "mfp_smb_ntlmv2"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["SMB_AUTH_FAILED", "SMB1_DISABLED", "WIA_SERVICE_STOPPED", "STATUS_LOGON_FAILURE"]
+    },
+    {
+      "phrases": [
+        "add network printer ip address",
+        "default printer keeps changing windows",
+        "printer using wrong tray a4 letter",
+        "wsd printer port keeps going offline",
+        "ajouter imprimante reseau adresse ip",
+        "imprimante par defaut change toute seule windows",
+        "imprimante prend mauvais bac papier a4 lettre",
+        "port wsd imprimante hors ligne"
+      ],
+      "tags": ["network_printer_setup", "default_printer_changing", "printer_wrong_tray_paper"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["WSD_PORT_OFFLINE", "LEGACY_DEFAULT_PRINTER", "A4_LETTER_MISMATCH"]
+    },
+    {
+      "phrases": [
+        "phishing email header analysis",
+        "release email from quarantine defender",
+        "purge phishing email all mailboxes",
+        "spoofed email failed spf dkim dmarc",
+        "analyse entete courriel hameconnage",
+        "liberer courriel en quarantaine defender",
+        "supprimer courriel hameconnage boites"
+      ],
+      "tags": ["phishing_header_triage", "quarantine_message_purge", "email_spoofing_dmarc"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["SPF_SOFTFAIL", "DMARC_FAIL", "BCL_HIGH", "ZAP_QUARANTINE", "PHISHING_REPORTED"]
+    },
+    {
+      "phrases": [
+        "entra risky user alert containment",
+        "high risk sign in entra id",
+        "isolate compromised endpoint defender",
+        "malware containment incident response",
+        "utilisateur a risque entra id",
+        "connexion suspecte risque eleve entra",
+        "isoler poste compromis defender",
+        "confinement logiciel malveillant edr"
+      ],
+      "tags": ["entra_risky_signin", "endpoint_malware_containment", "defender_device_isolation"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["RISK_HIGH_USER", "AADSTS530032", "DEFENDER_ISOLATE", "MALWARE_ACTIVE"]
+    },
+    {
+      "phrases": [
+        "quickbooks error h202 multi user mode",
+        "quickbooks h202 multi user",
+        "quickbooks database server manager not running",
+        "sage 50 connection manager cannot open company",
+        "acomba multi user file lock error",
+        "quickbooks erreur h202 mode multi utilisateur",
+        "sage 50 gestionnaire connexion bloque",
+        "acomba erreur partage multi poste"
+      ],
+      "tags": ["quickbooks_h202_multiuser", "sage50_connection_manager", "acomba_lob_multiuser"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["H202", "H505", "-6000", "SAGE50_CONN_MGR", "ACOMBA_FILE_LOCK"]
+    },
+    {
+      "phrases": [
+        "missing vcruntime140.dll lob app",
+        "vcruntime140 missing",
+        "dotnet desktop runtime missing",
+        "java runtime missing lob app",
+        "error 1603 msi log",
+        "winget microsoft store install failed",
+        "vcruntime140 manquant erreur dll",
+        "runtime dotnet manquant application",
+        "erreur msi 1603 journal log"
+      ],
+      "tags": ["missing_dotnet_vcpp_java", "msi_installer_1603", "winget_store_install_fail"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["MSI_1603", "0x80070643", "0x80073CF3", "1618", "VCRUNTIME140_MISSING", "DOTNET_RUNTIME_MISSING"]
     }
   ]
 }

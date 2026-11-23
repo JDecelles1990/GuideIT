@@ -107,6 +107,11 @@ linked_scripts:
 - **User forgot their underlying password needed for Sign-in options -> Password:** [id-009 — Password Reset, SSPR Failure, and Cached Windows Credentials Out of Sync](./id-009-password-reset-sspr-and-cached-credentials-sync.md)
 - **PIN reset requires MFA approval while user also replaced their mobile Authenticator:** [id-003 — Entra ID MFA New Phone, Lost Authenticator, and Temporary Access Pass Recovery](./id-003-entra-mfa-new-phone-and-tap-recovery.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Let the user manage registered Windows Hello / Passkey / Authenticator sign-in methods.
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Check device registration and Windows Hello for Business sign-in logs.
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Verify Windows Hello for Business policy and device compliance status.
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the corrupted Windows Hello PIN container tied to your laptop's security chip on `PC-LAB-01` and guided you through re-enrolling a fresh PIN. Could you test locking (`Win + L`) and unlocking your PC with your new PIN?
 - **FR:** Nous avons réinitialisé le conteneur corrompu du code PIN Windows Hello sur `PC-LAB-01` et reconfiguré un nouveau code PIN. Pouvez-vous tester le verrouillage (`Win + L`) et le déverrouillage avec votre nouveau PIN ?

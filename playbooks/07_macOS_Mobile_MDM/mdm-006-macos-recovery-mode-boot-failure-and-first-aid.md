@@ -47,7 +47,7 @@ related_ids:
 1. What **exact icon or screen** appears when turning on the Mac: **Flashing `?` Folder (`QUESTION_MARK_FOLDER`)**, **Circle with Slash `⊘` (`PROHIBITED_SYMBOL`)**, **Padlock icon**, or **Apple logo stuck loading forever**?
 2. Is this Mac an **Apple Silicon (`M1 / M2 / M3 / M4` — ~2020+)** or older **Intel Mac**? *(Hold **Power button** for Silicon vs Hold **`⌘ + R`** for Intel!)*
 3. Did a **macOS software update**, sudden battery shutdown, or low storage (`[mdm-005]`) happen right before it failed to boot?
-4. Do we have **OneDrive / Time Machine backups** and the **FileVault Recovery Key (`intune.microsoft.com`)** handy?
+4. Do we have **OneDrive / Time Machine backups** and the **FileVault Recovery Key ([Microsoft Intune Admin Center](https://intune.microsoft.com/))** handy?
 
 ### Initial Scope & Classification
 - Capture the boot screen symbol + Apple chip type (`Silicon` vs `Intel`) first so you hold the right recovery key combination.

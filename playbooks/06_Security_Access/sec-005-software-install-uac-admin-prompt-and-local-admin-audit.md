@@ -46,6 +46,7 @@ related_ids:
 linked_scripts:
   - 05_Security_Defender/Get-LocalAdministrators.ps1
   - 05_Security_Defender/Get-DefenderStatus.ps1
+  - 01_System/Get-RuntimesAndMSIHealth.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)
@@ -96,6 +97,10 @@ linked_scripts:
 - **Company Portal cannot load or push approved apps because Intune sync failed:** [mdm-001 — macOS and iOS Intune MDM Sync and Conditional Access Compliance Failure](../07_macOS_Mobile_MDM/mdm-001-intune-compliance-sync.md)
 - **Adobe Acrobat / Creative Cloud installer or updater triggers repeat UAC loops:** [app-003 — Adobe Acrobat and Creative Cloud Licensing Errors, Sign-In Loops, and Repair](../09_Apps_LOB/app-003-adobe-acrobat-creative-cloud-licensing-and-repair.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Deploy approved apps via Company Portal or configure Endpoint Privilege Management (EPM).
+- **[VirusTotal](https://www.virustotal.com/)** — Verify installer SHA-256 hash (`Get-FileHash`) before approving software elevation.
 ## Client Update Snippets (EN / FR)
 - **EN:** We verified the publisher signature and approval status for the requested software on `PC-LAB-01`, completed the elevated installation securely (or enabled it in Company Portal) while preserving standard least-privilege security. Could you open the application and confirm everything launches properly?
 - **FR:** Nous avons vérifié la signature numérique et l'approbation du logiciel demandé sur `PC-LAB-01`, puis effectué l'installation sécurisée tout en préservant les droits utilisateurs standards. Pouvez-vous ouvrir l'application et confirmer qu'elle fonctionne normalement ?

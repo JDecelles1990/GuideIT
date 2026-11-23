@@ -102,6 +102,9 @@ linked_scripts:
 - **Webcam/headset vanishes only when connected through a USB-C / Thunderbolt dock:** [prt-003 — USB-C / Thunderbolt Docking Station External Monitors Blank or Flickering](../05_Printers_Devices/prt-003-usbc-dock-monitors-not-detected.md)
 - **Local audio hardware passes Windows tests yet Teams call voice chops or drops:** [net-003 — Teams and VoIP Choppy Audio, High Jitter, and One-Way Sound Triage](../04_Network_VPN_VoIP/net-003-teams-voip-choppy-audio-and-jitter.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for known audio/camera driver regressions after recent Windows updates.
 ## Client Update Snippets (EN / FR)
 - **EN:** We updated the Windows camera/microphone privacy settings and audio services on `PC-LAB-01` and selected the proper headset/camera devices. Could you run a quick Teams test call and confirm both video and audio work normally?
 - **FR:** Nous avons vérifié les autorisations de confidentialité caméra/micro et les services audio sur `PC-LAB-01` et reconfiguré vos périphériques actifs. Pouvez-vous lancer un appel test dans Teams et confirmer que la caméra et le micro fonctionnent ?

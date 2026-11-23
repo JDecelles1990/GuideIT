@@ -110,6 +110,9 @@ linked_scripts:
 - **Windows PrintNightmare cumulative KB triggered RPC error 0x0000011b on shared queues:** [win-001 — Windows Update Failure and Component Store Corruption](../03_Windows_Endpoints/win-001-windows-update-corruption.md)
 - **Print server SMB queue (\\print01) blocked over VPN (0x80070035) or Error 1219:** [net-004 — Windows SMB Mapped Network Drives Red X, 0x80070035, and Error 1219](../04_Network_VPN_VoIP/net-004-smb-mapped-drives-missing-and-error-1219.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for Microsoft PrintNightmare / RPC (`0x0000011b`) update advisories.
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the stuck print spooler queue and verified connectivity to `PRT-FIN-01`. Please try printing your document again and confirm it prints properly.
 - **FR:** Nous avons vidé la file d'attente bloquée du spouleur d'impression et vérifié la connexion vers `PRT-FIN-01`. Pouvez-vous relancer votre impression et nous confirmer que tout fonctionne ?

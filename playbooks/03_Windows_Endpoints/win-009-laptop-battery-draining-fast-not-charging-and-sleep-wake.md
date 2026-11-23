@@ -95,6 +95,9 @@ linked_scripts:
 - **Runaway background process drains battery and throttles CPU:** [win-006 — Windows High CPU, 100% Disk Usage, and Memory Leak Triage (Event 129 / 153 / 2004)](./win-006-windows-high-cpu-100-disk-and-memory-leak.md)
 - **Sudden battery shutdowns trigger Kernel-Power 41 reboots or BSOD:** [win-003 — Windows BSOD Crash Dump Analysis, Unexpected Reboot (Event 41), and Driver Triage](./win-003-bsod-crash-dump-and-driver-triage.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Verify Modern Standby / sleep-wake known issues for the current Windows build.
 ## Client Update Snippets (EN / FR)
 - **EN:** We ran a Windows battery health and sleep power diagnostic on `PC-LAB-01`, reset the power controller / driver settings, and confirmed charging stability. Could you test on AC power and after closing the lid briefly to confirm battery behavior looks normal?
 - **FR:** Nous avons exécuté un diagnostic de santé batterie et de mise en veille sur `PC-LAB-01`, réinitialisé le contrôleur d'alimentation et validé la charge. Pouvez-vous vérifier que la recharge fonctionne normalement et que la mise en veille ne vide plus la batterie ?

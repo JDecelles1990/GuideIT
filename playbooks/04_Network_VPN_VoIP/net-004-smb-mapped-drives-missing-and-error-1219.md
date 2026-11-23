@@ -114,6 +114,9 @@ linked_scripts:
 - **GPO drive maps fail after logon (Event 1129) until AD Group Policy timing resolves:** [id-004 — Active Directory GPO Not Applying, SYSVOL Permissions, and DFSR Replication Errors](../01_Identity_AD_Entra/id-004-ad-gpo-not-applying-replication-and-dfsr.md)
 - **Shared drive issue occurs in macOS Finder (smb://server/share) rather than Windows:** [mdm-007 — Beginner macOS Finder SMB Network Share, DNS Flush, and Office Mac Licensing](../07_macOS_Mobile_MDM/mdm-007-macos-finder-smb-share-and-office-licensing.md)
 
+
+## Useful Links & External Tools
+- **[IPv4 CIDR Subnet Calculator (ipcalc)](https://jodies.de/ipcalc)** — Verify whether home LAN and office VPN subnets overlap.
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the conflicting SMB session / network path issue on `PC-LAB-01` and reconnected your mapped network drive (`S:`) using the verified server FQDN. Could you open the drive in File Explorer and confirm your folders load normally?
 - **FR:** Nous avons nettoyé la session SMB en conflit sur `PC-LAB-01` et reconnecté votre lecteur réseau (`S:`) avec le nom complet du serveur. Pouvez-vous ouvrir le lecteur dans l'Explorateur de fichiers et confirmer que vos dossiers sont accessibles ?

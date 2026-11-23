@@ -62,7 +62,7 @@ related_ids:
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
 1. **Confirm Physical Location vs Consumer VPN Leak (Solves False-Positive Blocks Fast!):** If `jsmith@example.com` IS inside Canada, check for active consumer VPNs (Nord/Proton/ExpressVPN), **Apple iCloud Private Relay** (Safari/Mac/iPhone), or Edge/Opera built-in **Secure Network VPN**! Turning those off restores Canadian Geo-IP instantly!
-2. **Check Entra Sign-in Logs Visually (`entra.microsoft.com` -> Users -> `jsmith@example.com` -> Sign-in logs):** Look at failed sign-in rows (`AADSTS53003`), verify the logged **Location (`Country`)** matches the user's confirmed travel destination, and note which **Conditional Access** policy blocked it!
+2. **Check Entra Sign-in Logs Visually ([Microsoft Entra Admin Center](https://entra.microsoft.com/) -> Users -> `jsmith@example.com` -> Sign-in logs):** Look at failed sign-in rows (`AADSTS53003`), verify the logged **Location (`Country`)** matches the user's confirmed travel destination, and note which **Conditional Access** policy blocked it!
 3. **Verify Manager Travel Approval Ticket:** Ensure written manager approval with exact start & end dates is attached BEFORE escalating/adding to the travel exception group!
 
 ### L2 Technical Diagnostics

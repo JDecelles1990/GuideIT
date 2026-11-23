@@ -61,7 +61,7 @@ linked_scripts:
 1. **Unplug Docks / USB Drives & Power Cycle Once First (`Quick Test!`):** Sometimes plugging a dock/USB stick changed boot order and triggers BitLocker temporarily; unplug external USB-C docks/USB drives -> reboot once to see if Windows boots normally without prompting!
 2. **Look Up Matching 48-Digit Key by First 8 Characters (`Key ID`):**
    - Check **Entra ID -> Devices -> `PC-LAB-01` -> BitLocker keys** (or **Intune Admin Center -> Devices -> `PC-LAB-01` -> Recovery keys**), or **On-prem ADUC**! Match the **Key ID** first 8 characters carefully!
-   - *(Tip: If the user happens to have a personal Microsoft account / Surface, keys can sometimes escrow to `https://aka.ms/myrecoverykey` — check corporate portals first!)*
+   - *(Tip: If the user happens to have a personal Microsoft account / Surface, keys can sometimes escrow to [My BitLocker Recovery Keys](https://aka.ms/myrecoverykey) — check corporate portals first!)*
 
 ### L2 Technical Diagnostics
 1. **Locate the 48-digit BitLocker Recovery Key via CLI / ADUC:**
@@ -105,6 +105,12 @@ linked_scripts:
 - **BitLocker recovery key never escrowed to Entra/Intune because MDM sync failed:** [mdm-001 — macOS and iOS Intune MDM Sync and Conditional Access Compliance Failure](../07_macOS_Mobile_MDM/mdm-001-intune-compliance-sync.md)
 - **Windows Update or BIOS/UEFI firmware update changed TPM PCR measurements:** [win-001 — Windows Update Failure and Component Store Corruption](./win-001-windows-update-corruption.md)
 - **Windows 11 readiness assessment flags TPM 2.0 disabled or incompatible state:** [win-005 — Intune Windows 10 to Windows 11 Migration, Feature Updates, and Safeguard Holds](./win-005-intune-windows-11-migration-and-safeguard-holds.md)
+
+## Useful Links & External Tools
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Retrieve BitLocker recovery keys stored on Entra-joined devices.
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Look up BitLocker recovery keys under Devices -> Monitor / Recovery keys.
+- **[Microsoft My Account](https://myaccount.microsoft.com/)** — Self-service portal where end users can view their own Entra-backed BitLocker recovery key when permitted.
+- **[Microsoft BitLocker Recovery Keys (Self-Service)](https://aka.ms/myrecoverykey)** — Self-service portal for users to view their Entra-backed 48-digit BitLocker recovery key when permitted.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We verified your identity, retrieved the matching BitLocker recovery key for `PC-LAB-01`, and confirmed TPM protection resealed cleanly after reboot. Please confirm the workstation signs in normally without asking for the recovery key again.

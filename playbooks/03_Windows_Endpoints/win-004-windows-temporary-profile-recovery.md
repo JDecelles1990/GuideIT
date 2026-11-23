@@ -107,6 +107,9 @@ linked_scripts:
 - **Broken domain secure channel (5722) prevents domain profile SID verification:** [id-005 — Windows Domain Trust Relationship Failed (Event ID 5722 / 3210 / 0xC000018B)](../01_Identity_AD_Entra/id-005-windows-domain-trust-relationship-failed.md)
 - **System drive at 100% full prevents NTUSER.DAT registry hive load cleanly:** [win-006 — Windows High CPU, 100% Disk Usage, and Memory Leak Triage (Event 129 / 153 / 2004)](./win-006-windows-high-cpu-100-disk-and-memory-leak.md)
 
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for Windows cumulative update regressions affecting user profile loading.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We resolved the Windows temporary profile issue on `PC-LAB-01` and restored your normal user profile (`C:\Users\jsmith`). Please sign back in and confirm your Desktop files and settings are intact.
 - **FR:** Nous avons corrigé le problème de profil temporaire Windows sur `PC-LAB-01` et rétabli votre profil utilisateur normal. Veuillez ouvrir une nouvelle session et confirmer que votre Bureau et vos documents sont revenus.

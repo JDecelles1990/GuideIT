@@ -133,6 +133,11 @@ linked_scripts:
 - **VPN stalls waiting for MFA approval after phone replacement:** [id-003 — Entra ID MFA New Phone, Lost Authenticator, and Temporary Access Pass Recovery](../01_Identity_AD_Entra/id-003-entra-mfa-new-phone-and-tap-recovery.md)
 - **User is traveling outside Canada and SAML VPN fails Conditional Access:** [id-007 — Geo-Blocking Outside Canada, Conditional Access Named Locations & Travel Access](../01_Identity_AD_Entra/id-007-geo-blocking-outside-canada-travel-access.md)
 
+
+## Useful Links & External Tools
+- **[Downdetector](https://downdetector.com/)** — Check regional ISP outages blocking VPN gateway UDP/TCP 443/500/4500 traffic.
+- **[IPv4 CIDR Subnet Calculator (ipcalc)](https://jodies.de/ipcalc)** — Check for overlapping home router vs corporate VPN CIDR ranges.
+- **[Hurricane Electric BGP Toolkit](https://bgp.he.net/)** — Verify ISP ASN and public VPN gateway routing.
 ## Client Update Snippets (EN / FR)
 - **EN:** We isolated the remote VPN connection block on `PC-LAB-01` (client service / credentials & MFA prompt / local network path) and verified a stable VPN connection to corporate resources. Could you test your internal drive or application and confirm everything works?
 - **FR:** Nous avons identifié la cause du blocage de connexion VPN sur `PC-LAB-01` (service client / authentification MFA / réseau local) et validé une connexion VPN stable. Pouvez-vous tester vos ressources internes et confirmer que tout fonctionne ?

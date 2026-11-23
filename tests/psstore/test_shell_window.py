@@ -143,3 +143,29 @@ def test_event_bus_open_copy_and_playbook_signals(shell_window_factory) -> None:
     win.event_bus.open_playbook_requested.emit("win-001", False)
     assert win.current_mode == MODE_PLAYBOOKS
     assert win.playbooks_workspace.viewer.current_playbook_id == "win-001"
+
+
+def test_shell_window_default_size_fits_available_geometry_and_main_maximizes(
+    shell_window_factory, monkeypatch
+) -> None:
+    from PySide6.QtWidgets import QApplication
+    from guideit_master import main as app_main
+
+    win = shell_window_factory()
+    screen = QApplication.primaryScreen()
+    if screen is not None:
+        avail = screen.availableGeometry()
+        assert win.height() <= avail.height()
+        assert win.width() <= avail.width()
+
+    shown_maximized = []
+    monkeypatch.setattr(app_main, "UnifiedShellWindow", lambda: win)
+    monkeypatch.setattr(win, "showMaximized", lambda: shown_maximized.append(True))
+    monkeypatch.setattr(app_main, "install_button_fx", lambda app: None)
+    monkeypatch.setattr(app_main, "install_tooltip_fx", lambda app: None)
+    app_inst = QApplication.instance()
+    monkeypatch.setattr(app_inst, "exec", lambda: 0)
+
+    rc = app_main.main([])
+    assert rc == 0
+    assert shown_maximized == [True]

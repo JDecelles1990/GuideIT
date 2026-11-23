@@ -58,7 +58,7 @@ related_ids:
 ### L1 First-Line Checks (Start Here — Company Portal App & Intune Web GUI)
 1. **Have the User Open `Company Portal` -> `Devices` -> Select This Device -> Click `Check status`:**
    - Company Portal highlights the exact failing requirement in plain English (e.g., *"Encrypt your device storage"*, *"Update macOS/iOS to 15.x"*, or *"Set a passcode"*)! Have the user satisfy any OS update / Restart / Lock-screen prompt right there and click **`Check status`** again (allow 5–10 minutes for Entra Conditional Access sync!).
-2. **Check Intune Portal GUI (`intune.microsoft.com`):**
+2. **Check Intune Portal GUI ([Microsoft Intune Admin Center](https://intune.microsoft.com/)):**
    - Open **Devices -> All devices -> `<Device Name>` -> Device compliance** and check **Last check-in** + failing Policy row!
    - If many Apple devices stopped syncing simultaneously, check **Tenant administration -> Connectors and tokens -> Apple MDM Push certificate** expiration date (`Active` vs `Expired`)!
 
@@ -103,6 +103,11 @@ related_ids:
 - **Conditional Access blocks Outlook/M365 sign-in until Intune Company Portal marks device Compliant:** [m365-001 — Outlook Password Prompt Loop and Modern Auth Failure](../02_M365_Email_Collab/m365-001-outlook-auth-loop.md)
 - **Windows compliance fails because BitLocker encryption policy/key escrow did not apply:** [win-002 — BitLocker Recovery Key Prompt After Update and TPM Lockout Triage](../03_Windows_Endpoints/win-002-bitlocker-recovery-screen-and-tpm.md)
 - **macOS/iOS/Windows fails corporate Wi-Fi until Intune SCEP certificate deploys:** [net-002 — Wi-Fi Random Disconnects, Connected Without Internet, and 802.1X Auth Triage](../04_Network_VPN_VoIP/net-002-wifi-drops-and-8021x-auth.md)
+
+## Useful Links & External Tools
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Inspect device compliance policies, last check-in time, and trigger remote Sync.
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Review Conditional Access sign-in logs for device-compliance blocks.
+- **[M365 Maps (Microsoft Licensing Matrix)](https://m365maps.com/)** — Confirm the user's M365 SKU includes Intune Plan 1 and Entra ID P1.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We synchronized your device with Intune and resolved the compliance check blocking Microsoft 365 access. Please wait 5 minutes and test signing into Outlook or Teams again.

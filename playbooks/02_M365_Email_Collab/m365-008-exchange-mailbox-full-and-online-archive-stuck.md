@@ -55,10 +55,10 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — User Outlook & EAC GUI)
-1. **Check Mailbox Storage Breakdown in Outlook Web (`https://outlook.office.com` -> Settings (`Gear`) -> Account -> Storage):**
+1. **Check Mailbox Storage Breakdown in Outlook Web ([Outlook on the Web](https://outlook.office.com/) -> Settings (`Gear`) -> Account -> Storage):**
    - Look visually at WHICH folder consumes the 50/100 GB (**Deleted Items**, **Sent Items**, large attachment mail, or **Empty Deleted Items** -> also check **Recover items deleted from this folder**!).
    - Have the user verify they actually want old Deleted Items/Sent Items emptied vs archived before deleting anything!
-2. **Check M365 License & Archive Status in Admin Centers (`admin.microsoft.com` & `admin.exchange.microsoft.com`):**
+2. **Check M365 License & Archive Status in Admin Centers ([Microsoft 365 Admin Center](https://admin.microsoft.com/) & [Exchange Admin Center](https://admin.exchange.microsoft.com/)):**
    - Verify whether `jsmith@contoso.com` holds **Exchange Plan 2 / E3 / E5 / Business Premium** (required for **In-Place Archive**!).
    - In **Exchange Admin Center -> Recipients -> Mailboxes -> `jsmith@contoso.com` -> Others -> Manage mailbox archive**: verify whether **Mailbox archive status** is `Disabled` vs `Enabled`, and view current primary vs archive GB bars!
 
@@ -144,6 +144,7 @@ Key root causes to distinguish:
 ## Useful Links & External Tools
 - [Microsoft 365 Admin Center](https://admin.microsoft.com/) — Verify Exchange Online Plan 1 vs Plan 2 / Business Premium license assignments before enabling Archive.
 - [Microsoft Exchange Admin Center](https://admin.exchange.microsoft.com/) — Monitor mailbox usage gauges, Archive status, and message traces.
+- **[Microsoft Purview Compliance Portal](https://purview.microsoft.com/)** — Check Litigation Hold / Retention policies locking `Recoverable Items` at 100 GB.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** Hi `<user>`, your mailbox reached its storage limit (`554 5.2.2`), causing new emails to bounce and preventing sending/deleting. We verified your retention/archive configuration (`<Archive enabled / Managed Folder Assistant triggered / license updated>`). Please allow up to 24 hours for background archiving to free space in your primary mailbox, and let us know if sending resumes normally.

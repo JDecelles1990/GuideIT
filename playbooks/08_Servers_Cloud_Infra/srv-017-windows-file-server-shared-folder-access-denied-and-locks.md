@@ -109,6 +109,9 @@ linked_scripts:
 - **Shared Excel workbook lock conflict on SMB file server or SharePoint:** [m365-002 — Shared Excel Workbook Cannot Be Modified, Read-Only, or Locked for Editing](../02_M365_Email_Collab/m365-002-excel-shared-workbook-locked-readonly.md)
 - **File server disk is 100% full causing access/save failures and VSS backup errors:** [srv-001 — Windows Server Disk Space Exhaustion and VSS Shadow Copy Backup Failure](./srv-001-vss-backup-and-disk-triage.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Verify hybrid AD group sync if cloud/VPN identity tokens are involved.
 ## Client Update Snippets (EN / FR)
 - **EN:** With folder-owner approval, we verified your security group membership / NTFS share permissions (or cleared the orphaned file lock) on `SRV-FILE-01`. Could you sign out/in once (if newly added to a group) and confirm you can open and save in the shared folder?
 - **FR:** Avec l'approbation du responsable du dossier, nous avons vérifié vos accès groupe/NTFS (ou levé le verrou de fichier orphelin) sur `SRV-FILE-01`. Pouvez-vous fermer/rouvrir votre session si un groupe vient d'être ajouté et confirmer l'accès au dossier partagé ?

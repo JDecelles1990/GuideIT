@@ -66,7 +66,7 @@ linked_scripts:
 ### L1 First-Line Checks (Start Here — Basic / GUI)
 > L1 technicians don't need to edit `ImmutableId` or run full sync cycles to catch 80% of Entra sync stalls!
 
-1. **Check Entra Admin Center -> Entra Connect Sync Health First (`https://entra.microsoft.com` or `admin.microsoft.com` -> Health -> Directory sync status):**
+1. **Check Entra Admin Center -> Entra Connect Sync Health First ([Microsoft Entra Admin Center](https://entra.microsoft.com/) or [Microsoft 365 Admin Center](https://admin.microsoft.com/) -> Health -> Directory sync status):**
    - Look at **Last sync timestamp** (`< 30 minutes` ago = sync engine is alive!) and click **DirSync Errors** to read any plain-English duplicate email (`ProxyAddresses`) conflict!
 2. **Verify User Basics in Active Directory Users and Computers (`ADUC`) on `DC01.domain.local`:**
    - Confirm the user is **in an OU selected for Entra Connect Sync** (e.g., `OU=Staff` — often new users created in default `Users` container or `Test` OU are intentionally excluded from sync!).
@@ -142,6 +142,7 @@ Open **Synchronization Service Manager (`miisclient.exe`)** on the Entra Connect
 ## Useful Links & External Tools
 - [Microsoft Entra Admin Center](https://entra.microsoft.com/) — Inspect Entra Connect Health Sync Errors and cloud `OnPremisesSyncEnabled` state.
 - [Microsoft Entra AADSTS Error Code Lookup](https://login.microsoftonline.com/error) — Decode authentication errors caused by broken UPN/PHS sync.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Check Directory Sync status and license assignment errors on newly synced accounts.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** Hi `<user>`, we identified an Entra Connect directory synchronization conflict (`AttributeValueMustBeUnique` / `InvalidSoftMatch`) preventing `<account>` from syncing from on-premises AD to Microsoft 365. After resolving the duplicate attribute and running a delta sync, cloud directory sync is now healthy. Please verify access on your side.

@@ -112,6 +112,10 @@ linked_scripts:
 - **Valid RDP password fails NLA because AD account is locked out (4740):** [id-001 — Account Lockout Investigation](../01_Identity_AD_Entra/id-001-account-lockout.md)
 - **Target RDP server is an Azure VM requiring NSG review, Bastion, or Serial Console:** [srv-013 — Azure VM Boot Failures, RDP/SSH Unreachable, NSG & Serial Console Triage](./srv-013-azure-vm-boot-rdp-ssh-and-serial-console.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check CredSSP / NLA update compatibility advisories.
+- **[Microsoft Azure Portal](https://portal.azure.com/)** — Verify NSG inbound TCP 3389 rules or Azure Bastion access for cloud VMs.
 ## Client Update Snippets (EN / FR)
 - **EN:** We verified the Remote Desktop service, firewall rules, and NLA authentication configuration on `SRV-FILE-01` and restored RDP access. Please try connecting via Remote Desktop once more and let us know if you reach the desktop cleanly.
 - **FR:** Nous avons vérifié le service Bureau à distance, les règles de pare-feu et l'authentification NLA sur `SRV-FILE-01`, et rétabli l'accès RDP. Pouvez-vous tester de nouveau la connexion Bureau à distance et nous confirmer que tout fonctionne ?

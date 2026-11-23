@@ -37,30 +37,33 @@
       "folder": "04_Network_VPN_VoIP",
       "prefix": "net",
       "subject": "Network, VPN & VoIP",
-      "description": "DNS, DHCP, APIPA, Wi-Fi, VPN tunnels, SMB, firewall routing, and VoIP call quality",
+      "description": "DNS, DHCP, APIPA, Wi-Fi, VPN tunnels, SMB, firewall routing, Ethernet/VLANs, web filtering proxies, and VoIP call quality",
       "subcategories": [
         {"id": "dns_dhcp_wifi_voip", "label": "DNS, DHCP, Wi-Fi & VoIP"},
-        {"id": "smb_vpn_tunnels", "label": "SMB Drives & IPsec VPN Tunnels"}
+        {"id": "smb_vpn_tunnels", "label": "SMB Drives & IPsec VPN Tunnels"},
+        {"id": "ethernet_proxy_filtering", "label": "Ethernet, VLAN, Proxy & Web Filtering"}
       ]
     },
     {
       "folder": "05_Printers_Devices",
       "prefix": "prt",
       "subject": "Printers & Peripherals",
-      "description": "Print Spooler, TCP/IP vs WSD ports, Type 3/4 drivers, RPC print errors, scan-to-email, Bluetooth headsets, and USB-C docks",
+      "description": "Print Spooler, TCP/IP vs WSD ports, Type 3/4 drivers, RPC print errors, scan-to-email, scan-to-SMB/WIA, printer deployment, Bluetooth headsets, and USB-C docks",
       "subcategories": [
         {"id": "printers_spooler_scan", "label": "Printers, Spooler & Scan-to-Email"},
-        {"id": "bluetooth_docks_displays", "label": "Bluetooth, USB-C Docks & Displays"}
+        {"id": "bluetooth_docks_displays", "label": "Bluetooth, USB-C Docks & Displays"},
+        {"id": "printer_setup_scanners", "label": "Printer Deployment, Trays & Scanners"}
       ]
     },
     {
       "folder": "06_Security_Access",
       "prefix": "sec",
       "subject": "Security & Access",
-      "description": "Phishing, BEC, token theft, Microsoft Defender, Purview DLP, ASR rules, and UAC/privileges",
+      "description": "Phishing, header triage, risky sign-in containment, BEC, token theft, Microsoft Defender, Purview DLP, ASR rules, and UAC/privileges",
       "subcategories": [
         {"id": "bec_defender_threats", "label": "BEC Compromise & Defender ASR"},
-        {"id": "tls_certs_purview_dlp", "label": "TLS/SSL Certs, Purview DLP & Labels"}
+        {"id": "tls_certs_purview_dlp", "label": "TLS/SSL Certs, Purview DLP & Labels"},
+        {"id": "phishing_ir_containment", "label": "Phishing Triage, Risky Sign-In & Containment"}
       ]
     },
     {
@@ -90,10 +93,11 @@
       "folder": "09_Apps_LOB",
       "prefix": "app",
       "subject": "Applications & LOB",
-      "description": "Browsers, SSO loops, PDF/Office add-ins, ERP/accounting/LOB applications, and .NET/Java runtimes",
+      "description": "Browsers, SSO loops, PDF/Office add-ins, ERP/accounting/LOB multi-user applications (QuickBooks/Sage 50/Acomba), and .NET/Java/VC++ runtimes & MSI installs",
       "subcategories": [
         {"id": "office_pdf_adobe", "label": "Office Add-ins, PDF & Adobe Licensing"},
-        {"id": "browsers_sso_dev_tools", "label": "Browsers, LOB SSO & Dev Tooling"}
+        {"id": "browsers_sso_dev_tools", "label": "Browsers, LOB SSO & Dev Tooling"},
+        {"id": "accounting_lob_runtimes", "label": "Accounting/LOB Multi-User & Runtimes/MSI"}
       ]
     }
   ]

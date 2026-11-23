@@ -94,6 +94,9 @@ related_ids:
 - **Beginner Activity Monitor, Finder, and System Settings navigation steps on macOS:** [mdm-003 — Beginner macOS Troubleshooting Guide — Navigation, Force Quit, and Slow Mac](./mdm-003-macos-beginner-navigation-force-quit-and-slow-mac.md)
 - **Compare Windows Defender ASR / SmartScreen application blocking workflows:** [sec-002 — Microsoft Defender ASR Rule or Antivirus Blocking Legitimate LOB App or Macro](../06_Security_Access/sec-002-defender-asr-block-and-false-positive.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Verify macOS PPPC / Gatekeeper configuration profiles.
 ## Client Update Snippets (EN / FR)
 - **EN:** We approved the verified application in macOS Privacy & Security settings and enabled the required Microphone / Screen Recording permissions. Please restart the app and confirm screen sharing and audio work normally.
 - **FR:** Nous avons autorisé l'application vérifiée dans Réglages Système -> Confidentialité et sécurité sur votre Mac et activé les accès Micro / Enregistrement d'écran requis. Pouvez-vous relancer l'application et confirmer que tout fonctionne ?

@@ -92,6 +92,11 @@ related_ids:
 - **User got a brand new iPhone/Android and Authenticator MFA prompts went to the old phone:** [id-003 — Entra ID MFA New Phone, Lost Authenticator, and Temporary Access Pass Recovery](../01_Identity_AD_Entra/id-003-entra-mfa-new-phone-and-tap-recovery.md)
 - **Account shows password prompt loop across BOTH mobile and desktop Outlook:** [m365-001 — Outlook Password Prompt Loop and Modern Auth Failure](../02_M365_Email_Collab/m365-001-outlook-auth-loop.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Inspect iOS/Android App Protection Policies (MAM) and compliance state.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Verify mobile MFA/Authenticator registration.
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Check Exchange/Teams mobile push notification health.
 ## Client Update Snippets (EN / FR)
 - **EN:** We verified the Intune App Protection / broker requirements on your phone, refreshed your Outlook / Teams mobile account sign-in, and confirmed mail synchronization resumed cleanly. Could you pull down to refresh Outlook on your phone and confirm new messages arrive?
 - **FR:** Nous avons vérifié l'application courtier de protection Intune (Authenticator / Portail d'entreprise) sur votre téléphone, réinitialisé la session mobile Outlook / Teams et rétabli la synchronisation. Pouvez-vous actualiser Outlook sur votre mobile et confirmer la réception des courriels ?

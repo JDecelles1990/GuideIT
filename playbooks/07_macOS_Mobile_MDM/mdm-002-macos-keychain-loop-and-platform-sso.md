@@ -99,6 +99,10 @@ related_ids:
 - **Broken Intune Company Portal token prevents SSO extension and compliance check:** [mdm-001 — macOS and iOS Intune MDM Sync and Conditional Access Compliance Failure](./mdm-001-intune-compliance-sync.md)
 - **Desynced macOS Keychain credentials fail SMB network share mounts in Finder:** [mdm-007 — Beginner macOS Finder SMB Network Share, DNS Flush, and Office Mac Licensing](./mdm-007-macos-finder-smb-share-and-office-licensing.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Check macOS Platform SSO profile status and FileVault recovery key escrow.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Re-verify MFA/Passkey registration after macOS password sync.
 ## Client Update Snippets (EN / FR)
 - **EN:** We resynchronized the macOS `login` keychain password with your current account password and cleared the repeated prompts. Please restart or sign back into your Mac once and confirm everything works cleanly.
 - **FR:** Nous avons resynchronisé le mot de passe du trousseau d'accès macOS (`login`) avec votre mot de passe actuel et éliminé les fenêtres répétitives. Pouvez-vous redémarrer votre Mac et confirmer que tout fonctionne normalement ?

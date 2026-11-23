@@ -46,6 +46,7 @@ related_ids:
 linked_scripts:
   - 05_Security_Defender/Get-ExpiringCertificates.ps1
   - 07_Servers_Infra/Get-ServerAutoServices.ps1
+  - 01_System/Get-RuntimesAndMSIHealth.ps1
   - 03_M365/Clear-BrowserCache.ps1
 ---
 
@@ -61,7 +62,7 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Account Sign-Out/Check & Start Menu)
-1. **Verify Adobe License Assignment (`https://adminconsole.adobe.com/` -> Users):** Search `jsmith@example.com` and verify **Products** lists an active **`Acrobat Pro` / `Creative Cloud`** seat! (Check SSO directory sync too if federated!)
+1. **Verify Adobe License Assignment ([Adobe Admin Console](https://adminconsole.adobe.com/) -> Users):** Search `jsmith@example.com` and verify **Products** lists an active **`Acrobat Pro` / `Creative Cloud`** seat! (Check SSO directory sync too if federated!)
 2. **Verify Installed App Title & Profile (`Open Acrobat -> Top-Right Profile Icon`):**
    - Check Windows Start Menu: ensure they open **`Adobe Acrobat`** (not `Adobe Acrobat Reader`)!
    - Click the top-right circle icon inside Acrobat: verify which email is signed in — if they signed in via Gmail/Personal profile, **Sign out** and sign back in selecting **`Company or School Account`**!

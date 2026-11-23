@@ -53,6 +53,7 @@ related_ids:
 linked_scripts:
   - 02_Network/Get-NetworkSnapshot.ps1
   - 02_Network/Test-PortConnectivity.ps1
+  - 02_Network/Get-WebProxyAndTLSDiagnostics.ps1
   - 02_Network/Reset-NetworkStack.ps1
 ---
 

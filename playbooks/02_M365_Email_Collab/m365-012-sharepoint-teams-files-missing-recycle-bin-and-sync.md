@@ -92,6 +92,10 @@ linked_scripts:
 - **File wasn't deleted, yet recent edits were overwritten (Version History rollback):** [m365-003 — Lost Modifications on a Word or Excel Document Recovery](./m365-003-word-excel-lost-modifications-recovery.md)
 - **Restored workbook opens Read-Only or remains locked for co-authoring:** [m365-002 — Shared Excel Workbook Cannot Be Modified, Read-Only, or Locked for Editing](./m365-002-excel-shared-workbook-locked-readonly.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Verify SharePoint/OneDrive admin permissions and user storage status.
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Check SharePoint Online and Teams file service status.
 ## Client Update Snippets (EN / FR)
 - **EN:** We located the missing SharePoint / Teams files in the cloud Recycle Bin / library activity log and safely restored them back to their original folder. Could you refresh SharePoint or your synced OneDrive folder and confirm all expected documents are back?
 - **FR:** Nous avons retrouvé les fichiers SharePoint / Teams manquants dans la corbeille infonuagique / journal d'activité et les avons restaurés à leur emplacement d'origine. Pouvez-vous actualiser SharePoint ou votre dossier OneDrive synchronisé et confirmer que vos documents sont bien revenus ?

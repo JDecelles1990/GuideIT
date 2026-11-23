@@ -129,6 +129,9 @@ linked_scripts:
 - **Defender Antivirus / SmartScreen / ASR blocks the executable before it opens a socket:** [sec-002 — Microsoft Defender ASR Rule or Antivirus Blocking Legitimate LOB App or Macro](./sec-002-defender-asr-block-and-false-positive.md)
 - **Container or service port binding collision (`EADDRINUSE`) on Linux/Docker hosts:** [srv-015 — Docker Container CrashLoopBackOff, Port Conflicts (EADDRINUSE) & Overlay2 Disk Full](../08_Servers_Cloud_Infra/srv-015-docker-container-crashloop-and-overlay-disk.md)
 
+
+## Useful Links & External Tools
+- **[IPv4 CIDR Subnet Calculator (ipcalc)](https://jodies.de/ipcalc)** — Verify trusted local subnet scopes when scoping Windows Firewall rules.
 ## Client Update Snippets (EN / FR)
 - **EN:** We audited Windows Defender Firewall rules and active listening ports on `PC-LAB-01`, resolved the network profile / port rule block (without disabling endpoint firewall protection), and verified port connectivity. Could you test the application connection again and confirm it works normally?
 - **FR:** Nous avons vérifié les règles du pare-feu Windows Defender et les ports d'écoute actifs sur `PC-LAB-01`, corrigé le blocage de profil ou de règle (sans désactiver le pare-feu) et validé la connectivité réseau. Pouvez-vous tester l'application et confirmer que la connexion fonctionne normalement ?

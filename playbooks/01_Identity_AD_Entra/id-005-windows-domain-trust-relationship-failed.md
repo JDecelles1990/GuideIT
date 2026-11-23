@@ -61,7 +61,7 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Verify We Have a Working Local Admin Password (CRITICAL Before Unjoining!):** Check your RMM / Windows LAPS (`entra.microsoft.com` or ADUC LAPS tab) to confirm a local administrator credential exists on `PC-LAB-01` BEFORE trying any domain disjoin fallback!
+1. **Verify We Have a Working Local Admin Password (CRITICAL Before Unjoining!):** Check your RMM / Windows LAPS ([Microsoft Entra Admin Center](https://entra.microsoft.com/) or ADUC LAPS tab) to confirm a local administrator credential exists on `PC-LAB-01` BEFORE trying any domain disjoin fallback!
 2. **Test Physical Network / Cached Login + VPN:** If remote, have user disable Wi-Fi/unplug Ethernet -> sign in via cached domain credentials -> turn Wi-Fi ON -> connect corporate VPN -> confirm they can ping `DC01.domain.local`!
 3. **Check Taskbar System Clock:** Verify `PC-LAB-01` date/time isn't off by >5 minutes vs real local time (`KRB_AP_ERR_SKEW` `[srv-012]`).
 
@@ -103,6 +103,10 @@ linked_scripts:
 - **Broken domain trust channel prevents Group Policy (1058/1030) and SYSVOL access:** [id-004 — Active Directory GPO Not Applying, SYSVOL Permissions, and DFSR Replication Errors](./id-004-ad-gpo-not-applying-replication-and-dfsr.md)
 - **Cached offline domain credentials diverge from AD password causing lockouts:** [id-001 — Account Lockout Investigation](./id-001-account-lockout.md)
 - **Corrupt workstation profile or SID cache triggers temporary user profile at domain logon:** [win-004 — Windows Temporary User Profile Recovery (Event ID 1511 / 1515)](../03_Windows_Endpoints/win-004-windows-temporary-profile-recovery.md)
+
+## Useful Links & External Tools
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Check Hybrid Azure AD Join device state when domain trust issues overlap with cloud SSO.
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Verify device record and Windows LAPS / BitLocker key recovery before rejoining a domain.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We repaired the Windows Active Directory secure channel trust relationship on `PC-LAB-01` while keeping your profile and computer record intact. Please sign in with your regular domain password and confirm everything works cleanly.

@@ -76,12 +76,12 @@ linked_scripts:
    Get-FileHash -Path "C:\Path\To\LobApp.exe" -Algorithm SHA256
    Get-AuthenticodeSignature -FilePath "C:\Path\To\LobApp.exe" | Select-Object Status, SignerCertificate
    ```
-3. Check **Microsoft Defender XDR (`security.microsoft.com`) -> Hunting / Incidents** for device `PC-LAB-01` (`DeviceEvents` where `ActionType startswith 'Asr'`) to identify the exact parent process and triggering rule ID.
+3. Check **Microsoft Defender XDR ([Microsoft Defender Portal](https://security.microsoft.com/)) -> Hunting / Incidents** for device `PC-LAB-01` (`DeviceEvents` where `ActionType startswith 'Asr'`) to identify the exact parent process and triggering rule ID.
 
 ## Deep-Dive Investigation (L3)
 1. **Why Office Macros Are Blocked (`Mark of the Web`):** Microsoft Office blocks VBA macros in files downloaded from the internet or opened from network shares not listed in **Trusted Sites** / **Trusted Locations** (even when ASR is not blocking!).
 2. **Scoped ASR Exclusion vs. Disabling a Whole Rule:** Never disable an Attack Surface Reduction rule globally just for one signed LOB binary; Intune/Defender supports **ASR-only per-path or certificate-scoped exclusions** (`AttackSurfaceReductionOnlyExclusions`).
-3. **False Positive Quarantine (`1116` / `1117`):** Submit suspect clean binaries to Microsoft Security Intelligence (`https://www.microsoft.com/en-us/wdsi/filesubmission`) or create an **Indicator (Allow by SHA-256)** in Defender XDR rather than adding broad `C:\` folder exclusions.
+3. **False Positive Quarantine (`1116` / `1117`):** Submit suspect clean binaries to Microsoft Security Intelligence ([Microsoft Security Intelligence File Submission](https://www.microsoft.com/en-us/wdsi/filesubmission)) or create an **Indicator (Allow by SHA-256)** in Defender XDR rather than adding broad `C:\` folder exclusions.
 
 ## Remediation (Confirm Before Running)
 1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** If **Microsoft Defender Antivirus** quarantined a verified clean, signed LOB executable, restore it safely on `PC-LAB-01` and add a **SHA-256 file indicator** in **Defender XDR -> Settings -> Endpoints -> Indicators -> File hashes** (preferred over local wildcard folder exclusions!).
@@ -105,6 +105,7 @@ linked_scripts:
 - **[VirusTotal](https://www.virustotal.com/)** — Look up the executable's `Get-FileHash -Algorithm SHA256` **hash only** across AV engines before approving any exception (**never upload proprietary client files**).
 - **[Microsoft Security Intelligence File Submission](https://www.microsoft.com/en-us/wdsi/filesubmission)** — Submit verified clean, digitally signed LOB binaries falsely quarantined by Defender Antivirus.
 - **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Manage scoped Attack Surface Reduction exclusions centrally under **Endpoint security**.
+- **[Microsoft Defender Portal](https://security.microsoft.com/)** — Review ASR rule trigger events, Threat Explorer, and quarantined file telemetry.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We verified the digital signature and hash of the blocked business application on `PC-LAB-01` and added a tightly scoped Defender security exception. Please try launching the application again and confirm it opens normally.

@@ -128,7 +128,7 @@ def test_mainwindow_startup_search_and_facets(
     total_subcats = sum(
         tree.topLevelItem(i).childCount() for i in range(1, tree.topLevelItemCount())
     )
-    assert total_subcats == 23
+    assert total_subcats == 27
     assert window.health_button.text() == f"✓ {EXPECTED_COUNT} Valid"
     assert window.viewer.current_playbook_id is not None
 
@@ -347,7 +347,49 @@ def test_markdown_external_links_and_resources_dialog(
     dlg.search_input.setText("adobe")
     qapp.processEvents()
     assert any("Adobe" in name for name in dlg.visible_resource_names())
+
+    dlg.search_input.setText("self-service")
+    qapp.processEvents()
+    self_service = dlg.visible_resource_names()
+    assert any("Security Info" in name for name in self_service)
+    assert any("SSPR" in name for name in self_service)
+
+    dlg.search_input.clear()
+    qapp.processEvents()
+    all_tools = dlg.visible_resource_names()
+    for expected in (
+        "Microsoft Defender Portal",
+        "Exchange Admin Center",
+        "Microsoft Teams Admin Center",
+        "Microsoft Purview Compliance Portal",
+        "Microsoft 365 Apps Admin Center",
+        "Power Platform Admin Center",
+        "Microsoft Message Header Analyzer",
+        "Microsoft Visual C++ Redistributable Downloads",
+        "Microsoft .NET Desktop Runtime Downloads",
+        "Intuit QuickBooks Desktop Support & Tool Hub",
+    ):
+        assert any(expected in name for name in all_tools), f"Missing {expected} in ResourcesDialog"
     dlg.close()
+
+    from guideit_master.guideit.validator import load_playbook_file
+
+    id003 = load_playbook_file(
+        REPO_ROOT,
+        REPO_ROOT / "playbooks" / "01_Identity_AD_Entra" / "id-003-entra-mfa-new-phone-and-tap-recovery.md",
+    )
+    rem_sec = parse_section_blocks("Remediation (Confirm Before Running)", id003.sections["Remediation (Confirm Before Running)"])
+    rem_html = " ".join(b.html for b in rem_sec.blocks if isinstance(b, ProseBlock))
+    assert 'href="https://mysignins.microsoft.com/security-info"' in rem_html
+
+    m365_006 = load_playbook_file(
+        REPO_ROOT,
+        REPO_ROOT / "playbooks" / "02_M365_Email_Collab" / "m365-006-exchange-ndr-550-and-shared-mailbox-missing.md",
+    )
+    diag_sec = parse_section_blocks("Read-Only Diagnostics (L1-L2)", m365_006.sections["Read-Only Diagnostics (L1-L2)"])
+    diag_html = " ".join(b.html for b in diag_sec.blocks if isinstance(b, ProseBlock))
+    assert 'href="https://admin.exchange.microsoft.com/"' in diag_html
+    assert 'href="https://security.microsoft.com/"' in diag_html
 
 
 def test_code_blocks_wrap_cleanly_without_horizontal_or_vertical_clipping(

@@ -50,7 +50,7 @@ linked_scripts:
 ## Fast Triage (Under 2 Minutes)
 ### Questions to Ask the User (Classify the Issue)
 1. Does Outlook return **zero results**, show **`Something went wrong and your search couldn't be completed`**, or only miss **older emails** (> 1 year old)?
-2. Does searching inside **Outlook on the Web (`https://outlook.office.com`)** find the missing emails normally? *(Confirming Web works gives the user an instant workaround AND isolates the fault to `PC-LAB-01`!)*
+2. Does searching inside **Outlook on the Web ([Outlook on the Web](https://outlook.office.com/))** find the missing emails normally? *(Confirming Web works gives the user an instant workaround AND isolates the fault to `PC-LAB-01`!)*
 3. Are you searching inside your **primary mailbox**, an **Online Archive**, or a **Shared Mailbox**?
 4. Are you using **Classic Outlook (`OUTLOOK.EXE`)** or the **New Outlook for Windows (`olk.exe`)**?
 
@@ -60,7 +60,7 @@ linked_scripts:
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
 1. **Verify Outlook Web Search & Mail-to-Keep-Offline Slider:**
-   - Test the exact same search term in **Outlook on the Web (`outlook.office.com`)**.
+   - Test the exact same search term in **Outlook on the Web ([Outlook on the Web](https://outlook.office.com/))**.
    - In Classic Outlook: **File -> Account Settings -> Account Settings -> double-click account -> `Download email for the past:`** slider (if set to 3 or 6 months, emails older than that aren't in local search unless clicking *"Click here to view more on Microsoft Exchange"*).
 2. **Check Indexing Status inside Classic Outlook:**
    - Click inside the Outlook Search bar -> **Search Tools -> Indexing Status**: does it show **`0 items remaining to be indexed`** or thousands stuck forever?
@@ -109,6 +109,12 @@ linked_scripts:
 - **Outlook search or sync fails because desktop auth token is broken (0x80040115):** [m365-001 — Outlook Password Prompt Loop and Modern Auth Failure](./m365-001-outlook-auth-loop.md)
 - **Bloated 50 GB+ .ost file requires Exchange Online Archive to slim primary mailbox:** [m365-008 — Exchange Online Mailbox Full (554 5.2.2) & Online Archive Not Moving Mail](./m365-008-exchange-mailbox-full-and-online-archive-stuck.md)
 - **Outlook freezes completely while indexing or opening emails due to COM add-in conflict:** [app-002 — Excel/Word Freezing on Open, COM Add-in Conflict, and PDF Previewer Failure](../09_Apps_LOB/app-002-office-addins-crash-and-pdf-preview-failure.md)
+
+## Useful Links & External Tools
+- **[Microsoft 365 Apps Update History](https://learn.microsoft.com/en-us/officeupdates/update-history-microsoft365-apps-by-date)** — Check for patched Outlook Windows Search indexing regressions in the user's Office build.
+- **[Microsoft Remote Connectivity Analyzer](https://testconnectivity.microsoft.com/)** — Verify Exchange Online connectivity if Outlook fails to sync new mail into the OST.
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Confirm Exchange Online search service health.
+- **[Microsoft 365 Apps Admin Center](https://config.office.com/)** — Audit Office Click-to-Run update channels and desktop client health across devices.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We restarted the Windows Search indexing service and rebuilt the corrupted Outlook search index / local mail cache on `PC-LAB-01`. Please allow indexing to finish in the background and confirm your Outlook search results appear normally (in the meantime, Outlook Web at `outlook.office.com` remains available).

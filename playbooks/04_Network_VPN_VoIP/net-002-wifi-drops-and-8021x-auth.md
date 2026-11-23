@@ -100,6 +100,10 @@ linked_scripts:
 - **802.1X EAP-TLS rejects client due to expired NPS RADIUS or SCEP device certificate:** [sec-003 — TLS/SSL Certificate Expired, Missing Intermediate Chain, and Untrusted Root CA](../06_Security_Access/sec-003-tls-ssl-certificate-expired-and-untrusted-ca.md)
 - **Intune Wi-Fi/SCEP profile missing or device Non-Compliant blocks wireless access:** [mdm-001 — macOS and iOS Intune MDM Sync and Conditional Access Compliance Failure](../07_macOS_Mobile_MDM/mdm-001-intune-compliance-sync.md)
 
+
+## Useful Links & External Tools
+- **[Downdetector](https://downdetector.com/)** — Rule out regional ISP/carrier outages when Wi-Fi connects without internet.
+- **[DNS Checker (Global Propagation)](https://dnschecker.org/)** — Verify external DNS resolution if internal vs public DNS behaves inconsistently.
 ## Client Update Snippets (EN / FR)
 - **EN:** We refreshed the wireless profile, adjusted adapter power/roaming settings, and verified stable Wi-Fi connectivity on `PC-LAB-01`. Please monitor the connection over the next hour and let us know if any drops return.
 - **FR:** Nous avons réinitialisé le profil Wi-Fi, ajusté les paramètres d'alimentation de la carte sans fil et vérifié la stabilité de la connexion sur `PC-LAB-01`. Veuillez surveiller la connexion aujourd'hui et nous aviser si les coupures reviennent.

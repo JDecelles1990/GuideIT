@@ -248,6 +248,174 @@
       "tags": ["entra", "aadsts", "conditional access", "consent", "oauth", "sign-in"],
       "when_to_use": "Decode any AADSTS code returned during developer app consent, OAuth sign-in, or Conditional Access geo-blocking.",
       "instructions": "Paste the numeric code or full AADSTS string (e.g., AADSTS65001, AADSTS53003, AADSTS7000215) to view official Microsoft remediation details."
+    },
+    {
+      "name": "Microsoft My Sign-Ins & Security Info (User MFA Self-Service)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://mysignins.microsoft.com/security-info",
+      "tags": ["mfa", "2fa", "authenticator", "passkey", "sspr", "security info", "self-service", "mot de passe"],
+      "when_to_use": "Guide end users to add, update, or remove their Microsoft Authenticator app, phone number, passkey, or SSPR verification methods themselves.",
+      "instructions": "Have the user sign in with their work account (or Temporary Access Pass), click '+ Add sign-in method', and pair Authenticator or update backup methods."
+    },
+    {
+      "name": "Microsoft Self-Service Password Reset (SSPR)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://passwordreset.microsoftonline.com/",
+      "tags": ["password", "reset", "sspr", "locked out", "unlock", "mot de passe", "verrouille", "self-service"],
+      "when_to_use": "Allow Microsoft 365 / Entra ID users to reset a forgotten password or unlock their own account without waiting on the helpdesk.",
+      "instructions": "Have the user enter their work UPN (jsmith@example.com), complete the captcha and registered MFA/email/SMS challenge, and choose a new compliant password."
+    },
+    {
+      "name": "Microsoft My Account (Devices, Licenses & Sign-Ins)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://myaccount.microsoft.com/",
+      "tags": ["myaccount", "office", "devices", "licenses", "sign-in", "m365", "self-service"],
+      "when_to_use": "Let users view their assigned M365 subscriptions, install Office desktop apps, review recent sign-in activity, and check registered devices.",
+      "instructions": "Direct the user to Apps & devices to download Office Click-to-Run, or My sign-ins to verify unrecognized login attempts."
+    },
+    {
+      "name": "Google Account Security & 2-Step Verification (User Self-Service)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://myaccount.google.com/security",
+      "tags": ["google", "2sv", "mfa", "password", "authenticator", "backup codes", "self-service"],
+      "when_to_use": "Guide Google Workspace users to change their password, enroll Google Authenticator / passkeys, or generate 2SV backup codes.",
+      "instructions": "Ensure the user is signed into their corporate Google Workspace profile (not personal Gmail) before modifying 2-Step Verification or recovery options."
+    },
+    {
+      "name": "Microsoft 365 Network Connectivity Test",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://connectivity.office.com/",
+      "tags": ["m365", "teams", "exchange", "onedrive", "latency", "jitter", "vpn", "proxy", "network"],
+      "when_to_use": "Diagnose Teams choppy audio, OneDrive slow sync, or Exchange Online latency caused by VPN hairpinning, SSL inspection proxies, or ISP routing.",
+      "instructions": "Run the test directly on the affected user's workstation (with and without VPN) to compare Exchange, SharePoint, and Teams front-door latency and packet loss."
+    },
+    {
+      "name": "Exchange Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://admin.exchange.microsoft.com/",
+      "tags": ["exchange", "ndr", "550", "message trace", "shared mailbox", "calendar", "mailflow"],
+      "when_to_use": "Run Message Trace for missing/bounced emails (550 NDRs), manage shared mailbox permissions, and inspect room/calendar delegates.",
+      "instructions": "Use Mail flow -> Message trace to check delivery status, bounce codes, and transport rules before modifying DNS or Outlook profiles."
+    },
+    {
+      "name": "Microsoft Teams Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://admin.teams.microsoft.com/",
+      "tags": ["teams", "federation", "guest", "external access", "call quality", "voip", "audio"],
+      "when_to_use": "Inspect Teams external federation allow/block lists, B2B guest settings, and per-user Call Quality Analytics.",
+      "instructions": "Check Users -> External access for domain allow-lists and Users -> Manage users -> Meetings & calls for jitter/packet-loss telemetry."
+    },
+    {
+      "name": "Microsoft Purview Compliance Portal",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://purview.microsoft.com/",
+      "tags": ["purview", "dlp", "sensitivity label", "encryption", "rms", "compliance", "audit"],
+      "when_to_use": "Investigate DLP policy blocks, sensitivity label encryption errors (RMS_ACCESS_DENIED), and Unified Audit Logs.",
+      "instructions": "Review Data Loss Prevention -> Activity explorer or Information Protection -> Labels to confirm policy scope and user/group exclusions."
+    },
+    {
+      "name": "Windows Release Health & Known Issues",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://learn.microsoft.com/en-us/windows/release-health/",
+      "tags": ["windows", "windows 11", "windows update", "kb", "safeguard hold", "bsod", "known issues"],
+      "when_to_use": "Verify known Microsoft Windows 10/11 update regressions, safeguard holds, printer/RPC bugs, or recent KB issues.",
+      "instructions": "Select the target Windows 10/11 version and check Known issues and notifications before spending hours debugging a confirmed OS regression."
+    },
+    {
+      "name": "Microsoft 365 Apps Update History",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://learn.microsoft.com/en-us/officeupdates/update-history-microsoft365-apps-by-date",
+      "tags": ["office", "outlook", "excel", "word", "click-to-run", "update", "build"],
+      "when_to_use": "Check whether a user's Office Click-to-Run build (Current / Monthly Enterprise / Semi-Annual) is behind or affected by a patched Outlook/Excel bug.",
+      "instructions": "Compare File -> Account -> About version/build against the official Microsoft 365 Apps update channel table."
+    },
+    {
+      "name": "Microsoft Defender Portal (Security, Quarantine & XDR)",
+      "category": "Security & Threat Intel",
+      "url": "https://security.microsoft.com/",
+      "tags": ["defender", "quarantine", "xdr", "phishing", "asr", "incidents", "threat", "m365"],
+      "when_to_use": "Release quarantined emails, check tenant anti-spam/phishing policies, investigate XDR alerts, or review Defender ASR/EDR detections.",
+      "instructions": "Open Email & collaboration -> Review -> Quarantine for blocked mail, or Incidents & alerts for compromised-user investigations."
+    },
+    {
+      "name": "Microsoft 365 Apps Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://config.office.com/",
+      "tags": ["office", "click-to-run", "m365 apps", "update channel", "add-ins", "outlook", "excel", "admin"],
+      "when_to_use": "Manage Microsoft 365 Apps deployment XML, Monthly Enterprise/Current update channels, Office health inventory, and cloud policies.",
+      "instructions": "Check Servicing -> Office updates or Inventory to spot endpoints stuck on outdated Office Click-to-Run builds or failing add-ins."
+    },
+    {
+      "name": "Power Platform Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://admin.powerplatform.microsoft.com/",
+      "tags": ["power platform", "power automate", "power apps", "connectors", "dlp", "environments", "admin"],
+      "when_to_use": "Manage Power Apps / Power Automate environments, connector DLP policies, and service capacity quotas.",
+      "instructions": "Check Environments -> Resources or Policies -> Data policies when flows/connectors fail due to tenant DLP or capacity blocks."
+    },
+    {
+      "name": "Microsoft BitLocker Recovery Keys (User Self-Service)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://aka.ms/myrecoverykey",
+      "tags": ["bitlocker", "recovery key", "cle de recuperation", "self-service", "windows"],
+      "when_to_use": "Allow Entra ID users to look up their own 48-digit BitLocker recovery key on a secondary device when permitted by tenant policy.",
+      "instructions": "Have the user sign in on a phone or working PC and match the Recovery Key ID prefix shown on the blue BitLocker recovery screen."
+    },
+    {
+      "name": "Outlook on the Web (OWA)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://outlook.office.com/",
+      "tags": ["outlook", "owa", "webmail", "courriel", "calendar", "shared mailbox", "m365"],
+      "when_to_use": "Immediate browser workaround when Classic/New Outlook desktop hangs, loops auth, stalls Outbox, or misses search/calendar items.",
+      "instructions": "Use OWA to test mail flow, open shared mailboxes (Avatar -> Open another mailbox), and inspect Settings -> Mail -> Rules/Forwarding during BEC triage."
+    },
+    {
+      "name": "Microsoft Teams Web Client",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://teams.microsoft.com/",
+      "tags": ["teams", "web", "meetings", "chat", "fallback", "m365"],
+      "when_to_use": "Fast browser fallback for urgent meetings when the Teams desktop client shows a blank screen, sign-in loop, or cache corruption.",
+      "instructions": "Open in Microsoft Edge or Google Chrome (or Incognito to isolate stale cookies) to verify account licensing vs local desktop cache failure."
+    },
+    {
+      "name": "Microsoft 365 Portal (Apps & Sign-In)",
+      "category": "User Self-Service (Password & MFA)",
+      "url": "https://portal.office.com/",
+      "tags": ["m365", "office", "portal", "sign-in", "web apps", "self-service"],
+      "when_to_use": "Verify whether a user's updated password/MFA works cleanly in the cloud and access Word, Excel, OneDrive, and Office installers.",
+      "instructions": "Test sign-in in a Private/Incognito browser window after password resets to separate cloud credential sync from local Windows cached logins."
+    },
+    {
+      "name": "Microsoft Message Header Analyzer",
+      "category": "Email & DNS",
+      "url": "https://mha.azurewebsites.net/",
+      "tags": ["headers", "phishing", "hameconnage", "spf", "dkim", "dmarc", "exchange", "m365", "smtp"],
+      "when_to_use": "Parse raw Outlook/Exchange SMTP email headers to trace hop delays, SCL/BCL spam scores, and SPF/DKIM/DMARC authentication results.",
+      "instructions": "Paste sanitized raw email headers (View -> View message details in OWA, or File -> Properties -> Internet headers in Classic Outlook) and inspect Other headers + Authentication-Results."
+    },
+    {
+      "name": "Microsoft Visual C++ Redistributable Downloads",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist",
+      "tags": ["vc++", "vcruntime140", "msvcp140", "redistributable", "runtime", "lob", "dll", "windows"],
+      "when_to_use": "Download official x86/x64 Visual C++ 2015-2022 Redistributables when accounting/LOB apps fail to launch with VCRUNTIME140.dll or MSVCP140.dll missing.",
+      "instructions": "Always install BOTH x86 and x64 installers on 64-bit Windows when a 32-bit LOB/ERP client (QuickBooks, Sage, PDF add-ins) throws missing DLL errors."
+    },
+    {
+      "name": "Microsoft .NET Desktop Runtime Downloads",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://dotnet.microsoft.com/en-us/download/dotnet",
+      "tags": ["dotnet", ".net", "runtime", "desktop runtime", "lob", "windows", "app"],
+      "when_to_use": "Resolve 'You must install .NET Desktop Runtime to run this application' errors for modern LOB desktop tools and RMM utilities.",
+      "instructions": "Match both the major version (.NET 6 / .NET 8 LTS) and architecture (x64 vs x86) requested by the vendor error dialog; Desktop Runtime includes base .NET Runtime."
+    },
+    {
+      "name": "Intuit QuickBooks Desktop Support & Tool Hub",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://quickbooks.intuit.com/learn-support/",
+      "tags": ["quickbooks", "h202", "accounting", "comptabilite", "multi-user", "database server manager", "lob"],
+      "when_to_use": "Official Intuit guidance for QuickBooks Desktop H202/H505 multi-user errors, Database Server Manager port setup, and QuickBooks Tool Hub downloads.",
+      "instructions": "Download QuickBooks Tool Hub ONLY from official Intuit support docs and run Network Issues -> QuickBooks Database Server Manager on the server hosting the .QBW company files."
     }
   ]
 }

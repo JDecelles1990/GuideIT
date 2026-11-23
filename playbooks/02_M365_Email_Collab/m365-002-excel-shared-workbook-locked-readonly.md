@@ -112,6 +112,11 @@ linked_scripts:
 - **Excel file lives on an on-prem UNC/SMB mapped share (opportunistic lock) rather than SharePoint:** [net-004 — Windows SMB Mapped Network Drives Red X, 0x80070035, and Error 1219](../04_Network_VPN_VoIP/net-004-smb-mapped-drives-missing-and-error-1219.md)
 - **Purview Sensitivity Label / IRM protection restricts workbook to Read-Only:** [sec-004 — Microsoft Purview DLP Policy Blocks & Sensitivity Label Encryption Denied](../06_Security_Access/sec-004-purview-dlp-block-and-sensitivity-labels.md)
 
+## Useful Links & External Tools
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Verify SharePoint/OneDrive co-authoring service health.
+- **[Microsoft 365 Apps Update History](https://learn.microsoft.com/en-us/officeupdates/update-history-microsoft365-apps-by-date)** — Check whether an outdated Office Click-to-Run build has known co-authoring lock bugs.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Confirm user Microsoft 365 / Office editing licenses and SharePoint admin status.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the file editing lock and verified permissions on the shared Excel workbook. Could you reopen the file and confirm you can edit and save changes normally?
 - **FR:** Nous avons levé le verrou d'édition et vérifié les droits d'accès sur le fichier Excel partagé. Pouvez-vous rouvrir le classeur et confirmer que vous pouvez maintenant le modifier et enregistrer vos changements ?

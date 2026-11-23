@@ -95,6 +95,9 @@ linked_scripts:
 - **Headset connects over USB/Bluetooth yet Teams mic/audio stays silent:** [win-007 — Windows Webcam, Microphone, and Speaker Audio Not Working (0xA00F4244 / Code 10 / 43)](../03_Windows_Endpoints/win-007-windows-audio-webcam-and-mic-not-working.md)
 - **Wireless headset connects over Bluetooth instead of a USB dongle:** [prt-002 — Bluetooth Headphones Cannot Connect, Drop Audio, or Mic Fails in Calls](./prt-002-bluetooth-headphones-wont-connect-or-no-audio.md)
 
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for recent Windows USB controller or driver update advisories.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the faulted Windows USB device entry (`Code 43 / Device Descriptor`), verified direct port power and driver status on `PC-LAB-01`, and confirmed the peripheral enumerates cleanly. Could you test using the device now and confirm it responds normally?
 - **FR:** Nous avons supprimé le périphérique USB en erreur (`Code 43`) dans le Gestionnaire de périphériques sur `PC-LAB-01`, vérifié l'alimentation directe du port et le pilote, et validé la détection. Pouvez-vous tester votre périphérique maintenant ?

@@ -103,6 +103,11 @@ linked_scripts:
 - **Bluetooth headset profile switching (HFP vs A2DP) causes robotic or muted call audio:** [prt-002 — Bluetooth Headphones Cannot Connect, Drop Audio, or Mic Fails in Calls](../05_Printers_Devices/prt-002-bluetooth-headphones-wont-connect-or-no-audio.md)
 - **Windows mic privacy toggle or local audio driver defect breaks voice pickup:** [win-007 — Windows Webcam, Microphone, and Speaker Audio Not Working (0xA00F4244 / Code 10 / 43)](../03_Windows_Endpoints/win-007-windows-audio-webcam-and-mic-not-working.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft 365 Network Connectivity Test](https://connectivity.office.com/)** — Test Teams front-door latency, UDP/TCP media reachability, and VPN hairpinning from the endpoint.
+- **[Microsoft Teams Admin Center](https://admin.teams.microsoft.com/)** — Inspect per-user Call Quality Analytics (jitter, packet loss, round-trip time).
+- **[Downdetector](https://downdetector.com/)** — Check regional ISP/carrier packet-loss or outage spikes.
 ## Client Update Snippets (EN / FR)
 - **EN:** We identified the network routing / VPN / headset bottleneck affecting your Teams call quality and adjusted the configuration. Could you join a quick test call and confirm the audio sounds clear on both sides?
 - **FR:** Nous avons identifié la source des coupures audio Teams (routage VPN / réseau / périphérique audio) et ajusté la configuration. Pouvez-vous effectuer un court appel test et confirmer que le son est clair des deux côtés ?

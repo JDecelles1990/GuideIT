@@ -63,7 +63,7 @@ related_ids:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Entra Admin Center GUI)
-1. **Check Pending Admin Consent Requests (`entra.microsoft.com` -> Identity -> Applications -> Enterprise applications -> Admin consent requests):** See if `jsmith@example.com` already clicked **"Request approval"** and capture the business justification + requested app permissions!
+1. **Check Pending Admin Consent Requests ([Microsoft Entra Admin Center](https://entra.microsoft.com/) -> Identity -> Applications -> Enterprise applications -> Admin consent requests):** See if `jsmith@example.com` already clicked **"Request approval"** and capture the business justification + requested app permissions!
 2. **Verify User Assignment (`AADSTS50105`):** Open **Enterprise applications -> `<App Name>` -> Properties** (is `Assignment required?` = `Yes`?) and **Users and groups** (is `jsmith@example.com` or their security group missing?).
 3. **Check Secret Expiration (`AADSTS7000215`):** Under **App registrations -> `<App Name>` -> Certificates & secrets**, look visually at the **Expires** column for any red `Expired` dates!
 

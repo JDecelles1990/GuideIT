@@ -159,6 +159,47 @@ def test_production_catalog_syncs_all_38_scripts(tmp_path: Path) -> None:
             {"HoursBack": 96, "IncludeSystemProfiles": True},
             ["[int]$HoursBack = 96", "[bool]$IncludeSystemProfiles = $true"],
         ),
+        (
+            "02_Network/Get-WebProxyAndTLSDiagnostics.ps1",
+            {
+                "TargetHost": "outlook.office.com",
+                "PublicDnsServer": "9.9.9.9",
+                "TestTlsHandshake": False,
+                "IncludeAdapterLink": True,
+            },
+            [
+                "[string]$TargetHost = 'outlook.office.com'",
+                "[string]$PublicDnsServer = '9.9.9.9'",
+                "[bool]$TestTlsHandshake = $false",
+                "[bool]$IncludeAdapterLink = $true",
+            ],
+        ),
+        (
+            "04_Devices/Get-PrinterPortsAndScannerHealth.ps1",
+            {"IncludeSMBServerConfig": False, "IncludePrinterDrivers": False},
+            [
+                "[bool]$IncludeSMBServerConfig = $false",
+                "[bool]$IncludePrinterDrivers = $false",
+            ],
+        ),
+        (
+            "05_Security_Defender/Get-PersistenceAndConnectionsAudit.ps1",
+            {"IncludeScheduledTasks": False, "IncludeOutboundConnections": True, "MaxConnections": 40},
+            [
+                "[bool]$IncludeScheduledTasks = $false",
+                "[bool]$IncludeOutboundConnections = $true",
+                "[int]$MaxConnections = 40",
+            ],
+        ),
+        (
+            "01_System/Get-RuntimesAndMSIHealth.ps1",
+            {"IncludeLOBServices": False, "HoursBack": 24, "MaxEvents": 10},
+            [
+                "[bool]$IncludeLOBServices = $false",
+                "[int]$HoursBack = 24",
+                "[int]$MaxEvents = 10",
+            ],
+        ),
     ],
 )
 def test_production_scripts_parameter_injection(

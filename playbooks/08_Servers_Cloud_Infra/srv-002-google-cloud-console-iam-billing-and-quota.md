@@ -51,13 +51,13 @@ related_ids:
 4. Does the error appear for **only one user** or **every team member** on `contoso-prod-app`?
 
 ### Initial Scope & Classification
-- Capture exact Google Cloud Console message + signed-in identity (`admin@contoso.com`) + Project ID (`contoso-prod-app`), and check whether the client toggled **Google Cloud Platform** service availability off inside **Google Admin Console (`admin.google.com`)**.
+- Capture exact Google Cloud Console message + signed-in identity (`admin@contoso.com`) + Project ID (`contoso-prod-app`), and check whether the client toggled **Google Cloud Platform** service availability off inside **Google Admin Console ([Google Workspace Admin Console](https://admin.google.com/))**.
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Isolate Multi-Account Browser Confusion (`Incognito` Test):** Have `jsmith@example.com` open an **Incognito / InPrivate** browser window -> sign into `https://console.cloud.google.com` using ONLY their corporate `@contoso.com` account (many `403` errors happen when Chrome defaults to the user's personal `@gmail.com`!).
+1. **Isolate Multi-Account Browser Confusion (`Incognito` Test):** Have `jsmith@example.com` open an **Incognito / InPrivate** browser window -> sign into [Google Cloud Console](https://console.cloud.google.com/) using ONLY their corporate `@contoso.com` account (many `403` errors happen when Chrome defaults to the user's personal `@gmail.com`!).
 2. **Verify Correct Project Selected:** Check the top-left Project selector dropdown in Cloud Console — switching from an old/deleted project to `contoso-prod-app` often resolves `"You do not have permissions"` instantly!
-3. **Check Workspace Service Enablement (`admin.google.com` GUI):** In Google Admin Console, open **Apps -> Additional Google services -> Google Cloud Platform** and verify it is **ON** for the user's **Organizational Unit (OU)** (if OFF, `console.cloud.google.com` rejects login even if IAM roles exist!).
+3. **Check Workspace Service Enablement ([Google Workspace Admin Console](https://admin.google.com/) GUI):** In Google Admin Console, open **Apps -> Additional Google services -> Google Cloud Platform** and verify it is **ON** for the user's **Organizational Unit (OU)** (if OFF, [Google Cloud Console](https://console.cloud.google.com/) rejects login even if IAM roles exist!).
 4. **Check Cloud Billing Banner & Screenshot Exact `403` Permission Name:** Note the exact missing permission string (e.g., `compute.instances.list` or `billing.accounts.get`) from the red console popup for L2/L3!
 
 ### L2 Technical Diagnostics
@@ -84,7 +84,7 @@ related_ids:
 4. **Missing Organization Administrator Role:** If a Workspace Super Admin cannot see the Cloud Organization node, grant the Super Admin **`Organization Administrator`** (`roles/resourcemanager.organizationAdmin`) in Cloud Console **IAM** at the Organization scope.
 
 ## Remediation (Confirm Before Running)
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Browser Profile & Project Selection Fix)** Have `jsmith@example.com` open an Incognito window signed in ONLY with their work account and select exact project ID `contoso-prod-app`; if **Google Cloud Platform** service was disabled at Workspace OU level, request Super Admin approval to toggle it ON ONLY for the scoped OU/Group inside `admin.google.com`.
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Browser Profile & Project Selection Fix)** Have `jsmith@example.com` open an Incognito window signed in ONLY with their work account and select exact project ID `contoso-prod-app`; if **Google Cloud Platform** service was disabled at Workspace OU level, request Super Admin approval to toggle it ON ONLY for the scoped OU/Group inside [Google Workspace Admin Console](https://admin.google.com/).
 2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2 Scoped Least-Privilege IAM Role)** Grant ONLY the minimum required role on the project (`roles/viewer` or targeted service role — avoid `roles/owner` unless strictly required):
    ```bash
    gcloud projects add-iam-policy-binding contoso-prod-app \
@@ -99,7 +99,7 @@ related_ids:
 
 ## Verification & Post-Fix Checks
 1. Confirm `gcloud projects get-iam-policy contoso-prod-app` reflects the expected role binding and `billingEnabled: true`.
-2. Have `jsmith@example.com` refresh `https://console.cloud.google.com` in an Incognito corporate session and verify the target resource loads without `403` or billing warnings.
+2. Have `jsmith@example.com` refresh [Google Cloud Console](https://console.cloud.google.com/) in an Incognito corporate session and verify the target resource loads without `403` or billing warnings.
 
 ## Cross-Subject Escalation & Pivot Links
 - **GCP IAM 403 traces to suspended Google Workspace account, 2SV lock, or org group change:** [id-002 — Google Workspace Admin Console 2SV Lockout, Role 403, and Suspended User Recovery](../01_Identity_AD_Entra/id-002-google-workspace-admin-2sv-lockout.md)

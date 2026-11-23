@@ -43,6 +43,7 @@ related_ids:
   - srv-016
 linked_scripts:
   - 03_M365/Get-OutlookAddins.ps1
+  - 01_System/Get-RuntimesAndMSIHealth.ps1
   - 03_M365/Clear-OutlookCache.ps1
 ---
 
@@ -102,6 +103,7 @@ linked_scripts:
 ## Useful Links & External Tools
 - **[Adobe Acrobat Cleaner Tool & Enterprise Docs](https://www.adobe.com/devnet-docs/acrobatetk/tools/Labs/cleaner.html)** — Clean up damaged Adobe Reader/Acrobat PDF previewer handlers when Outlook or File Explorer PDF preview fails.
 - **[Adobe Admin Console](https://adminconsole.adobe.com/)** — Verify user Acrobat entitlements if repair prompts for licensing (`[app-003]`).
+- **[Microsoft 365 Apps Admin Center](https://config.office.com/)** — Review Office Click-to-Run update channels, add-in health, and cloud policies.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We isolated the conflicting Office add-in / PDF preview handler on `PC-LAB-01` and restored normal application behavior. Please reopen Excel/Word or test previewing a PDF attachment and confirm everything works smoothly.

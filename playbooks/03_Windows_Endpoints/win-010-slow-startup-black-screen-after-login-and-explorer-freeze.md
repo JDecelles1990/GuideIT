@@ -108,6 +108,9 @@ linked_scripts:
 - **Corrupted user profile triggers missing desktop after slow login:** [win-004 — Windows Temporary User Profile Recovery (Event ID 1511 / 1515)](./win-004-windows-temporary-profile-recovery.md)
 - **Pending or corrupted Windows Update triggers black screen AppReadiness hang:** [win-001 — Windows Update Failure and Component Store Corruption](./win-001-windows-update-corruption.md)
 
+
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for Explorer.exe or post-update black screen advisories.
 ## Client Update Snippets (EN / FR)
 - **EN:** We restarted the hung Windows Explorer shell, disabled unnecessary high-impact startup programs on `PC-LAB-01`, and performed a clean reboot to improve startup speed. Could you confirm your desktop and taskbar now load quickly and normally?
 - **FR:** Nous avons relancé l'explorateur Windows (`explorer.exe`), désactivé les applications non essentielles ralentissant le démarrage sur `PC-LAB-01` et effectué un redémarrage complet. Pouvez-vous confirmer que votre bureau s'affiche maintenant rapidement et sans blocage ?

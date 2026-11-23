@@ -112,6 +112,9 @@ related_ids:
 - **Unreachable Linux Azure VM requires Serial Console or VMAccess reset without SSH:** [srv-013 — Azure VM Boot Failures, RDP/SSH Unreachable, NSG & Serial Console Triage](./srv-013-azure-vm-boot-rdp-ssh-and-serial-console.md)
 - **AD-joined SSSD Linux host rejects valid SSH login due to AD lockout (4740):** [id-001 — Account Lockout Investigation](../01_Identity_AD_Entra/id-001-account-lockout.md)
 
+
+## Useful Links & External Tools
+- **[AbuseIPDB](https://www.abuseipdb.com/)** — Check suspicious external SSH source IPs from `/var/log/auth.log` or `/var/log/secure`.
 ## Client Update Snippets (EN / FR)
 - **EN:** We inspected the SSH daemon logs, fixed the `.ssh` file permissions / SELinux context / PAM lock on the Linux server, and verified clean SSH login in a fresh session.
 - **FR:** Nous avons analysé les journaux SSH, corrigé les permissions `.ssh` / le contexte SELinux / le verrouillage PAM sur le serveur Linux et validé la connexion SSH dans une nouvelle session.

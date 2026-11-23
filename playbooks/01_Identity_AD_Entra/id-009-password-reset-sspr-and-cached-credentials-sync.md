@@ -53,7 +53,7 @@ linked_scripts:
 
 ## Fast Triage (Under 2 Minutes)
 ### Questions to Ask the User (Classify the Issue)
-1. Did you **just change or reset your password**, and now the **new password works on Outlook Web / M365** (`portal.office.com`) while your **Windows laptop lock screen (`PC-LAB-01`)** still expects the **old password**? *(Very common for remote hybrid-joined laptops off VPN!)*
+1. Did you **just change or reset your password**, and now the **new password works on Outlook Web / M365** ([Microsoft 365 Portal](https://portal.office.com/)) while your **Windows laptop lock screen (`PC-LAB-01`)** still expects the **old password**? *(Very common for remote hybrid-joined laptops off VPN!)*
 2. Are you locked out completely (`[id-001]`), did Self-Service Password Reset (**SSPR**) reject your verification method (`SSPR_NOT_REGISTERED`), or did your password expire?
 3. Verify the caller's identity strictly per MSP policy (**callback to verified phone / manager / video check**) BEFORE issuing any temporary password!
 
@@ -62,7 +62,7 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
-1. **Test where the new password works vs fails:** Have `jsmith@example.com` test `https://portal.office.com` in a clean browser Private/Incognito window to confirm whether Entra/M365 already accepts the new password.
+1. **Test where the new password works vs fails:** Have `jsmith@example.com` test [Microsoft 365 Portal](https://portal.office.com/) in a clean browser Private/Incognito window to confirm whether Entra/M365 already accepts the new password.
 2. **Check Keyboard Layout (`FR` vs `EN` / `Caps Lock` / `Num Lock`) on Windows Lock Screen:** Especially on bilingual MSP setups (French Canadian vs US English keyboards), symbols (`@`, `/`, `?`) type differently before login! Click the bottom-right keyboard language indicator (`ENG` / `FRA`) and click the password **eye icon** to verify typed characters visually.
 3. **Inspect Account Status in Entra / ADUC (GUI):** Confirm account is **Enabled**, not **Expired** (`Account expires`), and not **Locked out** (`[id-001]`).
 
@@ -80,7 +80,7 @@ linked_scripts:
    *(If `DomainJoined = YES` and user is remote, `PC-LAB-01` cannot reach `DC01.domain.local` at the Windows lock screen until the user signs in with the **OLD cached password**, connects VPN (`[net-006]`), and locks/unlocks Windows (`Win + L`) once to sync the new credential!)*
 
 ### Escalation Handoff Checklist (Before Sending to L2 / L3)
-- Confirm identity verification method completed, whether `portal.office.com` accepts the password, `PasswordLastSet` timestamp, and whether client is Cloud-Only vs Hybrid AD + Entra Connect (`[id-008]`).
+- Confirm identity verification method completed, whether [Microsoft 365 Portal](https://portal.office.com/) accepts the password, `PasswordLastSet` timestamp, and whether client is Cloud-Only vs Hybrid AD + Entra Connect (`[id-008]`).
 
 ## Deep-Dive Investigation (L3)
 1. **Password Writeback / PHS Latency (`SSPR_NOT_REGISTERED` / Desync):** If user changed password via Entra SSPR and on-prem AD failed to update (or vice versa -> `0xC000006A` on-prem vs cloud), inspect Entra Connect **Password Writeback** and **Password Hash Sync (PHS)** logs (`[id-008]`).
@@ -102,14 +102,20 @@ linked_scripts:
    *(Have the user update Office/mobile mail/Credential Manager prompts promptly so stale creds don't lock the account -> `[id-001]`!)*
 
 ## Verification & Post-Fix Checks
-1. Confirm `jsmith@example.com` sets their own private complex password + registers backup SSPR methods at `https://aka.ms/mysecurityinfo` (`[id-003]`).
-2. Verify both **Windows lock/unlock (`Win + L`)** and **`https://portal.office.com`** sign-in succeed cleanly without lockouts.
+1. Confirm `jsmith@example.com` sets their own private complex password + registers backup SSPR methods at [My Security Info](https://mysignins.microsoft.com/security-info) (`[id-003]`).
+2. Verify both **Windows lock/unlock (`Win + L`)** and **[Microsoft 365 Portal](https://portal.office.com/)** sign-in succeed cleanly without lockouts.
 
 ## Cross-Subject Escalation & Pivot Links
 - **Old cached password on phone/Outlook locks out AD account after reset:** [id-001 — Account Lockout Investigation](./id-001-account-lockout.md)
 - **User also lost MFA phone / needs Temporary Access Pass for SSPR recovery:** [id-003 — Entra ID MFA New Phone, Lost Authenticator, and Temporary Access Pass Recovery](./id-003-entra-mfa-new-phone-and-tap-recovery.md)
 - **Cloud M365 and on-prem AD passwords remain permanently out of sync (PHS / Writeback):** [id-008 — Microsoft Entra Connect Sync Errors, Duplicate Attributes & PHS Stalls](./id-008-entra-connect-sync-errors-and-duplicate-attributes.md)
 - **Remote user cannot connect VPN after password reset to sync Windows login:** [net-006 — Remote Client VPN Cannot Connect (FortiClient, GlobalProtect, AnyConnect, Windows VPN)](../04_Network_VPN_VoIP/net-006-client-vpn-wont-connect-forticlient-anyconnect-globalprotect.md)
+
+## Useful Links & External Tools
+- **[Microsoft Self-Service Password Reset (SSPR)](https://passwordreset.microsoftonline.com/)** — Direct users here to reset or unlock their M365/Entra password themselves.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Have users register backup SSPR phone/email/Authenticator methods after recovery.
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Verify Password Writeback / SSPR audit logs and account status.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Confirm user license and active M365 sign-in status.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** After verifying your identity, we completed your password reset and synced your workstation credentials over VPN so both Windows and Microsoft 365 accept your new password. Please confirm you can lock and unlock Windows normally and access your email.

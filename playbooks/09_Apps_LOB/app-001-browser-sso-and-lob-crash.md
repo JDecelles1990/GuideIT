@@ -104,6 +104,11 @@ linked_scripts:
 - **Browser M365 SSO loop impacts Outlook Modern Auth (AADSTS700082):** [m365-001 — Outlook Password Prompt Loop and Modern Auth Failure](../02_M365_Email_Collab/m365-001-outlook-auth-loop.md)
 - **Conditional Access Geo-Block outside Canada forces repeated SSO challenge redirects:** [id-007 — Geo-Blocking Outside Canada, Conditional Access Named Locations & Travel Access](../01_Identity_AD_Entra/id-007-geo-blocking-outside-canada-travel-access.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft Entra AADSTS Error Code Lookup](https://login.microsoftonline.com/error)** — Decode SSO AADSTS error codes returned during browser redirects.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Have the user verify MFA/session state in a clean Incognito profile.
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Inspect Enterprise Application SSO logs and Conditional Access.
 ## Client Update Snippets (EN / FR)
 - **EN:** We isolated and cleared the conflicting browser session / application cache causing the login loop on `PC-LAB-01`. Please sign in once more and confirm the application loads normally.
 - **FR:** Nous avons isolé et nettoyé le conflit de session navigateur / cache applicatif qui causait l'erreur sur `PC-LAB-01`. Veuillez vous reconnecter et nous confirmer que l'application se charge normalement.

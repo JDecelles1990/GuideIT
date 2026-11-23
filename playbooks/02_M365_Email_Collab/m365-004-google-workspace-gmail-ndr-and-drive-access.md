@@ -56,7 +56,7 @@ linked_scripts:
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Basic / GUI)
 1. **Google Drive Personal vs Work Profile Check (`Incognito` Test):** Have `jsmith@example.com` copy the Drive link -> open a Chrome **Incognito** window -> sign into ONLY their `@contoso.com` corporate account -> verify if the Shared Drive opens! Check the Shared Drive **Manage members** list to confirm they hold `Viewer`/`Contributor`/`Content manager`.
-2. **Read the Exact NDR Bounce Line (`admin.google.com` -> Reporting -> Email Log Search):** Look at the red SMTP reason (`550-5.7.26 ... does not pass authentication checks (SPF/DKIM)` vs `550 5.7.1 blocked / user unknown` vs `Mailbox full`).
+2. **Read the Exact NDR Bounce Line ([Google Workspace Admin Console](https://admin.google.com/) -> Reporting -> Email Log Search):** Look at the red SMTP reason (`550-5.7.26 ... does not pass authentication checks (SPF/DKIM)` vs `550 5.7.1 blocked / user unknown` vs `Mailbox full`).
 
 ### L2 Technical Diagnostics
 1. **Verify Public DNS Mail Authentication (SPF, DKIM, DMARC) for `contoso.com` (read-only):**

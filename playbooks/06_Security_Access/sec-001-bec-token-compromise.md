@@ -49,6 +49,7 @@ linked_scripts:
   - 03_M365/Get-MailDNSRecords.ps1
   - 06_AD_Identity/Get-AccountLockoutEvents.ps1
   - 03_M365/Get-EntraRegistrationStatus.ps1
+  - 05_Security_Defender/Get-PersistenceAndConnectionsAudit.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)
@@ -64,10 +65,10 @@ linked_scripts:
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Fast Evidence Collection & Triage)
 1. **Verify Caller Out-of-Band & Inspect Mailbox Visually (Read-Only):**
-   - Ask `jsmith@example.com` to open **Outlook on the Web (`outlook.office.com`) -> Settings (`Gear`) -> Mail -> Rules** and **Mail -> Forwarding** (read-only screenshot — look for hidden rules like `"..."`, `"Move to RSS Feeds / Archive / Deleted Items"`, or unknown external forwarding!).
+   - Ask `jsmith@example.com` to open **Outlook on the Web ([Outlook on the Web](https://outlook.office.com/)) -> Settings (`Gear`) -> Mail -> Rules** and **Mail -> Forwarding** (read-only screenshot — look for hidden rules like `"..."`, `"Move to RSS Feeds / Archive / Deleted Items"`, or unknown external forwarding!).
    - Inspect **Sent Items** and **Deleted Items** for strange outbound phishing blasts.
 2. **Preserve Evidence (Do NOT Delete Yet!):** Have the user forward the suspicious phishing email **as an attachment** (`.eml`/`.msg`) to Security / MSP ticket (or save screenshot of link/sender) — never delete phishing emails before L2/Security captures headers & links!
-3. **Quickly Inspect Entra Sign-in Summary (`entra.microsoft.com`):** Check **Users -> `jsmith@example.com` -> Sign-in logs** (last 24–72h) for strange countries/IPs (`198.51.100.10`), unknown MFA devices registered under **Authentication methods**, and alert Security/L2 immediately!
+3. **Quickly Inspect Entra Sign-in Summary ([Microsoft Entra Admin Center](https://entra.microsoft.com/)):** Check **Users -> `jsmith@example.com` -> Sign-in logs** (last 24–72h) for strange countries/IPs (`198.51.100.10`), unknown MFA devices registered under **Authentication methods**, and alert Security/L2 immediately!
 
 ### L2 Technical Diagnostics
 1. Review **Entra ID Sign-in Logs** and **Audit Logs** for `jsmith@example.com` (last 7 days):
@@ -125,6 +126,10 @@ linked_scripts:
 - **[AbuseIPDB](https://www.abuseipdb.com/)** — Inspect unfamiliar sign-in IPs from Entra Sign-in Logs for known VPN/Tor exit nodes or brute-force reputation.
 - **[URLScan.io](https://urlscan.io/)** — Safely inspect phishing URLs in an **Unlisted/Private** sandbox (strip any user token parameters first!).
 - **[Have I Been Pwned](https://haveibeenpwned.com/)** & **[Entra Admin Center](https://entra.microsoft.com/)** — Check third-party breach exposure and manage Entra token revocation.
+- **[Microsoft Defender Portal](https://security.microsoft.com/)** — Review XDR incidents, compromised user alerts, and mail threat explorer.
+- **[Exchange Admin Center](https://admin.exchange.microsoft.com/)** — Audit hidden inbox rules, external forwarding, and outbound mail traces.
+- **[Microsoft Purview Compliance Portal](https://purview.microsoft.com/)** — Search Unified Audit Logs (`MailItemsAccessed`, `New-InboxRule`) during BEC containment.
+- **[Microsoft My Sign-Ins & Security Info](https://mysignins.microsoft.com/security-info)** — Have the verified user review and re-register MFA methods after session revocation.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We detected unauthorized sign-in activity on `jsmith@example.com`, revoked all active sessions, reset credentials, and removed unauthorized mailbox rules. Please contact our service desk by phone to complete secure MFA re-verification before signing back in.

@@ -103,6 +103,9 @@ linked_scripts:
 - **Call audio glitches persist even on wired speakers due to Teams jitter/packet loss:** [net-003 — Teams and VoIP Choppy Audio, High Jitter, and One-Way Sound Triage](../04_Network_VPN_VoIP/net-003-teams-voip-choppy-audio-and-jitter.md)
 - **USB Bluetooth receiver disconnects intermittently through an overloaded USB-C dock:** [prt-003 — USB-C / Thunderbolt Docking Station External Monitors Blank or Flickering](./prt-003-usbc-dock-monitors-not-detected.md)
 
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for recent Windows Bluetooth audio/driver update regressions.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the stale Bluetooth pairing profile on `PC-LAB-01`, refreshed the audio services, and verified both stereo playback and call microphone routing. Could you test your headphones in a quick call and confirm everything sounds clear?
 - **FR:** Nous avons supprimé le profil Bluetooth obsolète sur `PC-LAB-01`, relancé les services audio et vérifié le fonctionnement des écouteurs ainsi que du microphone. Pouvez-vous effectuer un court essai d'appel et confirmer que le son fonctionne bien ?

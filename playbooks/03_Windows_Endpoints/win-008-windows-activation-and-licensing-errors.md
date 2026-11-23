@@ -64,7 +64,7 @@ linked_scripts:
 ### L1 First-Line Checks (Start Here — Windows Activation UI & M365 Portal)
 1. **Inspect Settings -> System -> Activation (`Troubleshoot`):** Expand the **Activation state** arrow to record exact error code + Edition (`Windows 11 Pro` vs `Home` vs `Enterprise`), and try clicking **Troubleshoot** (for OEM hardware changes or Microsoft Store digital licenses!).
 2. **Check M365 License & Connect VPN (If KMS/Entra Subscription):**
-   - If the company uses **M365 Business Premium / E3 / E5**, verify in **M365 Admin Center (`admin.microsoft.com`)** that `jsmith@example.com` actually has an active license assigned, have the user sign out/in (`Work or school account`), and wait 5 minutes!
+   - If the company uses **M365 Business Premium / E3 / E5**, verify in **M365 Admin Center ([Microsoft 365 Admin Center](https://admin.microsoft.com/))** that `jsmith@example.com` actually has an active license assigned, have the user sign out/in (`Work or school account`), and wait 5 minutes!
    - If the error is `0xC004F074` (`KMS`), test connecting **corporate VPN** (`[net-006]`) or plugging into office LAN first!
 
 ### L2 Technical Diagnostics

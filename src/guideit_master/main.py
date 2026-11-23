@@ -229,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 window.showMinimized()
         else:
-            window.show()
+            window.showMaximized()
 
         return app.exec()
     finally:

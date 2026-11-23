@@ -123,6 +123,9 @@ linked_scripts:
 - **Unbacked-up SQL Server Transaction Log (.ldf) or old .bak dumps filled data volume:** [srv-016 — SQL Server Login Failed (18456), Transaction Log Full (9002) & Deadlocks](./srv-016-sql-server-login-18456-log-full-9002-and-blocking.md)
 - **Disk full occurs on an Azure Windows VM causing boot or agent failure:** [srv-013 — Azure VM Boot Failures, RDP/SSH Unreachable, NSG & Serial Console Triage](./srv-013-azure-vm-boot-rdp-ssh-and-serial-console.md)
 
+## Useful Links & External Tools
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Verify Windows Server VSS / backup update advisories.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We reclaimed disk space on `SRV-FILE-01`, stabilized the Windows VSS backup writers, and verified that the backup job now completes cleanly.
 - **FR:** Nous avons libéré de l'espace disque sur `SRV-FILE-01`, stabilisé les rédacteurs VSS Windows et validé que la tâche de sauvegarde s'exécute maintenant sans erreur.

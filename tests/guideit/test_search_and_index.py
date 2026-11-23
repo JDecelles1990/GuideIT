@@ -167,7 +167,7 @@ def test_faceted_filters_and_empty_query_browsing(built_db: Path) -> None:
     assert all(hit.tier == "L3" for hit in l3_only.hits)
 
     gw_only = search_playbooks(built_db, "", root_dir=REPO_ROOT, env_filter="google_workspace")
-    assert {hit.id for hit in gw_only.hits} == {"id-002", "m365-004", "srv-002"}
+    assert {hit.id for hit in gw_only.hits} == {"id-002", "m365-004", "sec-007", "srv-002"}
 
     dc_only = search_playbooks(built_db, "", root_dir=REPO_ROOT, env_filter="datacenter", limit=50)
     assert {
@@ -352,3 +352,31 @@ def test_search_pc_no_power_black_screen_and_boot_queries(built_db: Path) -> Non
         search_playbooks(built_db, "boucle reparation automatique", root_dir=REPO_ROOT).hits[0].id
         == "win-014"
     )
+
+
+@pytest.mark.parametrize(
+    ("query", "expected_id"),
+    [
+        ("H202", "app-006"),
+        ("quickbooks h202 multi user", "app-006"),
+        ("quickbooks erreur h202 mode multi utilisateur", "app-006"),
+        ("vcruntime140 missing", "app-007"),
+        ("error 1603 msi log", "app-007"),
+        ("scan to smb failed", "prt-006"),
+        ("numerisation vers dossier smb echouee", "prt-006"),
+        ("default printer keeps changing windows", "prt-007"),
+        ("slow wired internet capped 100 mbps", "net-008"),
+        ("website blocked work network", "net-009"),
+        ("phishing email header analysis", "sec-007"),
+        ("analyse entete courriel hameconnage", "sec-007"),
+        ("entra risky user alert containment", "sec-008"),
+    ],
+)
+def test_thin_domain_expansion_playbooks_rank_first(
+    built_db: Path,
+    query: str,
+    expected_id: str,
+) -> None:
+    res = search_playbooks(built_db, query, root_dir=REPO_ROOT, limit=10)
+    assert res.total_hits >= 1
+    assert res.hits[0].id == expected_id

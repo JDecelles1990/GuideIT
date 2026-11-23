@@ -76,7 +76,15 @@ class UnifiedShellWindow(QMainWindow):
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("GuideIT Master — Unified MSP Knowledge & Script Workstation")
-        self.resize(1400, 860)
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            avail = screen.availableGeometry()
+            self.resize(
+                min(1400, max(640, avail.width() - 32)),
+                min(860, max(480, avail.height() - 48)),
+            )
+        else:
+            self.resize(1400, 860)
 
         self.app_icon = self._create_app_icon()
         self.setWindowIcon(self.app_icon)

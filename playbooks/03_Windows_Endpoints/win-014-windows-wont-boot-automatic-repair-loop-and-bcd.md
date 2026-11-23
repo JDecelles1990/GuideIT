@@ -153,6 +153,12 @@ linked_scripts:
 - **PC powers on (fans/LEDs on) but stays pitch black with zero manufacturer logo:** [win-013 — PC Turns On With Black Screen, No Display, or Fails POST (Beep / LED Blink Codes)](./win-013-pc-power-on-black-screen-no-post-display-triage.md)
 - **Fresh SSD replacement or OS reset requires Intune Autopilot enrollment:** [mdm-008 — Intune New Device Enrollment, Windows Autopilot OOBE, and ESP Failures](../07_macOS_Mobile_MDM/mdm-008-intune-new-device-enrollment-and-autopilot.md)
 
+## Useful Links & External Tools
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Retrieve BitLocker recovery keys required before WinRE/BCD boot repair.
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Retrieve BitLocker keys and Autopilot hardware records before wiping or re-imaging.
+- **[Microsoft BitLocker Recovery Keys (Self-Service)](https://aka.ms/myrecoverykey)** — Self-service portal for users to locate their BitLocker key if prompted in WinRE.
+- **[Windows Release Health & Known Issues](https://learn.microsoft.com/en-us/windows/release-health/)** — Check for recent update boot-loop or `INACCESSIBLE_BOOT_DEVICE` advisories.
+
 ## Client Update Snippets (EN / FR)
 - **EN:** We resolved the Windows startup / Automatic Repair failure on `PC-LAB-01` after isolating external USB storage, checking hardware drive diagnostics, and restoring the UEFI boot / update state cleanly. Could you sign in and confirm your desktop and synced OneDrive files load normally?
 - **FR:** Nous avons résolu le blocage de démarrage / boucle de réparation automatique sur `PC-LAB-01` après avoir isolé les périphériques USB, vérifié l'état matériel du disque et restauré le démarrage UEFI / les mises à jour. Pouvez-vous ouvrir votre session et confirmer que votre bureau et vos fichiers OneDrive chargent normalement ?

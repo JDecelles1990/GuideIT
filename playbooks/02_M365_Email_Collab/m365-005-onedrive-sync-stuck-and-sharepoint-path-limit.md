@@ -111,6 +111,11 @@ linked_scripts:
 - **Local sync backlog risks lost Word/Excel modifications requiring Version History recovery:** [m365-003 — Lost Modifications on a Word or Excel Document Recovery](./m365-003-word-excel-lost-modifications-recovery.md)
 - **macOS Finder SMB share or OneDrive FileProvider cache desyncs on Mac:** [mdm-007 — Beginner macOS Finder SMB Network Share, DNS Flush, and Office Mac Licensing](../07_macOS_Mobile_MDM/mdm-007-macos-finder-smb-share-and-office-licensing.md)
 
+
+## Useful Links & External Tools
+- **[Microsoft 365 Service Health Status](https://status.cloud.microsoft/)** — Rule out tenant or global SharePoint/OneDrive outages before resetting local sync.
+- **[Microsoft 365 Network Connectivity Test](https://connectivity.office.com/)** — Measure SharePoint/OneDrive endpoint latency and proxy/VPN bottlenecks from the user's PC.
+- **[Microsoft 365 Admin Center](https://admin.microsoft.com/)** — Check user OneDrive storage quota and active license assignment.
 ## Client Update Snippets (EN / FR)
 - **EN:** We cleared the stalled OneDrive sync queue on `PC-LAB-01` and addressed the conflicting file paths / library size issue. OneDrive now reports **Up to date** — please verify your latest files are syncing normally.
 - **FR:** Nous avons réinitialisé la file de synchronisation OneDrive bloquée sur `PC-LAB-01` et corrigé les chemins de fichiers problématiques. OneDrive affiche maintenant **À jour** ; veuillez vérifier que vos derniers fichiers se synchronisent bien.

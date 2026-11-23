@@ -77,7 +77,7 @@ related_ids:
    - Check inside the desktop case window/vents for the green/amber **motherboard `AUX_PWR` standby LED** and any **2-color amber/white blink pattern** (`[win-013]`).
 2. **Look Up Asset Tag / Warranty Coverage & Data Sync Continuity:**
    - Check Dell Support / Lenovo Vantage / HP Warranty portal by Service Tag for active next-business-day onsite hardware replacement.
-   - Verify in **Intune / M365 Admin (`entra.microsoft.com`)** and **OneDrive** when `PC-LAB-01` last checked in and retrieve its **48-digit BitLocker Recovery Key (`[win-002]`)** proactively in case an intact SSD needs to be unlocked on a loaner/bench machine!
+   - Verify in **Intune / M365 Admin ([Microsoft Entra Admin Center](https://entra.microsoft.com/))** and **OneDrive** when `PC-LAB-01` last checked in and retrieve its **48-digit BitLocker Recovery Key (`[win-002]`)** proactively in case an intact SSD needs to be unlocked on a loaner/bench machine!
 
 ### Escalation Handoff Checklist (Before Sending to L2 / L3)
 - Confirm direct wall outlet tested good, known-good AC brick/cord tested (if available), all USB peripherals/docks disconnected, flea-power drain attempted, exact LED/beep/BIST behavior recorded, and PC serial/asset tag + BitLocker recovery key status documented.
@@ -105,6 +105,10 @@ related_ids:
 - **Laptop powers on only briefly or battery drains / shows "Plugged in, not charging":** [win-009 — Windows Laptop Battery Draining Fast, Not Charging, and Sleep/Wake Failures](./win-009-laptop-battery-draining-fast-not-charging-and-sleep-wake.md)
 - **USB-C dock fails to supply enough power or blanks external displays:** [prt-003 — USB-C / Thunderbolt Docking Station External Monitors Blank or Flickering](../05_Printers_Devices/prt-003-usbc-dock-monitors-not-detected.md)
 - **PC powers on and shows OEM logo / Automatic Repair but fails booting Windows:** [win-014 — Windows Won't Boot Up, Automatic Repair Loop, No Bootable Device, and WinRE / BCD Recovery](./win-014-windows-wont-boot-automatic-repair-loop-and-bcd.md)
+
+## Useful Links & External Tools
+- **[Microsoft Entra Admin Center](https://entra.microsoft.com/)** — Look up BitLocker recovery keys or device ownership before dispatching hardware replacement.
+- **[Microsoft Intune Admin Center](https://intune.microsoft.com/)** — Check Windows LAPS / BitLocker escrow and serial/hardware inventory prior to OEM warranty ticket.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** We isolated the power issue on `PC-LAB-01` by checking the wall outlet, disconnecting external docks/USB accessories, and performing a capacitor power reset (or initiating an OEM hardware warranty dispatch with a loaner workstation). Could you confirm if the workstation now powers on reliably?

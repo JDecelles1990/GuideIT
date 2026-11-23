@@ -58,10 +58,10 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Admin Portals GUI)
-1. **Check Teams External Access GUI (`admin.teams.microsoft.com` -> Users -> External access):**
+1. **Check Teams External Access GUI ([Microsoft Teams Admin Center](https://admin.teams.microsoft.com/) -> Users -> External access):**
    - Is **`Manage external domains`** set to **Allow all external domains** or **Allow only specific external domains**? (If Allow-list mode is active, ask L2/Admin with client approval before adding `fabrikam.com`! Never switch allow-lists open globally!)
    - Check if the partner organization confirmed their own IT team allows `<our-tenant-domain>`.
-2. **Check B2B Guest User Status (`entra.microsoft.com` -> Users -> search `partner@fabrikam.com`):** Look at `Invitation accepted` vs **`Pending acceptance`** (if Pending, the guest missed the Microsoft email invite in spam/quarantine -> click **Resend invitation**!). Also check **SharePoint / Teams Web** inside the Team (**Manage team -> Settings -> Guest permissions**).
+2. **Check B2B Guest User Status ([Microsoft Entra Admin Center](https://entra.microsoft.com/) -> Users -> search `partner@fabrikam.com`):** Look at `Invitation accepted` vs **`Pending acceptance`** (if Pending, the guest missed the Microsoft email invite in spam/quarantine -> click **Resend invitation**!). Also check **SharePoint / Teams Web** inside the Team (**Manage team -> Settings -> Guest permissions**).
 
 ### L2 Technical Diagnostics
 Connect to Microsoft Teams and Microsoft Graph with read-only permissions to inspect federation mode, domain allow/block lists, guest policy, and Entra B2B invite rules:
@@ -121,6 +121,7 @@ When both tenants claim federation or guest access is enabled globally, inspect 
 ## Useful Links & External Tools
 - [Microsoft 365 Admin Center](https://admin.microsoft.com/) — Verify M365 Group guest toggles and SharePoint domain restrictions.
 - [Microsoft Entra Admin Center](https://entra.microsoft.com/) — Check External Identities Cross-Tenant Access settings and B2B Guest redemption state.
+- **[Microsoft Teams Admin Center](https://admin.teams.microsoft.com/)** — Configure External access domain allow/block lists and B2B guest access policies.
 
 ## Client Update Snippets (EN / FR)
 - **EN:** Hi `<user>`, we verified Teams federation and Entra B2B guest policies for `<partner-domain>`. After updating `<specific change — e.g., domain allow-list / B2B guest invite>`, external access is now permitted on our tenant. Note that Microsoft Teams federation changes can take a few hours to propagate, and the partner organization must also allow your domain on their side.

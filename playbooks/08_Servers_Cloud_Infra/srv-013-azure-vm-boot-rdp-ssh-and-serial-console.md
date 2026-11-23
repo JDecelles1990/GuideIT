@@ -70,7 +70,7 @@ linked_scripts:
 
 ## Read-Only Diagnostics (L1-L2)
 ### L1 First-Line Checks (Start Here — Azure Portal GUI Only)
-> An L1 technician can isolate 80% of `"Azure VM unreachable"` tickets right inside **Azure Portal (`portal.azure.com`)** without running any disk repair commands!
+> An L1 technician can isolate 80% of `"Azure VM unreachable"` tickets right inside **Azure Portal ([Microsoft Azure Portal](https://portal.azure.com/))** without running any disk repair commands!
 
 1. **Check VM Power Status & Resource Health (`Azure Portal -> Virtual Machines -> <vm-name> -> Overview`):**
    - Look at **Status**: is it **`Running`**, **`Stopped (deallocated)`** (e.g., auto-shutdown schedule ran!), or **`Failed` (`AllocationFailed`)**?
