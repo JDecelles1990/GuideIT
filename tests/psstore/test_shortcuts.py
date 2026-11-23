@@ -12,7 +12,7 @@ from guideit_master.ui.shell_window import MODE_PLAYBOOKS, MODE_SCRIPTS, MODE_SP
 
 def test_all_shortcuts_registered_and_unique(shell_window_factory) -> None:
     win = shell_window_factory()
-    assert len(win.shortcuts) == 33
+    assert len(win.shortcuts) == 34
     assert win.shortcut_sidebar is win.shortcuts["toggle_sidebar"]
     assert "focus_playbook_search" in win.shortcuts
     assert "focus_unified_search" in win.shortcuts
@@ -20,6 +20,7 @@ def test_all_shortcuts_registered_and_unique(shell_window_factory) -> None:
     assert "reset_playbook_filters" in win.shortcuts
     assert "playbook_back" in win.shortcuts
     assert "copy_linked_readonly_bundle" in win.shortcuts
+    assert "toggle_pin_favorite" in win.shortcuts
 
     seen_sequences: dict[str, str] = {}
     for name, sc in win.shortcuts.items():
@@ -161,6 +162,7 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
     assert "Ctrl+Shift+D" in ws.catalog_view.clear_checked_btn.toolTip()
     assert "Ctrl+Shift+C" in ws.copy_raw_btn.toolTip()
     assert "Ctrl+Shift+R" in ws.copy_rmm_btn.toolTip()
+    assert "Ctrl+D" in ws.pin_script_btn.toolTip()
     assert "Ctrl+Enter" in ws.run_local_btn.toolTip()
     assert "Shift+F5" in ws.stop_btn.toolTip()
     assert "Ctrl+Alt+R" in ws.param_form.reset_btn.toolTip()
@@ -186,6 +188,7 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
         "Ctrl+R",
         "Alt+Left",
         "Ctrl+Shift+B",
+        "Ctrl+D",
         "F5",
         "Esc",
         "Ctrl+Shift+A",

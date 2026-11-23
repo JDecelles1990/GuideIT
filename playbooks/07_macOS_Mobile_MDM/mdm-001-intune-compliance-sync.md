@@ -46,11 +46,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is `jsmith@example.com` blocked from M365 with `AADSTS53000` (Device is required to be compliant) on macOS or iOS/iPadOS?
-- Check **Intune Admin Center -> Devices**: what exact compliance setting is marked `Not compliant` (OS minimum version, FileVault/passcode, grace period, or device check-in stale >30 days)?
-- Check **Tenant Administration -> Connectors and tokens -> Apple MDM Push certificate** (if expired, ALL Apple devices stop syncing!).
+### Questions to Ask the User (Classify the Issue)
+1. Which platform is blocked (**Mac laptop**, **iPhone/iPad**, or **Windows** -> check `[mdm-008]`/`[mdm-009]` too), and what exact banner appears (`"Your device isn't compliant"` / `AADSTS53000`)?
+2. Click inside **Company Portal -> Devices**: which exact red X compliance item failed (**Restart required**, **OS update out-of-date**, **Passcode/FileVault off**, or **`Hasn't checked in`**)?
+3. Is **THIS affecting just 1 user**, OR are **ALL Apple iOS/macOS devices suddenly non-compliant** today (check **Apple MDM Push Certificate** expiry immediately!)?
+
+### Initial Scope & Classification
+- Check **Intune Admin Center -> Devices -> `Device` -> Device compliance** to see the exact failing setting (`OS minimum version`, `Encryption/FileVault`, `Grace period`).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Company Portal App & Intune Web GUI)
+1. **Have the User Open `Company Portal` -> `Devices` -> Select This Device -> Click `Check status`:**
+   - Company Portal highlights the exact failing requirement in plain English (e.g., *"Encrypt your device storage"*, *"Update macOS/iOS to 15.x"*, or *"Set a passcode"*)! Have the user satisfy any OS update / Restart / Lock-screen prompt right there and click **`Check status`** again (allow 5–10 minutes for Entra Conditional Access sync!).
+2. **Check Intune Portal GUI (`intune.microsoft.com`):**
+   - Open **Devices -> All devices -> `<Device Name>` -> Device compliance** and check **Last check-in** + failing Policy row!
+   - If many Apple devices stopped syncing simultaneously, check **Tenant administration -> Connectors and tokens -> Apple MDM Push certificate** expiration date (`Active` vs `Expired`)!
+
+### L2 Technical Diagnostics
 1. **On macOS**, inspect MDM enrollment, installed configuration profiles, and FileVault disk encryption status (read-only):
    ```bash
    profiles status -type enrollment

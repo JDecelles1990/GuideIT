@@ -46,16 +46,27 @@ related_ids:
   - id-004
   - id-006
   - srv-015
+linked_scripts:
+  - 99_Custom/Sample-CustomDiagnostic.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Distinguish SSL Inspection Proxy vs. Script Execution Block:**
-  - **`SELF_SIGNED_CERT_IN_CHAIN`:** `git`, `npm`, `pip`, `az`, or `curl` fails on corporate network/VPN because a TLS inspection proxy (FortiGate, Zscaler, Netskope, Palo Alto) re-signs HTTPS with the company's internal Root CA, which Windows/macOS trusts in browsers yet CLI OpenSSL runtimes ignore!
-  - **`PSSecurityException` ("running scripts is disabled on this system"):** PowerShell blocks `.ps1` scripts (for example virtual environment `Activate.ps1`, Node `npm.ps1`, or build scripts) due to `Restricted` ExecutionPolicy or `Mark of the Web` (`Zone.Identifier`).
-- **Verify VPN / Proxy active:** Ask if the issue ONLY happens while on corporate VPN / Zscaler / office Wi-Fi and succeeds on a clean mobile hotspot — that immediately confirms corporate TLS proxy CA interception.
-- **Never instruct devs to turn off TLS globally:** Do **NOT** tell coders to disable `sslVerify` or `strict-ssl` permanently, as that leaves package installs open to MITM attacks.
+### Questions to Ask the User (Classify the Issue)
+1. Which specific CLI/tool fails (**`git`**, **`npm`**, **`pip`**, **`az` CLI**, or **PowerShell `.ps1` script / `.venv\Scripts\Activate.ps1`**)?
+2. Does the exact same `git clone` / `npm install` work on a **mobile hotspot / home internet** and fail ONLY when on **corporate VPN / office Wi-Fi / Zscaler**? *(Proves corporate TLS Inspection Root CA interception!)*
+3. Screenshot the exact terminal error (`SELF_SIGNED_CERT_IN_CHAIN` vs `PSSecurityException: running scripts is disabled on this system`).
+4. **Security Rule:** NEVER tell developers to disable `sslVerify` (`false`) or set system-wide `ExecutionPolicy Bypass` permanently!
+
+### Initial Scope & Classification
+- **`SELF_SIGNED_CERT_IN_CHAIN`:** CLI OpenSSL runtimes (`git`, `npm`, `pip`) don't read Windows/macOS Enterprise Trusted Root CAs automatically unless configured (`schannel` / `NODE_EXTRA_CA_CERTS` / combined PEM).
+- **`PSSecurityException`:** PowerShell `Restricted` policy (`CurrentUser` vs GPO/Intune `MachinePolicy`) or downloaded `Mark of the Web` (`Unblock-File`).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Quick Isolation & Restart IDE)
+1. **Check Active VPN/Proxy + Browser Test:** Open `https://github.com` or `https://registry.npmjs.org` in Edge/Chrome -> click the URL **lock icon -> Connection is secure -> Certificate** -> check **`Issued by`**: if it shows **Fortinet / Zscaler / Netskope / PaloAlto / Corp Root CA**, confirm with L2 which approved corporate Root CA `.pem` file path is standard!
+2. **Check VS Code / Terminal Restart & `Mark of the Web`:** For single `.ps1` files downloaded from email/SharePoint throwing `PSSecurityException`, check **Right-click script -> Properties -> Unblock** (only if script is approved & internal!). Also note **VS Code** must be restarted cleanly after changing Windows User Environment Variables!
+
+### L2 Technical Diagnostics
 Inspect existing Git, Node/npm, Python, environment proxy variables, and PowerShell ExecutionPolicy scopes read-only:
 
 ```powershell

@@ -89,3 +89,8 @@ def get_logs_dir(data_dir: Path | None = None) -> Path:
     logs_dir = ((data_dir or get_user_data_dir()) / "logs").resolve()
     logs_dir.mkdir(parents=True, exist_ok=True)
     return logs_dir
+
+
+def get_user_state_path(data_dir: Path | None = None) -> Path:
+    """Return the writable JSON path storing pinned favorites and MRU recents."""
+    return ((data_dir or get_user_data_dir()) / "user_state.json").resolve()

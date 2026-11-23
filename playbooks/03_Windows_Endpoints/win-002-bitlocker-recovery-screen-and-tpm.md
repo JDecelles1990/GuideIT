@@ -48,12 +48,23 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Read the exact **Recovery Key ID (first 8 characters)** displayed on the blue BitLocker Recovery screen on `PC-LAB-01` (do NOT confuse the Key ID with the 48-digit Recovery Key!).
-- Confirm whether a **BIOS/UEFI firmware update**, **docking station**, **USB boot drive**, or **Secure Boot setting change** happened right before the reboot.
-- Verify the caller's identity out-of-band before reading out any 48-digit BitLocker recovery password!
+### Questions to Ask the User (Classify the Issue)
+1. What are the **first 8 characters (`Key ID`)** shown on the blue BitLocker screen (`Recovery key ID: XXXXXXXX-XXXX...`)? *(Warning: that is the lookup ID, NOT the 48-digit unlock password!)*
+2. Did the laptop just install a **Windows / Dell / Lenovo / HP BIOS update**, or was a **new USB-C dock (`[prt-003]`) / USB flash drive** plugged in before booting?
+3. **Identity Verification Required:** Confirm the caller's identity out-of-band (callback on verified corporate/HR phone or live video check) BEFORE reading out any 48-digit BitLocker recovery password!
+
+### Initial Scope & Classification
+- Lookup keys live in **Entra ID -> Devices**, **Intune -> Devices**, or **ADUC (`BitLocker Recovery` tab)**. Keep the user calm — zero data is lost!
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Locate the 48-digit BitLocker Recovery Key by matching Key ID:**
+### L1 First-Line Checks (Start Here — Basic Physical & Cloud Key Lookup)
+1. **Unplug Docks / USB Drives & Power Cycle Once First (`Quick Test!`):** Sometimes plugging a dock/USB stick changed boot order and triggers BitLocker temporarily; unplug external USB-C docks/USB drives -> reboot once to see if Windows boots normally without prompting!
+2. **Look Up Matching 48-Digit Key by First 8 Characters (`Key ID`):**
+   - Check **Entra ID -> Devices -> `PC-LAB-01` -> BitLocker keys** (or **Intune Admin Center -> Devices -> `PC-LAB-01` -> Recovery keys**), or **On-prem ADUC**! Match the **Key ID** first 8 characters carefully!
+   - *(Tip: If the user happens to have a personal Microsoft account / Surface, keys can sometimes escrow to `https://aka.ms/myrecoverykey` — check corporate portals first!)*
+
+### L2 Technical Diagnostics
+1. **Locate the 48-digit BitLocker Recovery Key via CLI / ADUC:**
    - **Entra ID / Intune:** Open **Entra Admin Center -> Devices -> All devices -> `PC-LAB-01` -> BitLocker keys** (or **Intune Admin Center -> Devices -> `PC-LAB-01` -> Recovery keys**).
    - **On-Prem Active Directory:** Open **ADUC -> `PC-LAB-01` Properties -> BitLocker Recovery** tab, or query via PowerShell:
      ```powershell

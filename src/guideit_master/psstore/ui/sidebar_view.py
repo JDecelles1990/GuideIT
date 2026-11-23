@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 
 class SidebarView(QFrame):
     filter_changed = Signal(str, str, str, str)  # category, search, risk, edition
+    pinned_only_changed = Signal(bool)
     sync_requested = Signal()
     startup_toggled = Signal(bool)
 
@@ -86,6 +87,11 @@ class SidebarView(QFrame):
         edition_layout.addWidget(self.edition_combo, 1)
         layout.addLayout(edition_layout)
 
+        self.pinned_only_checkbox = QCheckBox("★ Pinned Only")
+        self.pinned_only_checkbox.setToolTip("Show only scripts pinned to Favorites")
+        self.pinned_only_checkbox.toggled.connect(self._on_pinned_only_toggled)
+        layout.addWidget(self.pinned_only_checkbox)
+
         self.sync_button = QPushButton("🔄 Sync Catalog")
         self.sync_button.setToolTip("Rescan powershell_scripts/ folder and refresh SQLite catalog (F5)")
         self.sync_button.clicked.connect(self.sync_requested.emit)
@@ -131,6 +137,8 @@ class SidebarView(QFrame):
             return True
         if self.edition_combo.currentText() not in ("All", "All Editions"):
             return True
+        if self.pinned_only_checkbox.isChecked():
+            return True
         return False
 
     def reset_filters(self, emit_signal: bool = True) -> None:
@@ -139,11 +147,13 @@ class SidebarView(QFrame):
         self.search_input.blockSignals(True)
         self.risk_combo.blockSignals(True)
         self.edition_combo.blockSignals(True)
+        self.pinned_only_checkbox.blockSignals(True)
         self.category_list.blockSignals(True)
         try:
             self.search_input.clear()
             self.risk_combo.setCurrentIndex(0)
             self.edition_combo.setCurrentIndex(0)
+            self.pinned_only_checkbox.setChecked(False)
             for idx in range(self.category_list.count()):
                 item = self.category_list.item(idx)
                 is_all = bool(item and item.data(100) == "All")
@@ -155,10 +165,15 @@ class SidebarView(QFrame):
             self.search_input.blockSignals(False)
             self.risk_combo.blockSignals(False)
             self.edition_combo.blockSignals(False)
+            self.pinned_only_checkbox.blockSignals(False)
             self.category_list.blockSignals(False)
 
         if emit_signal:
             self._on_filter_changed()
+
+    def _on_pinned_only_toggled(self, checked: bool) -> None:
+        self.pinned_only_changed.emit(checked)
+        self._on_filter_changed()
 
     def set_startup_checked(self, enabled: bool) -> None:
         """Sets the startup checkbox state without emitting signals."""

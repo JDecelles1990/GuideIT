@@ -42,12 +42,24 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Verify exact quota error:** Check whether external senders receive NDR `554 5.2.2 mailbox full` (`Submission quota` / `Receive quota`), or whether the user cannot delete items (`Recoverable Items` quota full — often 100 GB!).
-- **Check license & Online Archive:** Verify if the mailbox has **Exchange Online Plan 1 (50 GB)** vs **Plan 2 (100 GB)** and whether **Online Archive (In-Place Archive)** is enabled and actually receiving aged mail.
-- **Check Holds:** Ask if the mailbox has **Litigation Hold**, **In-Place Hold**, or a **Microsoft Purview Retention Policy** holding deleted emails indefinitely inside `Recoverable Items`.
-- **Shared Mailbox vs. User Mailbox:** Remember an unlicensed Shared Mailbox caps at **50 GB** unless licensed with Exchange Online Plan 2 + Archive.
+### Questions to Ask the User (Classify the Issue)
+1. Is the user **blocked from sending/receiving email (`554 5.2.2 mailbox full`)**, OR does Outlook just warn **"Your mailbox is almost full"** while **Online Archive isn't clearing older items**?
+2. When trying to delete old big emails + empty **Deleted Items**, does Outlook still show 99–100% full (classic sign that hidden **`Recoverable Items`** folder hit 100 GB under Retention/Litigation Hold!)?
+3. Is this an **unlicensed Shared Mailbox (`50 GB` cap!)** vs a **User Mailbox**, and what M365 license (`Business Basic` 50 GB vs `Business Premium / E3` 50 GB / `Exchange Plan 2` 100 GB) is assigned?
+
+### Initial Scope & Classification
+- Verify license/quota limits (`50 GB` vs `100 GB`), whether **In-Place Online Archive** is already enabled, and whether **Litigation Hold** or a **Purview Retention Policy** prevents purging deleted mail!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — User Outlook & EAC GUI)
+1. **Check Mailbox Storage Breakdown in Outlook Web (`https://outlook.office.com` -> Settings (`Gear`) -> Account -> Storage):**
+   - Look visually at WHICH folder consumes the 50/100 GB (**Deleted Items**, **Sent Items**, large attachment mail, or **Empty Deleted Items** -> also check **Recover items deleted from this folder**!).
+   - Have the user verify they actually want old Deleted Items/Sent Items emptied vs archived before deleting anything!
+2. **Check M365 License & Archive Status in Admin Centers (`admin.microsoft.com` & `admin.exchange.microsoft.com`):**
+   - Verify whether `jsmith@contoso.com` holds **Exchange Plan 2 / E3 / E5 / Business Premium** (required for **In-Place Archive**!).
+   - In **Exchange Admin Center -> Recipients -> Mailboxes -> `jsmith@contoso.com` -> Others -> Manage mailbox archive**: verify whether **Mailbox archive status** is `Disabled` vs `Enabled`, and view current primary vs archive GB bars!
+
+### L2 Technical Diagnostics
 Connect to Exchange Online PowerShell (`EXO` v3 REST cmdlets) to inspect mailbox quotas, primary + archive usage, and the `Recoverable Items` folders:
 
 ```powershell

@@ -42,20 +42,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Scenario A — App Won't Open (`GATEKEEPER_BLOCK`):** User sees `"<App> cannot be opened because Apple cannot check it for malicious software"` or `"Not opened"` / `"Developer cannot be verified"`.
-- **Scenario B — Teams / Zoom / Remote Support Tool Cannot Share Screen, Control Mouse, or Access Files (`TCC_DENIED`):** Screen shows blank desktop wallpaper during Teams sharing, microphone stays silent, or remote support tool (TeamViewer/AnyDesk/ScreenConnect) can view screen but cannot click!
-- Confirm the blocked app was downloaded from an **official trusted vendor** (never bypass Gatekeeper for unknown downloads!).
+### Questions to Ask the User (Classify the Issue)
+1. Is a newly downloaded **app refusing to open (`"Apple cannot check it for malicious software"` / `GATEKEEPER_BLOCK`)**, OR is **Teams / Zoom / Remote Support unable to share your screen, hear mic, or control mouse (`TCC_DENIED`)**?
+2. Did you download the app from an **official trusted software vendor** (never bypass security for random internet downloads!), and did you drag it into **`Applications`** (rather than running directly from Downloads or `.dmg`)?
+3. When we look at **Privacy & Security**, are the toggles grayed out with a lock icon / **"Managed by organization"** banner?
+
+### Initial Scope & Classification
+- Check whether **Gatekeeper (`Open Anyway`)** or **macOS Privacy Permissions (`Microphone` / `Screen Recording` / `Accessibility`)** are blocking the workflow.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Check Privacy & Security Settings (GUI — Beginner Step-by-Step):**
-   - Click the top-left **` Apple menu -> System Settings -> Privacy & Security`**.
-   - **If an app was just blocked by Gatekeeper:** Scroll down to the **Security** section; macOS displays `"<App> was blocked from use because it is not from an identified developer"` with an **`Open Anyway`** button (only visible for ~1 hour after attempting launch!).
-   - **If Teams/Zoom/Remote Support lacks permissions:** On that same **Privacy & Security** page, inspect toggles under:
-     - **Microphone** & **Camera** (for Teams/Zoom calls)
-     - **Screen & System Audio Recording** (for Teams/Zoom screen sharing + RMM remote view)
-     - **Accessibility** (required so RMM/remote support tools can move the mouse and type!)
-     - **Full Disk Access** (required for backup/EDR agents)
-2. **Inspect Gatekeeper Status & Quarantine Attribute in Terminal (`⌘ + Space` -> `Terminal`, read-only):**
+### L1 First-Line Checks (Start Here — Beginner GUI Steps)
+1. **Check Where the App Lives (`Finder -> Applications`):** Confirm `jsmith@example.com` isn't double-clicking the app straight inside the **`Downloads`** folder or a mounted **`.dmg` installer** — macOS permissions break if apps aren't moved into **`Applications`**!
+2. **Inspect Privacy & Security Settings (` -> System Settings -> Privacy & Security`):**
+   - If blocked by Gatekeeper: scroll to bottom under **Security** to see if an **`Open Anyway`** button appeared for the target app.
+   - If Teams / Zoom / RMM fails: inspect **Microphone**, **Camera**, **Screen & System Audio Recording**, and **Accessibility** toggles!
+
+### L2 Technical Diagnostics
+1. **Inspect Gatekeeper Status & Quarantine Attribute in Terminal (`⌘ + Space` -> `Terminal`, read-only):**
    ```bash
    spctl --status
    xattr -l "/Applications/TargetApp.app" 2>/dev/null || true

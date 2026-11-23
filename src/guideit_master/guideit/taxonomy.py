@@ -62,12 +62,255 @@ class TaxonomyConfig:
     keyword_entries: list[KeywordMapEntry]
 
 
+_EN_NEG_CONTRACTION_RE = re.compile(
+    r"\b(?:can|won|don|doesn|didn|isn|aren|wasn|weren|haven|hasn|hadn|couldn|wouldn|shouldn|mustn)'t\b"
+)
+_EN_PRON_CONTRACTION_RE = re.compile(
+    r"\b(?:i'm|i've|i'll|i'd|you're|you've|you'll|you'd|he's|she's|it's|"
+    r"we're|we've|we'll|we'd|they're|they've|they'll|that's|there's|what's|who's|let's)\b"
+)
+_EN_POSSESSIVE_RE = re.compile(r"\b([a-z0-9]+)'s\b")
+_FR_ELISION_RE = re.compile(r"\b(?:l|d|n|s|j|qu|c|m|t)'([a-z0-9])")
+_SEARCH_TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9_.\-]*")
+
+# Deliberately keep "son" (French "sound"), "up", "down", "out", "off", "full",
+# "slow", "lost", "work", "error", "failed", "blocked", "denied" searchable.
+SEARCH_STOPWORDS: frozenset[str] = frozenset(
+    {
+        # English function / filler words
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "not",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "am",
+        "to",
+        "of",
+        "in",
+        "on",
+        "at",
+        "for",
+        "with",
+        "from",
+        "by",
+        "as",
+        "into",
+        "about",
+        "that",
+        "this",
+        "these",
+        "those",
+        "it",
+        "its",
+        "my",
+        "your",
+        "our",
+        "their",
+        "we",
+        "you",
+        "they",
+        "he",
+        "she",
+        "i",
+        "me",
+        "us",
+        "them",
+        "do",
+        "does",
+        "did",
+        "done",
+        "can",
+        "cant",
+        "cannot",
+        "could",
+        "couldnt",
+        "will",
+        "wont",
+        "would",
+        "wouldnt",
+        "should",
+        "shouldnt",
+        "may",
+        "might",
+        "must",
+        "have",
+        "has",
+        "had",
+        "having",
+        "get",
+        "got",
+        "getting",
+        "keeps",
+        "keep",
+        "just",
+        "very",
+        "too",
+        "so",
+        "also",
+        "when",
+        "where",
+        "why",
+        "how",
+        "what",
+        "which",
+        "who",
+        "if",
+        "then",
+        "than",
+        "but",
+        "no",
+        "dont",
+        "doesnt",
+        "didnt",
+        "isnt",
+        "arent",
+        "wasnt",
+        "werent",
+        "havent",
+        "hasnt",
+        "able",
+        "unable",
+        "trying",
+        "try",
+        "tried",
+        "need",
+        "needs",
+        "want",
+        "wants",
+        "help",
+        "please",
+        "issue",
+        "issues",
+        "problem",
+        "problems",
+        "working",
+        # French function / filler words
+        "le",
+        "la",
+        "les",
+        "un",
+        "une",
+        "des",
+        "du",
+        "de",
+        "et",
+        "ou",
+        "ne",
+        "pas",
+        "plus",
+        "aucun",
+        "aucune",
+        "est",
+        "sont",
+        "etre",
+        "au",
+        "aux",
+        "en",
+        "dans",
+        "sur",
+        "sous",
+        "pour",
+        "par",
+        "avec",
+        "sans",
+        "ce",
+        "cet",
+        "cette",
+        "ces",
+        "mon",
+        "ma",
+        "mes",
+        "ton",
+        "ta",
+        "tes",
+        "sa",
+        "ses",
+        "notre",
+        "nos",
+        "votre",
+        "vos",
+        "leur",
+        "leurs",
+        "je",
+        "tu",
+        "il",
+        "elle",
+        "on",
+        "nous",
+        "vous",
+        "ils",
+        "elles",
+        "se",
+        "me",
+        "te",
+        "qui",
+        "que",
+        "quoi",
+        "dont",
+        "si",
+        "mais",
+        "comme",
+        "tout",
+        "tous",
+        "toute",
+        "toutes",
+        "tres",
+        "trop",
+        "peut",
+        "peux",
+        "pouvoir",
+        "impossible",
+        "fonctionne",
+        "marche",
+        "probleme",
+        "problemes",
+        "arrive",
+        "arriver",
+        "veut",
+        "veux",
+        "faire",
+        "fait",
+    }
+)
+
+
 def normalize_text(text: str) -> str:
     """Lowercase text, strip Unicode diacritics, and normalize apostrophes/whitespace."""
     cleaned = text.replace("’", "'").replace("–", "-").replace("—", "-")
     decomposed = unicodedata.normalize("NFKD", cleaned)
     ascii_ish = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
     return " ".join(ascii_ish.lower().split())
+
+
+def extract_search_tokens(text: str) -> list[str]:
+    """Extract ordered meaningful search tokens after stripping EN/FR contractions & stop words."""
+    norm = normalize_text(text)
+    if not norm:
+        return []
+    cleaned = _EN_NEG_CONTRACTION_RE.sub(" ", norm)
+    cleaned = _EN_PRON_CONTRACTION_RE.sub(" ", cleaned)
+    cleaned = _EN_POSSESSIVE_RE.sub(r"\1", cleaned)
+    cleaned = _FR_ELISION_RE.sub(r"\1", cleaned)
+
+    tokens: list[str] = []
+    seen: set[str] = set()
+    for tok in _SEARCH_TOKEN_RE.findall(cleaned):
+        if len(tok) == 1 and tok.isalpha():
+            continue
+        if tok in SEARCH_STOPWORDS:
+            continue
+        if tok not in seen:
+            seen.add(tok)
+            tokens.append(tok)
+    return tokens
 
 
 def load_taxonomy(root_dir: Path | None = None) -> TaxonomyConfig:

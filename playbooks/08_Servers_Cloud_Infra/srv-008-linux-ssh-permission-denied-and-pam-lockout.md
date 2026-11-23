@@ -45,13 +45,21 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Distinguish the exact SSH failure mode:
-  - **`Connection refused` / `timed out`:** `sshd` down (`[srv-004]`) or firewall blocking TCP `22` (`[srv-007]`).
-  - **`Permission denied (publickey)` (`SSH_PUBLICKEY_DENIED`):** Wrong username, missing/wrong key in `~/.ssh/authorized_keys`, **over-permissive `~/.ssh` permissions** (most common!), or SELinux context mismatch.
-  - **`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED` (`HOST_KEY_MISMATCH`):** Server rebuilt/re-IP'd — OR potential MITM; verify host key fingerprint out-of-band via IPMI/console before removing old `known_hosts`!
-- Confirm whether Out-of-Band **IPMI / iDRAC / Serial Console** (`[srv-009]`) is accessible BEFORE restarting `sshd` remotely!
+### Questions to Ask the User (Classify the Issue)
+1. What exact error does SSH show: **`Connection refused / timed out`** (port `22` / daemon/NSG issue -> `[srv-007]`/`[srv-013]`), **`Permission denied (publickey)` (`SSH_PUBLICKEY_DENIED`)**, or **`WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED` (`HOST_KEY_MISMATCH`)**?
+2. Are **all admins locked out**, OR only **`jsmith` from one workstation** (wrong SSH key path, wrong username `ubuntu` vs `ec2-user` vs `root`, or PAM `faillock` after wrong password tries!)?
+3. Did you recently **upgrade your laptop OS**, **rotate SSH keys**, or **rebuild the VM** with the same IP (`HOST_KEY_MISMATCH`)?
+
+### Initial Scope & Classification
+- Confirm Out-of-Band **IPMI / iDRAC / Serial Console (`[srv-009]`/`[srv-013]`)** access BEFORE editing or restarting `sshd` remotely!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Client Command & Host State Verification)
+1. **Verify Correct SSH Username, IP/Hostname & `-i` Private Key Path:** Many failed SSH attempts use Windows username instead of `ubuntu`/`rocky`/`azureuser`/`jsmith`, or forget `-i ~/.ssh/id_ed25519`!
+2. **Test Connecting from Approved Bastion / VPN IP:** If using Azure/AWS/Datacenter firewall allow-lists, confirm caller's public IP matches the Bastion/VPN rule (`[srv-013]`).
+3. **Rule Out Lockout / Typo Lock (`faillock`):** If user tried wrong password 3–5 times, ask an active admin to verify `faillock` lockout status!
+
+### L2 Technical Diagnostics
 1. **Run verbose client debug from workstation (read-only):**
    ```bash
    ssh -vvv -o BatchMode=yes jsmith@10.0.10.25

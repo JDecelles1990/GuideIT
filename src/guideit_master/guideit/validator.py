@@ -216,7 +216,17 @@ def _extract_triage_summary(sections: dict[str, str]) -> str:
     """Extract concise Fast Triage text for search hit previews."""
     for heading, content in sections.items():
         if _normalize_heading(heading).startswith("fast triage"):
-            lines = [ln.strip() for ln in content.splitlines() if ln.strip()]
+            lines: list[str] = []
+            for raw_ln in content.splitlines():
+                stripped = raw_ln.strip()
+                if not stripped:
+                    continue
+                if re.match(r"^#{3,6}\s+", stripped):
+                    cleaned = re.sub(r"^#{3,6}\s+", "", stripped).strip()
+                    if cleaned:
+                        lines.append(f"{cleaned}:")
+                else:
+                    lines.append(stripped)
             summary = " ".join(lines)
             if len(summary) > 400:
                 return summary[:397].rstrip() + "..."
@@ -858,7 +868,7 @@ def validate_repository(
                     )
                 )
 
-    # Cross-repo keyword_map coverage check (warning only)
+    # Cross-repo keyword_map coverage and PowerShell script linkage checks (warnings)
     if parsed_playbooks:
         expected_tags: set[str] = set()
         for entry in taxonomy.keyword_entries:
@@ -870,6 +880,25 @@ def validate_repository(
                     code="UNCOVERED_TAG",
                     path="taxonomy/keyword_map.json",
                     message=f"Canonical tag '{tag}' in keyword_map.json is not used by any playbook yet.",
+                )
+            )
+        linked_script_refs = {
+            script_entry
+            for pb in parsed_playbooks
+            for script_entry in pb.linked_scripts
+            if script_entry in available_scripts
+        }
+        for script_rel in sorted(available_scripts - linked_script_refs):
+            issues.append(
+                ValidationIssue(
+                    severity="warning",
+                    code="UNLINKED_SCRIPT",
+                    path=f"powershell_scripts/{script_rel}",
+                    message=(
+                        f"PowerShell script '{script_rel}' is not linked in frontmatter "
+                        "linked_scripts of any playbook. Link it to a matching playbook or "
+                        "create at least one new playbook."
+                    ),
                 )
             )
 

@@ -50,12 +50,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Clarify what is blocking (Cloud CA vs Firewall Geo-IP vs AD/GPO):** Explain clearly that standard Windows Active Directory Group Policy (GPO) does **not** natively evaluate Geo-IP countries. Users blocked outside Canada are almost always blocked by **Microsoft Entra Conditional Access Named Locations (`AADSTS53003`)**, **corporate VPN/Firewall Geo-IP rules**, or **AD GPO logon/IPsec restrictions** (for example, `LogonWorkstations`, `LogonHours`, or Windows Defender Firewall remote IP scopes).
-- **Verify legitimate travel first:** Confirm via out-of-band contact with the user's manager/HR/authorized approver that the user (`jsmith@example.com`) is genuinely traveling outside Canada — **never lift a geo-block on user email/chat alone**, as compromised accounts frequently trigger foreign sign-in blocks.
-- **Capture key metadata:** Record the exact destination country, travel start/end dates, failing resource (M365 vs SSL VPN vs RDP), and the exact external source IP or Correlation ID shown on the block screen.
-- **Check VPN / Private Relay leakage:** Users physically inside Canada can still trigger outside-Canada blocks if they run a personal consumer VPN, Apple iCloud Private Relay, Opera/Edge Secure Network, or IPv6 exit node routed through another country.
+### Questions to Ask the User (Classify the Issue)
+1. Are you **physically traveling outside Canada right now**, OR are you **inside Canada** (possibly connected to a personal VPN like NordVPN, iCloud Private Relay, or hotel guest network)?
+2. Which **exact application** is blocked (**M365 / Outlook / Teams** -> `AADSTS53003` vs **Corporate SSL VPN** vs **RDP/Website**)?
+3. What is your **destination country**, **departure date**, and **expected return date**, AND has your **manager/HR sent written approval** for travel access? *(Security Rule: **NEVER** lift a Geo-Block based on user email/chat alone without manager voice/ticket verification!)*
+4. Capture the exact **IP address** and **Correlation ID** shown on the Microsoft block screen (or have the user check their IP on `https://whatismyipaddress.com`).
+
+### Initial Scope & Classification
+- **Clarify what is blocking (Cloud CA vs Firewall Geo-IP vs AD/GPO):** Explain clearly that standard Windows Active Directory Group Policy (GPO) does **not** natively evaluate Geo-IP countries. Users blocked outside Canada are almost always blocked by **Microsoft Entra Conditional Access Named Locations (`AADSTS53003`)** or **corporate VPN/Firewall Geo-IP rules**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Confirm Physical Location vs Consumer VPN Leak (Solves False-Positive Blocks Fast!):** If `jsmith@example.com` IS inside Canada, check for active consumer VPNs (Nord/Proton/ExpressVPN), **Apple iCloud Private Relay** (Safari/Mac/iPhone), or Edge/Opera built-in **Secure Network VPN**! Turning those off restores Canadian Geo-IP instantly!
+2. **Check Entra Sign-in Logs Visually (`entra.microsoft.com` -> Users -> `jsmith@example.com` -> Sign-in logs):** Look at failed sign-in rows (`AADSTS53003`), verify the logged **Location (`Country`)** matches the user's confirmed travel destination, and note which **Conditional Access** policy blocked it!
+3. **Verify Manager Travel Approval Ticket:** Ensure written manager approval with exact start & end dates is attached BEFORE escalating/adding to the travel exception group!
+
+### L2 Technical Diagnostics
 On the affected Windows endpoint (if reachable via RMM/remote session), gather local network, proxy, and AD GPO state without changing configuration:
 
 ```powershell

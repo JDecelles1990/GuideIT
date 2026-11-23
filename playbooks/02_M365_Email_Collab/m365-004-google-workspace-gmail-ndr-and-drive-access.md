@@ -43,11 +43,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is the incident **outbound/inbound Gmail rejection** (`550 5.7.26` unauthenticated SPF/DKIM/DMARC, `550 5.7.1` policy/spam reject) or **Google Drive / Shared Drive permission denied**?
-- For Drive access issues: verify `jsmith@example.com` is signed into the correct corporate Workspace account rather than a secondary personal browser profile.
-- For email bounces: grab the full NDR header (`550 5.7.26`, `550 5.7.1`, `SMTP` error details) and recipient domain (`example.org`).
+### Questions to Ask the User (Classify the Issue)
+1. Is this a **bounced/rejected Gmail email (`550 5.7.26` / `550 5.7.1`)**, or a **`Google Drive / Shared Drive` permission denied error**?
+2. For **Gmail bounces**: ask for the **full NDR ("Delivery Status Notification") bounce email text** — does it bounce for ALL recipients or ONLY external `@gmail.com` / `@yahoo.com` domains?
+3. For **Google Drive access**: confirm `jsmith@example.com` isn't accidentally signed into a **personal `@gmail.com` profile** in the top-right Google avatar (test Incognito with work login first!).
+
+### Initial Scope & Classification
+- For email bounces: verify public SPF/DKIM/DMARC alignment (`550 5.7.26` = Gmail unauthenticated sender rejection); for Shared Drives: check Drive membership roles + Workspace OU sharing policy.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Google Drive Personal vs Work Profile Check (`Incognito` Test):** Have `jsmith@example.com` copy the Drive link -> open a Chrome **Incognito** window -> sign into ONLY their `@contoso.com` corporate account -> verify if the Shared Drive opens! Check the Shared Drive **Manage members** list to confirm they hold `Viewer`/`Contributor`/`Content manager`.
+2. **Read the Exact NDR Bounce Line (`admin.google.com` -> Reporting -> Email Log Search):** Look at the red SMTP reason (`550-5.7.26 ... does not pass authentication checks (SPF/DKIM)` vs `550 5.7.1 blocked / user unknown` vs `Mailbox full`).
+
+### L2 Technical Diagnostics
 1. **Verify Public DNS Mail Authentication (SPF, DKIM, DMARC) for `contoso.com` (read-only):**
    ```powershell
    Resolve-DnsName -Name "contoso.com" -Type TXT | Select-Object Name, Strings

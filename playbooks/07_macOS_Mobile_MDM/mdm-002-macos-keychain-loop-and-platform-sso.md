@@ -43,11 +43,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Did `jsmith@example.com` recently change their Entra ID / AD / macOS login password (or had an admin reset it), after which popups appeared for **`"talagent wants to use the login keychain"`**, **`"Microsoft Teams"`**, or **`"Local Items"`**?
-- Does the user remember their **previous macOS login password**? *(If yes, updating the existing `login` keychain password preserves all saved certificates and Wi-Fi/app secrets without wiping them!)*
-- Check whether **Platform SSO** (Entra ID) or **Jamf Connect / Xcreds** is deployed on this Mac.
+### Questions to Ask the User (Classify the Issue)
+1. Did you **recently change your Mac login password / Entra / AD password**, after which popups appeared for **`"talagent wants to use the login keychain"`**, **`"Microsoft Teams"`**, or **`"Local Items"`**?
+2. **Crucial L1 Question:** Do you still **know/remember your PREVIOUS Mac password**? *(If YES, we can update the keychain password cleanly without erasing saved Wi-Fi/Safari/app passwords!)*
+3. If you click Cancel 3–4 times, does the Mac still let you open Chrome/Outlook, or do prompts keep coming back?
+
+### Initial Scope & Classification
+- Distinguish **known old password** (`security set-keychain-password` / Keychain Access -> Edit -> Change Password) vs **unknown old password** (`Reset Default Keychains` safely after archiving old `.keychain-db`).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — GUI Keychain Access Check)
+1. **Verify Old Password & Open `Keychain Access` (`⌘ + Space` -> type `Keychain Access` -> Enter):**
+   - Look in the left sidebar of **Keychain Access**: is the **`login`** padlock icon closed/locked while `Local Items` is unlocked?
+   - Ask `jsmith@example.com` if they remember their previous password (note if you know it, **Edit -> Change Password for Keychain "login"...** solves it in 30 seconds!).
+   - Verify Mac internet/VPN (`Platform SSO` / `Entra`) works cleanly.
+
+### L2 Technical Diagnostics
 1. **Inspect active macOS keychains, lock state, and Platform SSO status in Terminal (read-only):**
    ```bash
    security list-keychains

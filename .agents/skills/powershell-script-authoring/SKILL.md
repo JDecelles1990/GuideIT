@@ -34,9 +34,12 @@ For complete field tables, ready-to-copy Read-Only and Remediation templates, an
    - End with flat PascalCase `[PSCustomObject]` entries inside `@{ status; summary; data = @($results); errors = @($errors) } | ConvertTo-Json -Depth 4 -Compress` in `finally`.
 
 5. **Document & Verify:**
+   - **Mandatory Playbook Coverage Rule:** Every `.ps1` script under `powershell_scripts/` **MUST** be linked in frontmatter `linked_scripts` of at least one canonical playbook under `playbooks/`. If no existing playbook matches the script's workflow, create at least one validated playbook using the `new-playbook` skill and link the script to it.
    - Document any newly added built-in script in `README.md` (and keep script counts synced in `README.md` and `tests/psstore/test_shortcuts.py`).
-   - Run static + PS 5.1 AST validation and full test verification:
+   - Run static + PS 5.1 AST validation, playbook strict validation (enforces `UNLINKED_SCRIPT`), re-indexing, and full test verification:
      ```powershell
      python tools/lint_scripts.py
+     python tools/validate_playbooks.py --strict
+     python tools/build_index.py
      python -m pytest tests/ -v
      ```

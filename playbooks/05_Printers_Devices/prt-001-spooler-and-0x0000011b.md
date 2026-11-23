@@ -50,11 +50,24 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Does the issue affect only `PC-LAB-01` or every user printing to `PRT-FIN-01` (`10.0.10.50`)?
-- Can the printer's web admin page (`http://10.0.10.50`) be reached, and is the physical printer free of paper jams or toner errors?
-- Did the issue start right after Windows updates when connecting to a Windows Print Server (`0x0000011b` / `0x00000709`)?
+### Questions to Ask the User (Classify the Issue)
+1. Can **nobody in the office** print to `PRT-FIN-01` (`10.0.10.50`), or does it fail **only from your PC (`PC-LAB-01`)**?
+2. Does the printer show **`Offline`**, stay **stuck `"Printing / Deleting"` in the print queue**, or pop up an error code (`0x0000011b` / `0x00000709`)?
+3. Look at the physical printer screen right now: is it powered on, connected to Wi-Fi/Ethernet, and free of **paper jams, open doors, or empty toner/paper trays**?
+4. Did this start right after a **Windows Update** or switching Wi-Fi/VPN?
+
+### Initial Scope & Classification
+- Verify physical readiness and printer web UI (`http://10.0.10.50`) first, then distinguish local `PC-LAB-01` **Print Spooler / WSD port hang** from **Print Server `0x0000011b` RPC error**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Physical Printer & Queue Check (`Control Panel -> Devices and Printers`):**
+   - Verify the printer IP web page opens in Edge/Chrome (`http://10.0.10.50`) and shows `Ready` (no paper jam/empty tray!). If user's PC is on VPN (`[net-006]`), confirm whether local office printers are blocked when full-tunnel VPN is on!
+   - Double-click the printer -> **See what's printing**: check if one giant stuck PDF at the top of the queue is blocking every job behind it, and check **Printer -> Use Printer Offline** isn't accidentally checked!
+   - Check **`services.msc`** for **`Print Spooler`** status (`Running`?).
+2. **Check Port Type (`Printer properties -> Ports`):** Does the checked port start with **`WSD-...`** (notorious for going `"Offline"` randomly!) vs **`Standard TCP/IP Port` (`10.0.10.50`)** or shared **`\\print01\...`**?
+
+### L2 Technical Diagnostics
 1. Check Print Spooler service state, installed printers, port type (`WSD` vs `Standard TCP/IP`), and stuck jobs (read-only):
    ```powershell
    Get-Service -Name Spooler | Select-Object Name, Status, StartType

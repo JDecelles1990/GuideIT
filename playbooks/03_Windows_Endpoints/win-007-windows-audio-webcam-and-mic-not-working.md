@@ -48,12 +48,25 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Physical Checks First (Saves 80% of Calls!):**
-  - Check for a **physical webcam privacy shutter slider** above the laptop screen (shows black/gray image even though camera LED is on!).
-  - Check for a hardware **`F4` / `F8` / `Fn` microphone-mute or camera-kill switch** on Dell/Lenovo/HP keyboards, or an inline mute LED on USB headsets!
-- Test the built-in **Windows Camera** app and **Settings -> System -> Sound** input bar: does the fault affect Windows itself (`0xA00F4244 NoCamerasAreAttached`), or ONLY inside Teams/Zoom?
+### Questions to Ask the User (Classify the Issue)
+1. Which specific piece fails: **Speakers (no sound)**, **Microphone (people can't hear you)**, or **Webcam (black screen / `No camera attached` `0xA00F4244`)**?
+2. Does it fail in **Windows Camera / Voice Recorder / Settings -> Sound**, OR ONLY inside **Microsoft Teams / Zoom**?
+3. Are you using **built-in laptop webcam/speakers** or an **external USB headset / dock / Bluetooth headphones (`[prt-002]`)**?
+4. Check for a **physical webcam shutter slider** over the camera lens and a **mute LED / `F4` / `F8` hardware mute key**!
+
+### Initial Scope & Classification
+- Physical shutters/buttons and Windows defaulting audio to an HDMI monitor (`No speakers on monitor!`) solve ~80% of L1 calls in 60 seconds!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Physical, Sound Flyout & Privacy Settings)
+1. **Physical Checks & Sound Output Selection (`1-Click Taskbar Check`):**
+   - Slide open any laptop privacy shutter above the webcam; check USB headset inline mute switch (red LED!) and laptop **`Fn` + Mic/Camera** key!
+   - Click the **Speaker icon** near the taskbar clock -> click the small **`>`** arrow next to volume slider -> ensure **Speaker Output** isn't pointed to an external monitor without speakers!
+2. **Check Windows Privacy Toggles & Teams Settings:**
+   - Open **Settings -> Privacy & security -> Camera** and **Microphone**: turn ON **Camera/Microphone access**, **Let apps access...**, and **Let desktop apps access...**!
+   - Open **Teams -> Settings -> Devices** -> run **Make a test call**.
+
+### L2 Technical Diagnostics
 1. **Check Camera & Audio Endpoint PnP Device Status (read-only):**
    ```powershell
    Get-PnpDevice -Class Camera, Image, Media, AudioEndpoint -ErrorAction SilentlyContinue |

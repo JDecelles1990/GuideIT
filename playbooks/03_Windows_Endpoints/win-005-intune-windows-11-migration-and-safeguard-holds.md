@@ -51,11 +51,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Check **Intune Admin Center -> Reports -> Windows updates -> Windows 11 readiness report** (or **Endpoint analytics -> Work from anywhere**): is `PC-LAB-01` flagged **`Capable`**, **`Not capable`** (TPM 2.0 / CPU / UEFI / Secure Boot / 64 GB disk), or **`Safeguard Hold`** (`0xC1900208` incompatible app/driver)?
-- Confirm the failure code in **Intune -> Devices -> Windows -> Feature updates for Windows 10 and later** (`0xC1900101` = Driver rollback; `0xC1900200` = Hardware requirements not met; `0x8007001F` = Audio/AV/driver failure during setup; `0x800F0922` = EFI partition <100 MB or VPN blocking update).
-- Check whether **Update Rings** and **Feature Update Deployment Policy** conflict (e.g., `Feature update deferral period` in the Update Ring MUST be `0` when using a Feature Update policy!).
+### Questions to Ask the User (Classify the Issue)
+1. Is Windows 11 upgrade failing with a specific error (`0xC1900101`, `0xC1900200`, `0xC1900208` Safeguard Hold, `0x8007001F`, `0x800F0922`), OR is it simply **never offered** under Windows Update / Intune?
+2. Is `PC-LAB-01` plugged into **AC power**, staying awake long enough during lunch/evening, and showing at least **25–30 GB free space on `C:`** (`[win-011]`)?
+3. How old is the hardware (approx. pre-2018 Intel 7th Gen or older CPUs fail Windows 11 CPU/TPM 2.0 checks!), and is **BitLocker key escrowed (`[win-002]`)**?
+
+### Initial Scope & Classification
+- Check **Intune Admin Center -> Reports -> Windows updates -> Windows 11 readiness report** (`Capable`, `Not capable`, or `Safeguard Hold`) and confirm `Update Ring` vs `Feature Update` deferrals don't conflict.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Intune Portal & Endpoint GUI)
+1. **Check Intune Readiness Report & PC Health Check:** Look up `PC-LAB-01` in Intune Windows 11 Readiness Report (or run **Windows PC Health Check app** on `PC-LAB-01`!) to spot red `TPM 2.0`, `Secure Boot`, `Free Disk Space (< 64 GB / 25 GB)`, or `Unsupported CPU` immediately!
+2. **Check `C:` Free Disk Space & Connected Peripherals:** Ensure >= 30 GB free on `C:` and unplug extra USB drives/SD cards that often trigger `0xC1900101` setup rollbacks!
+
+### L2 Technical Diagnostics
 1. **Verify Windows 11 Hardware Readiness on `PC-LAB-01` (read-only, elevated):**
    ```powershell
    $tpm = Get-Tpm

@@ -48,11 +48,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Did `"The trust relationship between this workstation and the primary domain failed"` appear on **only this PC (`PC-LAB-01`)**, or across **several domain computers** (if many -> check `[srv-012]` DC/DNS/NTP outage!)?
+2. Was `PC-LAB-01` **offline / powered off for 30+ days**, restored from a **VM snapshot**, or **newly imaged** with the same computer name as an existing PC?
+3. Are you currently **working remotely** without pre-logon VPN, or **in the office** on wired Ethernet?
+
+### Initial Scope & Classification
 - User sees **`"The trust relationship between this workstation and the primary domain failed"`** at Windows login on `PC-LAB-01`.
-- **Quick Remote Sign-In Trick (When User Is Remote Without Direct DC Line-of-Sight):** Have `jsmith@example.com` unplug Ethernet / turn off Wi-Fi temporarily and sign in with their **last cached domain password** — once at the desktop, connect VPN so the workstation reaches `DC01.domain.local` for live secure-channel repair!
-- Common root causes: PC offline >30 days (machine password rotated out of sync), **VM snapshot rollback** without resetting machine password, or **duplicate computer name** joined to AD overwriting the machine account SID/password!
+- **Quick L1 Remote Sign-In Trick (When User Is Remote Without Direct DC Line-of-Sight):** Have `jsmith@example.com` unplug Ethernet / turn off Wi-Fi temporarily and sign in with their **last cached domain password** — once at the desktop, connect VPN so the workstation reaches `DC01.domain.local` for live secure-channel repair!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Verify We Have a Working Local Admin Password (CRITICAL Before Unjoining!):** Check your RMM / Windows LAPS (`entra.microsoft.com` or ADUC LAPS tab) to confirm a local administrator credential exists on `PC-LAB-01` BEFORE trying any domain disjoin fallback!
+2. **Test Physical Network / Cached Login + VPN:** If remote, have user disable Wi-Fi/unplug Ethernet -> sign in via cached domain credentials -> turn Wi-Fi ON -> connect corporate VPN -> confirm they can ping `DC01.domain.local`!
+3. **Check Taskbar System Clock:** Verify `PC-LAB-01` date/time isn't off by >5 minutes vs real local time (`KRB_AP_ERR_SKEW` `[srv-012]`).
+
+### L2 Technical Diagnostics
 1. **Verify Line-of-Sight to Domain Controller (`DC01.domain.local`) and Machine Secure Channel (read-only, run as Local Admin):**
    ```powershell
    Test-ComputerSecureChannel -Verbose

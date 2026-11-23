@@ -45,10 +45,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Is **one specific website / database / app** timing out, or is the **entire Linux host sluggish / SSH taking 10+ seconds to respond**?
+2. Roughly **when did the slowdown start**, and was a scheduled backup, code deployment, report export, or heavy cron job kicked off right before?
+3. Did a service recently crash/disappear (`OOM_KILLED` / out of memory) -> see also `[srv-004]`?
+
+### Initial Scope & Classification
 - Run `uptime` and `free -h`: compare **1/5/15-min Load Average** against total vCPU/core count (`nproc`), and check **Available** RAM (`available` column, NOT `free` — Linux caches aggressively!).
 - Determine whether slowness is **User CPU (`%us`)**, **Disk I/O Wait (`%wa` + `D_STATE` processes)**, **Steal Time (`%st` > 5% on noisy cloud/hypervisor hosts)**, or **Memory/OOM thrashing (`OOM_KILLED`)**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic Monitoring & Quick Read-Only Glance)
+1. **Check RMM / Cloud Monitoring Charts First (No SSH Needed!):** Check Azure Portal Metrics / VMware vSphere / Proxmox / Datadog graphs for the last 2–4 hours: did **CPU %**, **Memory %**, **Disk IOPS**, or **Network** spike sharply at a round hour (cron job or backup window!)?
+2. **Check Host Uptime & Free Disk (`df -h`) Visually in One Safe Command (`read-only`):** A full `/` or `/var` disk (`[srv-006]`) or broken NFS share often freezes processes into high load average even with low CPU!
+3. **Verify Hypervisor Host Status:** If multiple Linux VMs on the same physical ESXi/Proxmox host slowed down simultaneously, check the hypervisor host health & datastore storage latency first!
+
+### L2 Technical Diagnostics
 1. **Capture CPU, Memory, Swap, and Top Consumers (read-only):**
    ```bash
    nproc
@@ -70,15 +82,18 @@ related_ids:
    ```
    *(If processes sit in **`D` (`D_STATE`)** and `iostat` `await` > 50–100 ms or `%util` ~100%, check storage/RAID/NFS health immediately -> `[srv-009]` / `[srv-006]`!)*
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Output of `uptime`, `free -h`, `df -h`, top 5 `%cpu` & `%mem` processes from `ps aux`, any `dmesg` OOM kill line, and spike start time.
+
 ## Deep-Dive Investigation (L3)
 1. **Per-Cgroup / Container OOM (`MemoryMax` Hit While Host Has Free RAM):** Inspect `/sys/fs/cgroup/` (`systemd-cgtop -n 1`) or `docker stats --no-stream` / `journalctl -k | grep -i memory` — a systemd unit or container can hit its cgroup `MemoryMax` even when host `free -h` looks healthy!
 2. **Slab / Kernel Memory Leak vs. Page Cache:** Inspect `/proc/meminfo` (`Slab`, `SUnreclaim`, `AnonPages`, `Dirty`) and `slabtop -o` if RSS totals don't account for consumed RAM.
 3. **Hypervisor CPU Steal (`%st` in `top` / `vmstat`):** On VMware/KVM/cloud VMs, sustained `st > 5–10%` means physical host CPU oversubscription or noisy neighbors requiring vMotion/host migration.
 
 ## Remediation (Confirm Before Running)
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Stop or gracefully restart a confirmed runaway memory-leaking worker process (never `kill -9` a database like PostgreSQL/MySQL unless frozen and unrecoverable — prefer graceful `systemctl restart <service>` or `kill -TERM <pid>`).
-2. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Tune application memory limits (`Xmx`, worker pool count, `MemoryMax` in systemd drop-in) or add emergency swapfile / expand RAM on the hypervisor/cloud instance.
-3. **[REMEDIATION — CONFIRM BEFORE RUNNING]** If **unresponsive NFS mount** (`soft` vs `hard`) causes stuck `D_STATE` processes, restore storage connectivity first (`[srv-007]` / `[srv-009]`); only use `umount -lf` as a last resort when storage is permanently gone.
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1/L2 Graceful Service Restart for Confirmed Stuck Non-DB Worker)** If a non-database web/worker process (or hung backup job) is confirmed leaking RAM and client/supervisor approves a brief bounce, prefer a graceful systemd restart (`systemctl restart <service>`) or `kill -TERM <pid>` — **NEVER `kill -9` PostgreSQL/MySQL/databases** unless frozen and unrecoverable!
+2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2/L3 Tune Memory Limits or Expand RAM/Swap)** Adjust application memory caps (`Xmx`, worker pool count, `MemoryMax` in systemd drop-in) or add emergency swapfile / expand RAM on the hypervisor/cloud instance.
+3. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L3 Frozen NFS `D_STATE` Recovery)** If **unresponsive NFS mount** (`soft` vs `hard`) causes stuck `D_STATE` processes, restore storage connectivity first (`[srv-007]` / `[srv-009]`); only use `umount -lf` as a last resort when storage is permanently gone.
 
 ## Verification & Post-Fix Checks
 1. Confirm `uptime` load average trends down below `nproc`, `vmstat` `si/so` = `0`, and `%wa` < `5%`.

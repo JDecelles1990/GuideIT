@@ -15,7 +15,22 @@ from guideit_master.guideit.validator import load_playbook_file
 from guideit_master.paths import get_bundle_dir, get_guideit_db_path, get_playbooks_dir
 
 DEFAULT_DB_RELPATH = Path("data/guideit.db")
-SCHEMA_VERSION = "3"
+SCHEMA_VERSION = "4"
+
+
+def _build_fts_body(pb: Playbook) -> str:
+    """Return playbook body excluding Cross-Subject pivot links so links don't pollute FTS."""
+    if not pb.section_order or not pb.sections:
+        return pb.body_markdown
+    kept: list[str] = []
+    for heading in pb.section_order:
+        norm_h = " ".join(heading.replace("–", "-").replace("—", "-").split()).lower()
+        if norm_h.startswith("cross-subject") or norm_h.startswith("escalation & pivot"):
+            continue
+        content = pb.sections.get(heading, "").strip()
+        if content:
+            kept.append(f"## {heading}\n{content}")
+    return "\n\n".join(kept) if kept else pb.body_markdown
 
 
 def _discover_playbook_files(root_dir: Path) -> list[Path]:
@@ -169,7 +184,7 @@ def build_index(root_dir: Path | None = None, db_path: Path | None = None) -> In
                         " | ".join(pb.keywords_fr),
                         pb.title,
                         " | ".join(pb.tools),
-                        pb.body_markdown,
+                        _build_fts_body(pb),
                     ),
                 )
 

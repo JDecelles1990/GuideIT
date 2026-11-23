@@ -49,12 +49,28 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Identify sync scope:** Determine if ALL users/groups stopped syncing (Entra Connect service crash, expired connector credentials, SQL Express 10 GB database limit, or server offline) versus 1–2 users (`AttributeValueMustBeUnique`, `InvalidSoftMatch`, or object moved out of a synced OU).
-- **Check Entra Admin Center -> Entra Connect:** Note **Last sync** timestamp and any **Sync Errors** banner before logging into the on-prem Entra Connect server.
-- **Confirm Staging Mode:** Ask whether a second standby Entra Connect server exists and verify which server is active vs `StagingModeEnabled`.
-- **Check recent AD edits:** Ask if someone recently created a shared mailbox/guest/cloud-only user with the same SMTP proxyAddress or UPN as a newly hired on-prem AD user.
+### Questions to Ask the User (Classify the Issue)
+1. How long ago was the user created or edited in on-prem Active Directory? *(Entra Connect runs automatically every **30 minutes** — wait 30–35 min before diagnosing a stall!)*
+2. Is **only this 1 user/mailbox (`jsmith@example.com`)** missing/out of sync (`AttributeValueMustBeUnique` / wrong OU), or are **NO changes syncing anywhere in the tenant**?
+3. Did an admin previously create a **cloud-only account, shared mailbox, or distribution/guest contact** with the same email address before creating the AD user?
+4. Has the user's **Display Name, OU, or UPN (`@contoso.com` vs `@contoso.local`)** been verified in ADUC?
+
+### Initial Scope & Classification
+- **Identify sync scope:** Determine if ALL users/groups stopped syncing (Entra Connect service stopped, expired connector creds, SQL Express 10 GB database limit, or sync server down) versus 1–2 users (`AttributeValueMustBeUnique`, `InvalidSoftMatch`, or object placed outside a synced OU).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+> L1 technicians don't need to edit `ImmutableId` or run full sync cycles to catch 80% of Entra sync stalls!
+
+1. **Check Entra Admin Center -> Entra Connect Sync Health First (`https://entra.microsoft.com` or `admin.microsoft.com` -> Health -> Directory sync status):**
+   - Look at **Last sync timestamp** (`< 30 minutes` ago = sync engine is alive!) and click **DirSync Errors** to read any plain-English duplicate email (`ProxyAddresses`) conflict!
+2. **Verify User Basics in Active Directory Users and Computers (`ADUC`) on `DC01.domain.local`:**
+   - Confirm the user is **in an OU selected for Entra Connect Sync** (e.g., `OU=Staff` — often new users created in default `Users` container or `Test` OU are intentionally excluded from sync!).
+   - Confirm **User logon name (`userPrincipalName`)** uses a verified routable domain (`jsmith@contoso.com`), NOT `.local` (`domain.local` creates unroutable `@tenant.onmicrosoft.com` accounts!).
+   - Check for obvious duplicate mail aliases (`Attribute Editor -> proxyAddresses` or `mail` — verify two users/groups don't share the same SMTP address!).
+3. **Check Server Service State (`services.msc` on Entra Connect server, read-only):** Verify **`Microsoft Azure AD Sync`** (`ADSync`) service is `Running` and `StagingModeEnabled` isn't left `True` unintentionally!
+
+### L2 Technical Diagnostics
 On the **Microsoft Entra Connect server**, check scheduler status, staging mode, and connector run state without triggering any sync cycle yet:
 
 ```powershell
@@ -74,6 +90,9 @@ Get-ADObject -LDAPFilter "(|(proxyAddresses=*jsmith@contoso.com*)(mail=jsmith@co
   Select-Object ObjectClass, DistinguishedName, userPrincipalName, proxyAddresses | Format-List
 ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Screenshot of **Entra Connect / M365 DirSync Error**, confirmation user is in a synced OU with `@contoso.com` UPN, **`Last sync`** timestamp, and output of `Get-ADObject` duplicate search.
+
 ## Deep-Dive Investigation (L3)
 Open **Synchronization Service Manager (`miisclient.exe`)** on the Entra Connect server -> **Operations** tab -> inspect the latest `Export` run on the Entra ID connector (`completed-export-errors` / `6900` / `6126`):
 1. Double-click any **Export Error** (`AttributeValueMustBeUnique` or `InvalidSoftMatch`) to see the exact conflicting `SourceAnchor` / `mS-DS-ConsistencyGuid` and conflicting attribute (`UserPrincipalName` or `ProxyAddresses`).
@@ -89,7 +108,9 @@ Open **Synchronization Service Manager (`miisclient.exe`)** on the Entra Connect
 ## Remediation (Confirm Before Running)
 > **[REMEDIATION — CONFIRM BEFORE RUNNING]** Never modify `OnPremisesImmutableId` or purge cloud objects blindly — linking an on-prem user to the wrong cloud account overwrites mailbox/OneDrive identity mapping, and deleting an active cloud mailbox disconnects data. Always export object attributes before edits.
 
-1. **Duplicate `proxyAddresses` or UPN (`AttributeValueMustBeUnique`):**
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Move Misplaced User to Synced OU / Fix UPN & Run Delta Sync):**
+   - If the user was created in an unsynced OU or given `.local` UPN, confirm intended OU/UPN (`@contoso.com`), update in ADUC, wait for the 30-min schedule (or trigger safe Delta sync on the non-staging Entra Connect server once `Get-ADSyncScheduler` shows `SyncCycleInProgress = False`).
+2. **Duplicate `proxyAddresses` or UPN (`AttributeValueMustBeUnique` — L2/L3):**
    - Scope: Only the conflicting duplicate alias on the unintended AD object or unused cloud contact/guest.
    - Prerequisite: Confirm which identity owns the email alias with the customer.
    - Remove the duplicate SMTP entry in **Active Directory Users and Computers -> Attribute Editor (`proxyAddresses`)** (or remove the duplicate Entra mail contact/guest), then run a delta sync:

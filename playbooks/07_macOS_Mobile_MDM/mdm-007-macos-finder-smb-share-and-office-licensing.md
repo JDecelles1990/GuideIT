@@ -45,11 +45,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **For Windows Shared Drives on Mac (`SMB_MOUNT_FAIL`):** Remember Macs do NOT use drive letters (`S:\` or `Z:\`) or backslashes (`\\SRV-FILE-01\Share`). Mac Finder uses forward slashes with **`smb://SRV-FILE-01/Share`** (or **`smb://10.0.10.25/Share`**)!
-- Confirm VPN is connected if the user is remote (`[net-001]`).
-- **For Office on Mac (`OFFICE_ACTIVATE_MAC`):** User sees `"No License Found"` / `"Activate Microsoft 365 to Create and Edit"` even though they have an active M365 Business Standard/Premium license.
+### Questions to Ask the User (Classify the Issue)
+1. Are you trying to **connect to a shared company folder (`SMB_MOUNT_FAIL`)**, OR is **Word / Excel / Outlook on Mac saying `"No License Found" / "View Only"` (`OFFICE_ACTIVATE_MAC`)**?
+2. For **Shared Folders on Mac**, did the user type Windows backslashes (`\\server\share`) instead of Mac format **`smb://SRV-FILE-01.domain.local/Share`**, and is **corporate VPN** connected if remote (`[net-001]`)?
+3. For **Office Licensing on Mac**: verify the user's **Microsoft 365 license includes Desktop Apps** (*Business Standard / Premium / E3*, NOT *Business Basic* Web-only!).
+
+### Initial Scope & Classification
+- Macs use **Finder (`⌘ + K` -> `smb://server/share`)** instead of drive letters `S:\`.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Finder GUI & M365 License Check)
+1. **Check Active VPN & Finder Quick Connect (`⌘ + K` GUI):**
+   - If working from home, connect **VPN** (`[net-001]`) FIRST!
+   - In **Finder** (blue smiley Dock icon), press **`⌘ + K`** (`Go -> Connect to Server...`), verify path starts with **`smb://`**, and test both hostname (`smb://SRV-FILE-01.domain.local/Share`) AND IP (`smb://10.0.10.25/Share`) to separate DNS vs SMB issues!
+2. **Verify User License & Profile in Office Mac & M365 Admin Center:** Open **Word -> File -> Open / Word menu -> About Microsoft Word** -> check active `Belongs to:` email + check `https://admin.microsoft.com/` -> **Licenses**!
+
+### L2 Technical Diagnostics
 1. **Test DNS Resolution & TCP Port `445` (SMB) from Mac Terminal (`⌘ + Space` -> `Terminal`, read-only):**
    ```bash
    scutil --dns | head -n 30

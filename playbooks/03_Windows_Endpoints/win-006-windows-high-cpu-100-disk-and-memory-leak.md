@@ -49,11 +49,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Open **Task Manager (`Ctrl + Shift + Esc`) -> Performance** tab on `PC-LAB-01` to see WHICH bottleneck is pegged at 95–100%: **CPU**, **Memory** (check **Committed** & **Non-paged pool**!), or **Disk 0 (`Active time` 100% with high Average response time >50 ms)**!
-- Check **Uptime** in Task Manager -> Performance -> CPU: Windows **Fast Startup** prevents shutdowns from clearing kernel memory leaks — check if uptime is 20+ days!
-- Confirm whether a scheduled Windows Update (`TiWorker.exe` / `TrustedInstaller`), Defender scan (`MsMpEng.exe`), or Teams/Chrome/Outlook bloat is active.
+### Questions to Ask the User (Classify the Issue)
+1. Is `PC-LAB-01` slow **right after booting up** (`win-010`), **all day permanently**, or **only when opening a specific heavy app** (50 Chrome/Edge tabs, huge Excel macro workbook `[app-002]`, Teams video)?
+2. Check **Task Manager (`Ctrl + Shift + Esc`) -> Performance -> CPU -> Up time**: has the PC gone **10–30+ days without a real Restart**? *(Remember clicking "Shut down" uses Fast Startup hibernation and does NOT clear leaked kernel memory!)*
+3. Is `C:` drive almost full (`[win-011]`), or is the laptop hot / sitting on soft fabric / plugged into a low-wattage phone charger (causing CPU thermal throttling)?
+
+### Initial Scope & Classification
+- Open **Task Manager -> Performance** to see WHICH resource is pegged at 95–100%: **CPU**, **Memory**, or **Disk (`100% Active time`)**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Task Manager GUI)
+1. **Check Task Manager (`Ctrl + Shift + Esc`) Processes & Performance Tabs:**
+   - Sort **Processes** by **CPU %**, **Memory %**, and **Disk %** -> write down the exact top 2 consumers (`TiWorker.exe` = Windows Update running; `MsMpEng.exe` = Defender scan; `msedge.exe`/`chrome.exe` = excessive browser tabs; `SearchIndexer.exe`).
+   - Check **Performance -> Memory**: check **In use / Committed** vs total RAM (`8 GB` vs `16 GB`).
+   - Check **Performance -> CPU -> Up time**: if uptime > 7–14 days, a full **Restart** is the cleanest first step!
+
+### L2 Technical Diagnostics
 1. **Capture System Uptime, Top CPU/Memory Processes, and Disk Health (read-only):**
    ```powershell
    (Get-Date) - (Get-CimInstance Win32_OperatingSystem).LastBootUpTime | Select-Object Days, Hours, Minutes

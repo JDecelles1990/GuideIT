@@ -44,13 +44,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Distinguish DLP Block vs. Encryption Access Denied (`RMS_ACCESS_DENIED`):**
-  - **`DLP_POLICY_TIP` (DLP Block):** User sees a red/yellow Policy Tip in Outlook, Teams, SharePoint, or Windows Explorer blocking external send, file upload, or USB copy because Sensitive Information Types (credit cards, SIN, banking numbers, health records) matched.
-  - **`RMS_ACCESS_DENIED` (Sensitivity Label Encryption):** User (internal or external partner) tries to open a labeled `.docx`/`.xlsx`/`.pdf`/`.rpmsg` file and gets **"You don't have permissions to view this document"** or sign-in loops.
-- **Check exact account signed into Office:** Often the user is signed into Microsoft Office/Excel with a secondary/personal profile (`otheruser@fabrikam.com`) instead of the recipient UPN granted access (`jsmith@contoso.com`).
-- **Verify business legitimacy BEFORE overrides:** Never approve a DLP block release without confirming the transfer is authorized business traffic (not accidental mass PII export or exfiltration).
+### Questions to Ask the User (Classify the Issue)
+1. Are you blocked **BEFORE opening/sending** by a red/yellow Microsoft **"Policy Tip / This item is blocked from sharing externally" (`DLP_POLICY_TIP`)**, OR are you blocked **trying to open an already encrypted file** (`"You don't have permissions to view this document"` / `RMS_ACCESS_DENIED`)?
+2. For **`RMS_ACCESS_DENIED`**: check the **top-right name/email inside Word/Excel/Edge** — are you signed into Office with the exact email address the sender invited (`jsmith@contoso.com`), or a different account?
+3. For **`DLP_POLICY_TIP`**: does the email/file contain sensitive numbers (credit cards, SIN/SSN, health/bank info), and has your manager/sender confirmed this external recipient is authorized?
+
+### Initial Scope & Classification
+- Distinguish **DLP Block (`DLP_POLICY_TIP`)** vs **Sensitivity Label / IRM Encryption (`RMS_ACCESS_DENIED`)** — **NEVER** bypass DLP policies without confirming authorized business justification!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Account Sign-In & Web Fallback)
+1. **For `RMS_ACCESS_DENIED` (File Won't Decrypt / Open):**
+   - Look at **top-right corner of Word / Excel -> File -> Account**: confirm the primary connected email matches the exact address that received the link/email (`jsmith@contoso.com`)! Sign out of conflicting secondary/personal accounts (`@gmail.com` / `@fabrikam.com`).
+   - Ask the user to try opening the file in **Word / Excel for the Web** via SharePoint/OneDrive browser link (browser auth cleanly acquires modern RMS decryption tokens!).
+   - If the sender encrypted it with an **"Internal Only / Confidential — Employees Only"** label and sent it to an external partner, only the **document owner** (or authorized admin) can change the label to an approved External Partner label!
+2. **For `DLP_POLICY_TIP` (Blocked External Email / Share):** Screenshot the exact yellow/red Policy Tip text (shows WHICH Sensitive Info Type triggered, e.g., *Credit Card*, often caused by false-positive invoice IDs in email signatures!) and ask Purview Admin / L2 to inspect Alerts before approving any override!
+
+### L2 Technical Diagnostics
 Connect to Microsoft Purview Compliance PowerShell (`Connect-IPPSSession` from `ExchangeOnlineManagement`) to inspect active DLP policies, rules, and Sensitivity Labels without altering protections:
 
 ```powershell

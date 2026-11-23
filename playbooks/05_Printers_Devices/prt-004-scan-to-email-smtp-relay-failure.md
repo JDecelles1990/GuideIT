@@ -46,14 +46,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Inspect the MFP printer's Web UI (`http://10.0.10.50`) scan job log for the exact SMTP code (`535 5.7.139` = Auth unsuccessful / Basic Auth or Security Defaults blocking SMTP AUTH; `530 5.7.57` = STARTTLS required before MAIL; `550 5.7.64` = Relay / IP connector attribution failure).
-- Which M365 send method is configured:
-  1. **Option 1 — SMTP AUTH (`smtp.office365.com:587` + TLS 1.2)**
-  2. **Option 2 — Direct Send (`contoso-com.mail.protection.outlook.com:25`, internal recipients only)**
-  3. **Option 3 — Exchange Inbound Connector (`198.51.100.10` static WAN IP)**
-- Did the client recently enable **Security Defaults**, **Conditional Access blocking Legacy Auth**, or change the WAN static IP?
+### Questions to Ask the User (Classify the Issue)
+1. Can users still **print** normally to this multifunction printer (`10.0.10.50`), and does **Scan-to-Email fail for ALL recipients** or ONLY **external recipients** (key clue pointing to Option 2 Direct Send restriction!)?
+2. Does the printer touch-screen or printed error sheet show an exact message (`Authentication failed / 535 5.7.139`, `Connection timeout`, `Relay denied / 550 5.7.64`)?
+3. Did anything change recently (**M365 password reset**, **MFA / Security Defaults enabled**, **printer swapped**, or **office ISP / static public IP changed**)?
+4. Is Scan-to-Folder (`SMB`) still working or needed as a temporary backup so users aren't blocked?
+
+### Initial Scope & Classification
+- Inspect the MFP printer's Web UI (`http://10.0.10.50`) scan job log for the exact SMTP code (`535 5.7.139` = Auth unsuccessful; `530 5.7.57` = STARTTLS required; `550 5.7.64` = Relay / IP connector mismatch) across M365 Options 1 (**SMTP AUTH**), 2 (**Direct Send**), or 3 (**Inbound Connector**).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Printer Web UI & Basic Network)
+1. **Open Printer Web Admin Console (`http://10.0.10.50`) Read-Only:**
+   - Log into the copier Web UI -> **Scan / Email / SMTP Settings** + **Job History / Log** -> screenshot the exact SMTP server name (`smtp.office365.com` vs `*.mail.protection.outlook.com`), port (`587` vs `25`), `From:` address (`scanner@contoso.com`), and latest failed scan error code!
+   - Test sending a scan to an **internal `@contoso.com`** address vs an **external address** to classify Direct Send vs Auth failure immediately.
+2. **Verify Dedicated Service Account / ISP Static IP Hasn't Changed:** Check Entra Sign-in Logs for `scanner@contoso.com` (did MFA/Security Defaults/password change block it?) and check the office public WAN IP (`https://ifconfig.me` from onsite) vs `contoso.com`'s SPF TXT record!
+
+### L2 Technical Diagnostics
 1. **Verify outbound SMTP port reachability from the printer's subnet (`10.0.10.x`, read-only):**
    ```powershell
    Test-NetConnection -ComputerName "smtp.office365.com" -Port 587 | Select-Object ComputerName, TcpTestSucceeded

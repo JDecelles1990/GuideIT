@@ -30,18 +30,31 @@ linked_scripts: []
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Scope check 1: Single user/endpoint or multi-user/tenant-wide impact?
-- Scope check 2: What changed recently (password change, OS/app update, VPN/network change, license/policy change)?
-- Confirm exact verbatim error message or code before running diagnostics.
+### Questions to Ask the User (Classify the Issue)
+1. Is this happening only to you (`PC-LAB-01` / `jsmith@example.com`), or are other coworkers experiencing the exact same problem?
+2. What changed right before this started (password change, OS/app update, new device, network/Wi-Fi switch)?
+3. What is the exact word-for-word error message or error code on screen (ask for a screenshot)?
+4. Does the issue happen both in the desktop app and in a web browser (or both on office LAN and home Wi-Fi)?
+
+### Initial Scope & Classification
+- Confirm blast radius (single user vs. department vs. tenant-wide outage) and isolate obvious triggers before running diagnostics.
 
 ## Read-Only Diagnostics (L1-L2)
-> Run non-destructive read-only checks first to isolate scope and gather evidence.
+### L1 First-Line Checks (Start Here — Basic / GUI)
+> Start with simple, non-destructive visual/GUI checks before escalating or running advanced commands.
 
-1. Run initial read-only inspection on the affected endpoint (`PC-LAB-01` / `jsmith@example.com`):
-   ```powershell
-   # Replace with verified read-only PowerShell / CLI diagnostics
-   ```
-2. Check relevant event logs or admin portal logs and note timestamps and correlation IDs.
+1. Verify basic prerequisites (account lock/password status, cable/Wi-Fi connectivity, service running in `services.msc`, free disk space).
+2. Capture screenshots, exact timestamps, and Event Viewer / Web Portal error messages for ticket notes.
+
+### L2 Technical Diagnostics
+> Run verified read-only PowerShell, CLI, or Admin Portal inspection commands on `PC-LAB-01` / `jsmith@example.com`.
+
+```powershell
+# Replace with verified read-only PowerShell / CLI diagnostics
+```
+
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Exact error message/code screenshot + timestamp, user UPN (`jsmith@example.com`), hostname (`PC-LAB-01`), and answers to the 4 triage questions above.
 
 ## Deep-Dive Investigation (L3)
 > Deeper root-cause analysis when L1-L2 triage does not isolate a single obvious cause.
@@ -52,7 +65,8 @@ linked_scripts: []
 ## Remediation (Confirm Before Running)
 > **[REMEDIATION — CONFIRM BEFORE RUNNING]** Review blast radius, user impact, and backup/rollback plan before executing any state-changing command.
 
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Describe the targeted fix, affected scope, and verified command:
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Quick Fix)** Safe, low-impact reset (sign out/in, restart stuck client app, reconnect Wi-Fi/VPN cleanly).
+2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2/L3 Fix)** Describe the targeted state-changing command, affected scope, and verified rollback:
    ```powershell
    # Verified state-changing command with synthetic placeholders only
    ```

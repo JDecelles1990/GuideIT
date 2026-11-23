@@ -164,6 +164,10 @@ Every `.ps1` script under `powershell_scripts/<NN_Category>/` **MUST** obey the 
 4. **Dual-Purpose Output Contract (`Format-Table` + Single-Line JSON Envelope):**
    - When `output_mode` is `"json"`, format and emit a human-readable ASCII table first (`$results | Format-Table -AutoSize | Out-String -Width 4096 | Write-Output`) for RMM logs and Raw Console.
    - Emit `$payload | ConvertTo-Json -Depth 4 -Compress` as the very last line in `finally`, where `data = @($results)` contains flat PascalCase `[PSCustomObject]` items and `errors = @($errors)` is a flat string array (never `, @($errors)`).
+5. **Mandatory Playbook Coverage Rule (Zero Orphan Scripts):**
+   - Every `.ps1` script under `powershell_scripts/` **MUST** be linked in frontmatter `linked_scripts` of **at least one** canonical playbook under `playbooks/`.
+   - Whenever a new PowerShell script is added (or an existing script is audited) and no existing playbook matches its troubleshooting workflow, you **MUST** create at least one validated, schema-compliant playbook/issue under `playbooks/` and link the script to it.
+   - Enforced automatically by `python tools/validate_playbooks.py --strict` (`UNLINKED_SCRIPT`) and `tests/test_cross_linking.py`.
 
 ---
 

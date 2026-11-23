@@ -49,13 +49,25 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Does the robotic/choppy audio happen ONLY to `jsmith@example.com` (`PC-LAB-01`), or to everyone in the office?
-- Is `PC-LAB-01` using **Bluetooth headphones** (`[prt-002]`), **home Wi-Fi**, or a **full-tunnel corporate VPN** (hairpinning Teams media through HQ firewall!)?
+### Questions to Ask the User (Classify the Issue)
+1. Does the choppy/robotic audio happen on **ALL calls** or ONLY when **talking to one external person** (or only in large meetings)?
+2. Are you currently on **Wi-Fi (`[net-002]`) vs wired Ethernet**, using **Bluetooth headphones (`[prt-002]`) vs laptop mic/wired headset**, and connected to **corporate VPN (`[net-006]`)**?
+3. During a live call, can people **not hear you at all (`One-way audio`)**, or is the sound **stuttering/lagging (`Jitter`)**?
+
+### Initial Scope & Classification
 - Check **Teams Call Health** during a live call (**More (`...`) -> Settings -> Call health**) for live **Jitter (>30 ms)**, **Round-trip latency (>100 ms)**, or **Packet loss (>1%)**.
+- Quickly run **Teams -> Settings -> Devices -> Make a test call** to split local headset/Bluetooth faults (`[prt-002]`/`[win-007]`) from internet/VPN network congestion!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Teams "Make a test call" & Switch Off VPN/Bluetooth Briefly:**
+   - Run **Teams -> Settings -> Devices -> Make a test call**. If your own playback recording sounds choppy BEFORE touching the network, test a wired headset or laptop speakers (`[prt-002]` / `[win-007]`).
+   - Turn **off Home/Other Video Downloads** and test **disconnecting full-tunnel VPN briefly** or switching from Wi-Fi (`2.4 GHz`) to **Wired Ethernet / `5 GHz`**!
+2. **Verify Teams Video Bandwidth & Background Apps:** Check Task Manager (`Ctrl + Shift + Esc`) for OneDrive/Windows Update saturating home upload bandwidth during the call (`[win-006]`).
+
+### L2 Technical Diagnostics
 1. **Isolate Endpoint Audio Device vs. Network:**
-   - Run Teams **Settings -> Devices -> Make a test call**. If the local playback recording already sounds robotic or missing, pivot to `[prt-002]` (Bluetooth HFP/A2DP conflict) or USB headset mic settings.
+   - Inspect Teams Call Health metrics and confirm whether local media passes directly over UDP.
 2. **Test Network Latency, Packet Loss, and M365 Media Relay Ports (read-only):**
    ```powershell
    # Verify UDP 3478-3481 isn't forced over broken proxy/TCP fallback and check path latency

@@ -423,11 +423,21 @@ def test_reverse_used_in_playbooks_navigation_and_visibility(
     qapp.processEvents()
     assert {"prt-003", "win-003", "win-007"}.issubset(sc.used_in_playbook_buttons.keys())
 
-    # 3. Unlinked script hides the Used in Playbooks row
+    # 3. Sample-CustomDiagnostic now links to app-004, and mocked zero links hides the strip
     assert sc.select_and_preload_script("99_Custom/Sample-CustomDiagnostic.ps1")
     qapp.processEvents()
-    assert not sc.used_in_playbooks_container.isVisible()
-    assert sc.used_in_playbook_buttons == {}
+    assert sc.used_in_playbooks_container.isVisible()
+    assert "app-004" in sc.used_in_playbook_buttons
+
+    original_lookup = sc.cross_link_service.get_playbooks_for_script
+    sc.cross_link_service.get_playbooks_for_script = MagicMock(return_value=[])
+    try:
+        sc.refresh_reverse_playbook_links()
+        qapp.processEvents()
+        assert not sc.used_in_playbooks_container.isVisible()
+        assert sc.used_in_playbook_buttons == {}
+    finally:
+        sc.cross_link_service.get_playbooks_for_script = original_lookup
 
 
 def test_unified_bilingual_search_omnibox_and_cli(
@@ -823,3 +833,36 @@ def test_ctrl_shift_b_shortcut_triggers_readonly_bundle_copy(
     qapp.processEvents()
     sc.clipboard_service.copy_to_clipboard.assert_not_called()
     assert "playbooks" in win.status_bar.currentMessage().lower()
+
+
+def test_every_powershell_script_is_linked_to_at_least_one_playbook() -> None:
+    scripts_root = get_ps_scripts_dir(REPO_ROOT)
+    available_scripts = sorted(
+        p.relative_to(scripts_root).as_posix() for p in scripts_root.rglob("*.ps1")
+    )
+    assert len(available_scripts) >= 38
+
+    linked_refs: set[str] = set()
+    for pb_file in sorted((REPO_ROOT / "playbooks").glob("*/*.md")):
+        pb = load_playbook_file(REPO_ROOT, pb_file)
+        linked_refs.update(pb.linked_scripts)
+
+    missing = [rel for rel in available_scripts if rel not in linked_refs]
+    assert missing == [], f"Unlinked PowerShell scripts found: {missing}"
+
+
+def test_validator_flags_unlinked_powershell_script(tmp_path: Path) -> None:
+    _create_minimal_repo(
+        tmp_path,
+        linked_scripts_yaml="linked_scripts:\n  - 04_Devices/Get-PrintQueues.ps1\n",
+        copy_scripts=[
+            "04_Devices/Get-PrintQueues.ps1",
+            "04_Devices/Reset-PrintSpooler.ps1",
+        ],
+    )
+    report = validate_repository(tmp_path, today=date(2026, 11, 22))
+    assert any(
+        w.code == "UNLINKED_SCRIPT"
+        and w.path == "powershell_scripts/04_Devices/Reset-PrintSpooler.ps1"
+        for w in report.warnings
+    )

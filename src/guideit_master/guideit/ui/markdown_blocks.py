@@ -10,6 +10,8 @@ _FENCE_OPEN_RE = re.compile(r"^\s*```([A-Za-z0-9_+-]*)\s*$")
 _FENCE_CLOSE_RE = re.compile(r"^\s*```\s*$")
 _ORDERED_ITEM_RE = re.compile(r"^(\s*)\d+\.\s+(.+)$")
 _BULLET_ITEM_RE = re.compile(r"^(\s*)[-*]\s+(.+)$")
+_SUBHEADING_H3_RE = re.compile(r"^###\s+(.+)$")
+_SUBHEADING_H4_RE = re.compile(r"^####\s+(.+)$")
 _CLIENT_EN_RE = re.compile(r"^\s*[-*]\s*\*\*EN:\*\*\s*(.+)$", re.IGNORECASE)
 _CLIENT_FR_RE = re.compile(r"^\s*[-*]\s*\*\*FR:\*\*\s*(.+)$", re.IGNORECASE)
 
@@ -212,6 +214,27 @@ def markdown_prose_to_html(markdown_text: str) -> str:
                 '<div style="background-color:#121923;border-left:3px solid #38BDF8;'
                 'padding:6px 10px;margin:4px 0px;color:#CBD5E1;">'
                 f"{_format_inline(quote_text)}</div>"
+            )
+            continue
+
+        h3_match = _SUBHEADING_H3_RE.match(stripped)
+        if h3_match:
+            _flush_para()
+            _close_lists()
+            out.append(
+                '<div style="color:#7DD3FC;font-weight:700;font-size:13px;'
+                'margin:8px 0px 4px 0px;padding-bottom:2px;border-bottom:1px solid #1E293B;">'
+                f"{_format_inline(h3_match.group(1).strip())}</div>"
+            )
+            continue
+
+        h4_match = _SUBHEADING_H4_RE.match(stripped)
+        if h4_match:
+            _flush_para()
+            _close_lists()
+            out.append(
+                '<div style="color:#94A3B8;font-weight:700;font-size:12px;margin:6px 0px 2px 0px;">'
+                f"{_format_inline(h4_match.group(1).strip())}</div>"
             )
             continue
 

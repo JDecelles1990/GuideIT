@@ -42,14 +42,21 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is `jsmith@example.com` locked out of user sign-in (2-Step Verification / suspicious login challenge / suspended), or is an administrator getting **`403`** / **`You need a Google Workspace account to access admin.google.com`**?
-- Confirm the user is not accidentally signed into a personal browser profile in the same Chrome window (multi-account sign-in order often defaults to `authuser=0`).
+### Questions to Ask the User (Classify the Issue)
+1. Are you blocked from signing into your **normal user mailbox/Drive** (2-Step Verification / lost phone / suspended), or is an **Admin getting `403`** / `"You need a Google Workspace account to access admin.google.com"`?
+2. Do you have personal `@gmail.com` accounts signed into Chrome in the same browser window?
+3. Did you get a new phone, change your phone number, or travel outside your usual city/country right before the lock challenge appeared?
+
+### Initial Scope & Classification
 - Verify identity out-of-band before issuing any 2-Step Verification (2SV) backup codes or unlocking a suspended account.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Isolate Multi-Account Browser Confusion (`403` on `admin.google.com`):**
-   - Test signing into `https://admin.google.com` inside an **Incognito / InPrivate** window using exclusively `admin@contoso.com`.
-2. **Inspect Account & Security State in Google Admin Console (`admin.google.com`):**
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Isolate Multi-Account Browser Confusion (`403` on `admin.google.com`):** Have `admin@contoso.com` open an **Incognito / InPrivate** window and sign directly into `https://admin.google.com` using ONLY the corporate Workspace account (fixes ~60% of admin `403` errors!).
+2. **Check Google Account Status in Admin Console (`admin.google.com`):** Go to **Directory -> Users -> `jsmith@example.com` -> Security** -> verify whether **Account status** shows `Active`, `Suspended — Admin`, or `Suspended — Risk / Abuse` (never unsuspend `Risk / Abuse` without checking compromise logs first!).
+
+### L2 Technical Diagnostics
+1. **Inspect Account, Admin Roles, and 2SV Enforcement in Google Admin Console (`admin.google.com`):**
    - Navigate to **Directory -> Users -> `jsmith@example.com` -> Security**:
      - Check **Account status** (`Active` vs `Suspended — Admin` vs `Suspended — Risk / Abuse`).
      - Check **2-Step Verification** enrollment, **Login challenge** status, and whether the user's **Organizational Unit (OU)** enforces mandatory 2SV without a grace period.

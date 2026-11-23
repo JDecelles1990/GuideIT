@@ -49,11 +49,25 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Did an **automated backup job (`Veeam` / `Windows Server Backup` / cloud agent) fail**, or is a user reporting **"Disk full" / frozen apps on the server (`SRV-FILE-01`)**?
+2. Which specific drive letter is full (`C:` OS volume vs `D:` data/SQL volume)?
+3. Are users currently still able to open files and save work normally, or have services/databases already stopped?
+4. Has the server been rebooted recently, or were large ISOs/backups saved manually onto `C:`?
+
+### Initial Scope & Classification
 - Is a critical production volume (`C:` or `D:`) below 5% free space on `SRV-FILE-01`, causing service stalls or backup failure?
 - Check the backup job log for exact VSS codes (`0x80042306` = shadow copy provider error; `0x8004231f` = insufficient storage for shadow copy; Event ID `8193` / `12289`).
 - Confirm whether `SRV-FILE-01` is a VM (Hyper-V/VMware/Azure) with unmerged snapshots/checkpoints consuming datastore space.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check Drive Free Space Visually (`File Explorer -> This PC` or RMM Dashboard):** Record exact `GB free / Total GB` on `C:`, `D:`, and any backup destination drives! (Remember `< 10%` free often triggers backup VSS `0x8004231f` failures even before `0 MB`!)
+2. **Check Obvious Safe Clutter (Read-Only Glance):** Look in **`Recycle Bin`**, **`C:\Users\<admin>\Downloads`** (old installers/ISOs), and **`C:\Windows\Temp`** — **NEVER** delete anything under `C:\inetpub`, database folders, or `System Volume Information` without checking first!
+3. **Check Windows Backup & VSS Services (`services.msc` GUI):** Confirm **`Volume Shadow Copy` (`VSS`)**, **`Cryptographic Services` (`CryptSvc`)**, and the backup agent service (`Veeam Installer Service` / `Datto`) aren't stuck in `Stopping` or `Stopped`.
+4. **Capture Backup Console Error Code:** Screenshot the failed backup alert (`0x80042306`, `0x8004231f`, `Failed to freeze VSS writer`) for L2/L3 notes.
+
+### L2 Technical Diagnostics
 1. Check volume free space, VSS writer health, and shadow storage allocation on `SRV-FILE-01` (read-only, elevated):
    ```powershell
    Get-Volume | Where-Object DriveLetter | Select-Object DriveLetter, FileSystemLabel,
@@ -78,22 +92,25 @@ linked_scripts:
        Select-Object TimeCreated, Id, ProviderName, Message
    ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Exact drive letters + `FreeGB` remaining, top 5 largest folders on the full volume, exact backup console error text, and `vssadmin list writers` screenshot showing any non-Stable writer.
+
 ## Deep-Dive Investigation (L3)
 1. **Stuck VSS Writers (`Retryable Error` / `Waiting for completion`):** Identify which specific writer (`System Writer`, `SqlServerWriter`, `NTDS`, `Hyper-V VSS Writer`) failed and examine `COM+ Event System`, `Volume Shadow Copy`, and `Microsoft Software Shadow Copy Provider` service dependencies.
 2. **Orphaned / Overfilled ShadowStorage (`0x8004231f`):** Check if `MaxSpace` for shadow storage is capped too low (e.g., 300 MB) or consuming an entire volume because previous snapshots were never purged.
 3. **System Volume Information / IIS / CBS / WinSxS Bloat:** Check `C:\inetpub\logs\LogFiles`, `C:\Windows\Logs\CBS`, `C:\Windows\Temp`, and `C:\ProgramData` vendor logs before assuming OS partition expansion is required.
 
 ## Remediation (Confirm Before Running)
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Free safe temporary/log overhead first (never delete unverified databases, `.vhdx` files, or `System Volume Information` manually!). Examples: prune archived IIS logs older than 30 days or run `DISM /Online /Cleanup-Image /StartComponentCleanup`.
-2. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Adjust VSS shadow storage maximum allocation (ensure target volume has >= 15% free space):
-   ```cmd
-   vssadmin resize shadowstorage /for=C: /on=C: /maxsize=15%
-   ```
-3. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Restart failing VSS services to recover writers stuck in non-stable states (avoid rebooting a production server mid-day unless approved):
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Safe Obvious Space Recovery)** Free safe temporary/log overhead first ONLY with approval (never delete unverified databases, `.vhdx` files, or `System Volume Information` manually!): empty server Recycle Bin if confirmed unneeded, remove verified old downloaded `.iso`/installer files, prune archived IIS logs older than 30 days, or run `DISM /Online /Cleanup-Image /StartComponentCleanup`.
+2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2 Restart Stuck VSS Services)** Restart failing VSS services cleanly to recover writers stuck in non-stable states (avoid rebooting a production server mid-day unless approved):
    ```powershell
    Restart-Service -Name "CryptSvc", "VSS", "swprv" -Force
    ```
    *(If `System Writer` remains missing/failed and a maintenance window is required, schedule a clean server reboot.)*
+3. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L3 Adjust VSS ShadowStorage Allocation)** Ensure target volume has >= 15% free space before resizing shadow storage:
+   ```cmd
+   vssadmin resize shadowstorage /for=C: /on=C: /maxsize=15%
+   ```
 
 ## Verification & Post-Fix Checks
 1. Confirm `vssadmin list writers` shows **`State: [1] Stable`** and **`Last error: No error`** for every writer.

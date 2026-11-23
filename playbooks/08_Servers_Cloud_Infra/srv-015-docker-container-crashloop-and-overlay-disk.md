@@ -49,12 +49,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Check daemon & disk space first:** Most sudden multi-container failures on Linux hosts occur because `/var/lib/docker` hit **100% disk** (`No space left on device`) or **100% inodes**, causing container log writes and overlayfs layers to fail immediately.
-- **Capture Exit Code & `OOMKilled` flag:** Distinguish an application crash (`ExitCode: 1`), memory exhaustion (`ExitCode: 137` + `OOMKilled: true`), bad command/permissions (`126`/`127`), or host port collision (`EADDRINUSE`).
-- **Identify orchestration layer:** Determine whether this is standalone `docker run` / `docker compose`, Docker Swarm, or Kubernetes (`CrashLoopBackOff` / `ImagePullBackOff`).
-- **Protect stateful volumes:** Confirm which containers run databases or stateful storage (PostgreSQL, MySQL, Redis, MinIO) **before** touching any cleanup or prune command.
+### Questions to Ask the User (Classify the Issue)
+1. Is **one specific container app** down/restarting (`Restarting (1)` / `CrashLoopBackOff`), OR have **ALL containers on the Linux server stopped** (classic sign of `/var/lib/docker` hitting 100% disk -> `[srv-006]`)?
+2. Did someone **just deploy a new image tag / edit `compose.yaml`**, or did an automated OS update run?
+3. What is the **exact container name** and whether it holds a stateful database (`PostgreSQL` / `MySQL` — **CRITICAL:** never prune Docker volumes blindly!)?
+
+### Initial Scope & Classification
+- Check host disk space (`df -h`), container `ExitCode` (`1` = app crash; `137` = OOMKilled; `EADDRINUSE` = port taken; `ImagePullBackOff` = registry/network fail), and stderr logs cleanly BEFORE cleaning anything!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Safe Read-Only Status & Disk Check)
+1. **Run Non-Destructive Status & Disk Glance First (`docker ps -a` + `df -h`):** Check whether ALL containers died because disk `/` or `/var/lib/docker` is 100% full (`[srv-006]`), vs one container looping `Restarting` — screenshot `docker ps -a` and `docker logs --tail 50 <container-name>` for L2/dev review!
+2. **Never Run `docker system prune --volumes` at L1:** Confirm whether PostgreSQL/MySQL/Redis stateful containers exist before touching any image/cache cleanup!
+
+### L2 Technical Diagnostics
 Inspect container status, restart counters, exit codes, OOM flags, recent stderr logs, and host disk/inode utilization without altering running containers:
 
 ```bash

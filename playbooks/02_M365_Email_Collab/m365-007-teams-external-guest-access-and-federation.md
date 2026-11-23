@@ -44,13 +44,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Distinguish External Access vs. Guest Access:**
-  - **External Access (Federation):** 1:1 chat/call with someone at `partner@fabrikam.com` using Teams without adding them as a tenant member.
-  - **Guest Access (B2B):** Adding `partner@fabrikam.com` into a specific Team/Channel (creates an Entra B2B `#EXT#` Guest object and relies on M365 Groups, SharePoint, and Cross-Tenant Access policies).
-- **One partner domain or everyone?** Ask if external communication fails with ALL external domains or only one specific partner (`fabrikam.com`) — one partner failing often means the block is on the **partner tenant's** Teams federation or Entra Cross-Tenant Access policy!
-- **Verify domain spelling & consumer vs. business Teams:** Confirm the partner is on Microsoft Teams Work/School vs. Teams Personal (`@outlook.com` / consumer) and check for typos in the email address.
+### Questions to Ask the User (Classify the Issue)
+1. Are you trying to **1:1 chat/call an external person (`External Federation`)**, OR **add them into an existing Team/Channel as a Guest (`B2B Guest Access`)**?
+2. Does this fail for **ONLY one specific external domain (`fabrikam.com`)** or **ALL external partners**?
+3. What exact banner appears (`"We can't set up the conversation because your organizations are not set up to talk to each other"`, `"You cannot add this member"`, or guest invite link fails MFA/login)?
+4. Double-check the **exact spelling of the partner email** and confirm if they use corporate M365 Teams vs personal free Gmail/Teams (`@outlook.com`).
+
+### Initial Scope & Classification
+- Distinguish **External Access (Federation)** vs **Guest Access (B2B `#EXT#`)** — remember federation works ONLY when **BOTH** our tenant AND the partner tenant allow external chat/domain!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Admin Portals GUI)
+1. **Check Teams External Access GUI (`admin.teams.microsoft.com` -> Users -> External access):**
+   - Is **`Manage external domains`** set to **Allow all external domains** or **Allow only specific external domains**? (If Allow-list mode is active, ask L2/Admin with client approval before adding `fabrikam.com`! Never switch allow-lists open globally!)
+   - Check if the partner organization confirmed their own IT team allows `<our-tenant-domain>`.
+2. **Check B2B Guest User Status (`entra.microsoft.com` -> Users -> search `partner@fabrikam.com`):** Look at `Invitation accepted` vs **`Pending acceptance`** (if Pending, the guest missed the Microsoft email invite in spam/quarantine -> click **Resend invitation**!). Also check **SharePoint / Teams Web** inside the Team (**Manage team -> Settings -> Guest permissions**).
+
+### L2 Technical Diagnostics
 Connect to Microsoft Teams and Microsoft Graph with read-only permissions to inspect federation mode, domain allow/block lists, guest policy, and Entra B2B invite rules:
 
 ```powershell

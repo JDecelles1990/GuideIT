@@ -45,6 +45,7 @@ requires_admin: false
 last_verified: 2026-11-22
 related_ids:
   - srv-012
+  - net-006
   - net-002
   - app-001
   - prt-001
@@ -56,11 +57,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is the outage isolated to one user/endpoint (`PC-LAB-01`) or affecting an entire office/VLAN?
-- Does the problem occur only when connected to VPN, only on Wi-Fi, or also on wired Ethernet?
-- Can the endpoint reach numeric IPs (`1.1.1.1`) while hostnames (`contoso.com`, `DC01.domain.local`) fail?
+### Questions to Ask the User (Classify the Issue)
+1. Is the outage isolated to **only you (`PC-LAB-01`)** or affecting an **entire office / VLAN**?
+2. Does it occur **when VPN won't connect at all (`[net-006]`)**, **while VPN connects** yet internal sites/drives fail, **only on Wi-Fi (`[net-002]`)**, or also on **wired Ethernet**?
+3. What exact browser/Windows error appears (`No Internet`, `DNS_PROBE_FINISHED_NXDOMAIN`, `This site can't be reached`)?
+4. Can anyone else on the same network load internal shares/websites right now?
+
+### Initial Scope & Classification
+- Can the endpoint reach numeric IPs (`1.1.1.1`) while hostnames (`contoso.com`, `DC01.domain.local`) fail? *(Ping works + hostname fails = DNS issue; IP fails + `169.254.x.x` = DHCP/link issue!)*
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check Network Icon, Cable, Airplane Mode & Consumer VPNs:** Verify Ethernet cable LEDs blink or Wi-Fi isn't in Airplane Mode, disconnect unauthorized personal VPNs, and test turning Wi-Fi off/on (or trying mobile hotspot if urgent!).
+2. **Quick IP/Gateway Glance (`ipconfig`):** Open CMD and run `ipconfig`: if IPv4 starts with **`169.254.x.x`**, the PC didn't receive a DHCP IP address! If connected over VPN (`[net-006]`) and internet drops completely, suspect **Full-Tunnel vs Split-Tunnel** or **DNS over VPN**.
+3. **Test Public IP vs Hostname:** Run `ping 1.1.1.1` then `ping example.com`. If `1.1.1.1` replies cleanly while `example.com` fails (`could not find host`), the problem is specifically **DNS**!
+
+### L2 Technical Diagnostics
 1. Inspect active IP configuration, DHCP lease, default gateway, and DNS servers (read-only):
    - **Windows:**
      ```powershell
@@ -85,6 +97,9 @@ linked_scripts:
    Test-NetConnection -ComputerName 10.0.10.25 -Port 445
    ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Exact `ipconfig /all` output, whether `ping 1.1.1.1` succeeded vs `Resolve-DnsName`, single-PC vs VLAN scope, and whether VPN is connected (`[net-006]`).
+
 ## Deep-Dive Investigation (L3)
 1. **APIPA (`169.254.x.x`) Root Cause:** Verify switch port VLAN assignment, DHCP scope exhaustion on the DHCP server, DHCP Snooping trust ports, or 802.1X NAC quarantine.
 2. **DNS / `NXDOMAIN` over VPN:** Inspect DNS server priority (`Get-DnsClientServerAddress -AddressFamily IPv4`) and Name Resolution Policy Table (`Get-DnsClientNrptRule`) to confirm internal domains (`domain.local`) route to the internal DNS server rather than ISP/DoH public resolvers.
@@ -108,6 +123,7 @@ linked_scripts:
 2. Verify `Resolve-DnsName` resolves both internal (`DC01.domain.local`) and external (`example.com`) hosts and mapped drives reconnect cleanly.
 
 ## Cross-Subject Escalation & Pivot Links
+- **Client VPN refuses to connect at all (FortiClient / GlobalProtect / AnyConnect / Error 809):** [net-006 — Remote Client VPN Cannot Connect (FortiClient, GlobalProtect, AnyConnect, Windows VPN)](./net-006-client-vpn-wont-connect-forticlient-anyconnect-globalprotect.md)
 - **Multiple clients receive 169.254 APIPA due to Windows DHCP scope exhaustion or AD DNS failure:** [srv-012 — Windows Server DHCP Scope Exhausted, DNS AD Load Failure, and Kerberos Time Skew](../08_Servers_Cloud_Infra/srv-012-windows-dhcp-exhausted-dns-forwarder-and-ntp-skew.md)
 - **APIPA or no-internet happens strictly on corporate Wi-Fi (VLAN / 802.1X RADIUS failure):** [net-002 — Wi-Fi Random Disconnects, Connected Without Internet, and 802.1X Auth Triage](./net-002-wifi-drops-and-8021x-auth.md)
 - **Browser websites and LOB SSO fail because local DNS or PAC proxy is unreachable:** [app-001 — Browser SSO Redirect Loop, Profile Conflict, and LOB App Crash Triage](../09_Apps_LOB/app-001-browser-sso-and-lob-crash.md)

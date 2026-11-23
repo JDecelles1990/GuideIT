@@ -46,15 +46,24 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Most Common MSP Trap (`Personal` vs. `Company or School Account`):** When signing in with `jsmith@example.com`, Adobe often prompts to choose between **`Personal Account`** and **`Company or School Account`**! Choosing `Personal Account` logs into a free unlicensed profile and shows `"Buy Now / Trial Expired"` (`ADOBE_LICENSE_ERR`).
-- Confirm inside [Adobe Admin Console](https://adminconsole.adobe.com/) that `jsmith@example.com` holds an active **Acrobat Pro** or **Creative Cloud** product assignment.
-- Capture exact Creative Cloud installer/updater codes: **`205`** = proxy/firewall/VPN blocking Adobe licensing endpoints; **`195`** = OS version below Adobe minimum requirement.
+### Questions to Ask the User (Classify the Issue)
+1. What exact screen appears when opening Adobe Acrobat: **`Sign In / Trial Expired / Buy Now` (`ADOBE_LICENSE_ERR`)**, **infinite login loop**, or **installer error `205` / `195`**?
+2. Did you get prompted to choose between **`Personal Account`** and **`Company or School Account`**? *(Choosing `Personal Account` logs into a free trial/unlicensed profile — happens in 70% of Adobe tickets!)*
+3. Check the **app name** in the top title bar: did you accidentally open **Adobe Acrobat Reader** (free viewer — missing Edit/Combine PDF!) instead of **Adobe Acrobat** (Pro)?
+4. Are you a **new user / new license request** (verify Adobe Admin Console assignment first!)?
+
+### Initial Scope & Classification
+- Verify license assignment in **[Adobe Admin Console](https://adminconsole.adobe.com/)**, check **`Company or School Account`** vs `Personal Account`, and distinguish Reader vs Acrobat Pro.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Verify License Assignment in Adobe Admin Console:**
-   - Sign into `https://adminconsole.adobe.com/` -> **Users -> search `jsmith@example.com`** -> verify **Products** tab shows an active assigned license (not just `Adobe Acrobat Reader` free).
-   - If the client uses **Entra ID / Google Workspace Federated SSO** (`Directory`), confirm the user exists in the synced Adobe User Group!
-2. **Check Installed Adobe Version & Network Connectivity on `PC-LAB-01` (read-only):**
+### L1 First-Line Checks (Start Here — Account Sign-Out/Check & Start Menu)
+1. **Verify Adobe License Assignment (`https://adminconsole.adobe.com/` -> Users):** Search `jsmith@example.com` and verify **Products** lists an active **`Acrobat Pro` / `Creative Cloud`** seat! (Check SSO directory sync too if federated!)
+2. **Verify Installed App Title & Profile (`Open Acrobat -> Top-Right Profile Icon`):**
+   - Check Windows Start Menu: ensure they open **`Adobe Acrobat`** (not `Adobe Acrobat Reader`)!
+   - Click the top-right circle icon inside Acrobat: verify which email is signed in — if they signed in via Gmail/Personal profile, **Sign out** and sign back in selecting **`Company or School Account`**!
+
+### L2 Technical Diagnostics
+1. **Check Installed Adobe Version & Network Connectivity on `PC-LAB-01` (read-only):**
    ```powershell
    Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue |
        Where-Object { $_.DisplayName -like "*Adobe*" } |

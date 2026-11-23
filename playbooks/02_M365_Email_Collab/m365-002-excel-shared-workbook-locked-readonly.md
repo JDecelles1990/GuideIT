@@ -46,11 +46,24 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Where does the workbook live: **SharePoint / OneDrive / Teams**, or a **Windows SMB network share** (`\\SRV-FILE-01\Share`)?
-- What is the file extension: modern **`.xlsx` / `.xlsm` / `.xlsb`** (supports M365 co-authoring) or legacy **`.xls` / `.csv`** (single-writer file lock only)?
-- Does the yellow Excel banner say **`READ-ONLY`**, **`CHECKED OUT`**, **`PROTECTED VIEW`**, or **`File is locked for editing by <user>`**?
+### Questions to Ask the User (Classify the Issue)
+1. Where does the file live: **OneDrive / SharePoint / Teams**, or an **on-prem shared network drive (`S:\` / `\\SRV-FILE-01\Share`)**?
+2. Does the yellow banner at the top of Excel say **`READ-ONLY`**, **`PROTECTED VIEW`**, **`CHECKED OUT`**, or **`File is locked for editing by <coworker>`**?
+3. What is the file extension: modern **`.xlsx` / `.xlsm`** or legacy **`.xls` / `.csv`**? *(Legacy `.xls` NEVER supports simultaneous editing in M365!)*
+4. Are other coworkers trying to edit the file right now, or did someone leave it open and step away?
+
+### Initial Scope & Classification
+- Check whether **SharePoint Check-Out**, **Protected View** (email attachment/web download), **Read permission**, or a **File Explorer Preview Pane / SMB open handle** is holding the lock.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check the Quick GUI Traps First (Fixes ~70% of Read-Only Excel Calls!):**
+   - Look at the yellow bar: if it says **`Protected View`** -> verify sender is safe -> click **`Enable Editing`**. If it says **`CHECKED OUT` / `Require Check Out`** -> click **`Check Out`** button on the bar (and remember to **`Check In`** when done!).
+   - Look at the file extension: if **`.xls`** (legacy 97–2003), only 1 user can edit at once; save a modern **`.xlsx`** copy (`Save As`) for team co-authoring!
+   - Open the workbook inside **Microsoft Teams / SharePoint Web (`Open in Browser` -> `Excel for the web`)**: if Web lets you edit cleanly, the SharePoint permissions are fine and only the desktop cache or an active user lock is involved!
+2. **File Server (`S:\`) Lock Checks:** Ask the coworker named in the lock popup to save & close Excel (or close **File Explorer Preview Pane (`Alt + P`)**, which silently locks `.xlsx` files on network drives!).
+
+### L2 Technical Diagnostics
 1. **If hosted in SharePoint / OneDrive / Teams:**
    - Test opening the same file in **Excel for the Web** (`Edit in Browser`) to separate client-side Office lock/auth issues from SharePoint permissions.
    - Verify the user (`jsmith@example.com`) holds **Edit / Contribute** permission rather than **Read** (Visitors group).

@@ -705,6 +705,82 @@ QPushButton#readOnlyBatchButton:hover {
     color: #FFFFFF;
 }
 
+QFrame#favoritesStrip {
+    background-color: rgba(14, 21, 36, 0.80);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+}
+
+QPushButton#pinButton {
+    background-color: #1E2736;
+    color: #CBD5E1;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QPushButton#pinButton:hover {
+    background-color: #2A2111;
+    border-color: #F59E0B;
+    color: #FDE68A;
+}
+
+QPushButton#pinButton[pinned="true"] {
+    background-color: #2A2111;
+    color: #FBBF24;
+    border: 1px solid #F59E0B;
+}
+
+QPushButton#favoritePill {
+    background-color: #2A2111;
+    color: #FBBF24;
+    border: 1px solid #B45309;
+    border-radius: 11px;
+    padding: 2px 9px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+QPushButton#favoritePill:hover {
+    background-color: #3B2D14;
+    border-color: #F59E0B;
+    color: #FFFFFF;
+}
+
+QPushButton#recentPill {
+    background-color: #1E2736;
+    color: #CBD5E1;
+    border: 1px solid #334155;
+    border-radius: 11px;
+    padding: 2px 9px;
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+QPushButton#recentPill:hover {
+    background-color: #112A3E;
+    border-color: #38BDF8;
+    color: #FFFFFF;
+}
+
+QPushButton#stripToggleButton {
+    background-color: rgba(30, 41, 59, 0.55);
+    color: #93A4B8;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+QPushButton#stripToggleButton:hover {
+    background-color: #1E2736;
+    color: #F8FAFC;
+    border-color: #38BDF8;
+}
+
 QLineEdit#omniboxInput {
     background-color: rgba(10, 16, 32, 0.78);
     border: 1px solid rgba(148, 163, 184, 0.28);

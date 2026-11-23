@@ -43,11 +43,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Are the headphones (`PC-LAB-01` user) still actively paired/connected to the user's nearby smartphone (single-connection or exhausted 2-device multipoint limit)?
-- Do the headphones pair successfully, show **Connected**, yet produce no sound or silence audio when joining a Teams/Zoom call (`HFP_A2DP` profile switch)?
-- Does Windows Bluetooth toggle appear at all in **Quick Settings / Settings -> Bluetooth & devices**, or did the Bluetooth radio disappear completely?
+### Questions to Ask the User (Classify the Issue)
+1. Do the headphones show **`Paired`** without connecting (`Can't connect`), or do they **connect cleanly yet have zero audio / broken mic inside Teams calls** (`HFP_A2DP`)?
+2. Are the headphones charged and currently **paired to a nearby iPhone/Android phone** (many headsets cap at 1–2 connections and lock onto the phone first!)?
+3. Do you have a **vendor USB Bluetooth dongle** (`Jabra Link` / `Poly BT700`), or are you connecting directly to laptop Bluetooth?
+4. Is the Windows Bluetooth toggle missing completely from Quick Settings?
+
+### Initial Scope & Classification
+- Check phone multipoint hijacking + battery first, then distinguish **`Stereo` (Music A2DP)** vs **`Hands-Free` (Call HFP)** endpoints in Windows & Teams.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Turn Off Phone Bluetooth Temporarily & Check Battery (`Solves 50% of Calls!`):** Turn Bluetooth OFF on `jsmith@example.com`'s phone so it releases the headset, ensure headset is powered on & charged, and test connecting cleanly on `PC-LAB-01`! (If the headset came with a Jabra/Poly USB dongle, plug in the dongle instead of pairing natively!)
+2. **Verify Teams / Windows Device Selection (`Teams -> Settings -> Devices`):** Look closely at **Speaker** and **Microphone**: select the matching **`Headset (Hands-Free)`** for BOTH Speaker & Mic during calls (NOT laptop array mic + Stereo Headphones, which causes `HFP_A2DP` silence!).
+3. **Check Windows Bluetooth Settings & Services:** Open **Settings -> Bluetooth & devices** (confirm toggle is **On**, not Airplane mode!) and press `Win + R` -> `services.msc` -> check **Bluetooth Support Service (`bthserv`)** and **Windows Audio (`AudioSrv`)**.
+
+### L2 Technical Diagnostics
 1. **On Windows**, inspect Bluetooth support service, Audio services, and Bluetooth device status (read-only):
    ```powershell
    Get-Service bthserv, BTAGService, AudioSrv, AudioEndpointBuilder -ErrorAction SilentlyContinue |

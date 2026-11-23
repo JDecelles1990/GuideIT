@@ -41,18 +41,33 @@ risk_level: high
 requires_admin: true
 last_verified: 2026-11-22
 related_ids:
+  - net-006
   - net-001
   - srv-013
   - srv-010
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Confirm scope:** Is the entire site-to-site tunnel down (Phase 1 / IKE SA dead), or are only SOME branch subnets unreachable while others pass traffic (Phase 2 Proxy ID / Traffic Selector / Routing issue)?
-- **Check ISP & peer WAN changes:** Verify both WAN interfaces (`198.51.100.10` HQ <-> `203.0.113.20` Branch/Azure) have stable internet connectivity and neither ISP changed a dynamic WAN IP or placed the modem in double-NAT without port forwarding UDP `500`/`4500`.
-- **Check recent config or firmware changes:** Ask whether firmware updates, Pre-Shared Key (PSK) rotation, new VLANs/subnets, or Azure VPN Gateway SKU changes occurred prior to the drop.
-- **Check Azure Service Health / Gateway Status:** If terminating on an Azure Virtual Network Gateway, verify whether Gateway maintenance or BGP peer flap is active.
+### Questions to Ask the User (Classify the Issue)
+1. **L1 Classification Pivot:** Is **only ONE remote employee** unable to connect to corporate VPN from home/travel (FortiClient / GlobalProtect / AnyConnect / Windows VPN -> jump immediately to `[net-006]`!), OR is an **ENTIRE branch office** unable to reach HQ servers / phones?
+2. At the branch office, does **normal public internet (`https://example.com`) still work**, or is the **entire ISP internet connection offline**?
+3. Did anything change right before the drop (power blip at branch, ISP modem swap, firmware upgrade, or new office router)?
+4. Are **all** servers at HQ/Azure unreachable, or only **one specific subnet / server** (`10.20.0.10`)?
+
+### Initial Scope & Classification
+- **Confirm scope:** Distinguish **Local User Client VPN** (`[net-006]`), **Physical ISP / WAN Outage at Branch**, **Full Site-to-Site Tunnel Down** (Phase 1 / IKE SA dead), and **Partial Subnet Unreachable** (Phase 2 Proxy ID / Routing).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / No IPsec CLI Needed)
+> You do **NOT** need to decode IPsec encryption proposals at L1! Verify basic ISP power/internet, firewall tunnel status icon, and WAN IPs first — most branch tunnel outages trace to an ISP outage, unplugged WAN cable, or hung ISP modem!
+
+1. **Confirm Base Internet & ISP Outage at Both Sites:**
+   - Have someone onsite at the branch check if users can browse public websites (`https://example.com`), check **ISP outage status**, and look at the **ISP modem & Firewall WAN port LEDs** (amber/solid link lights? Or red LOS light on fiber ONT?).
+2. **Check Firewall Web Dashboard (`VPN -> IPsec Tunnels`, Read-Only):**
+   - Log into the branch or HQ firewall UI (FortiGate / SonicWall / Meraki Dashboard -> **VPN Status**): check whether the tunnel status shows green **Up** or red **Down**, check both WAN public IPs (`198.51.100.10` <-> `203.0.113.20` — did an ISP swap a dynamic WAN IP or double-NAT the modem?), and take a screenshot + timestamp!
+3. **Verify Basic Reachability Without Resetting Anything (`PC-LAB-01`):** Run a quick ping to public `1.1.1.1` vs HQ internal server IP (`10.20.0.10`) to confirm whether local internet is up while internal routing fails.
+
+### L2 Technical Diagnostics
 Collect peer reachability, packet loss, and current tunnel SA state cleanly from an endpoint or gateway management shell without resetting active tunnels first:
 
 ```powershell
@@ -80,6 +95,9 @@ swanctl --list-sas
 journalctl -u strongswan -n 100 --no-pager
 ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Confirm single-user vs whole branch scope, whether public internet works at branch, firewall UI tunnel screenshot + downtime start timestamp, and both sites' current public WAN IPs.
+
 ## Deep-Dive Investigation (L3)
 Correlate firewall IKE/IPsec debug logs across **both** tunnel endpoints by phase:
 
@@ -98,7 +116,10 @@ Correlate firewall IKE/IPsec debug logs across **both** tunnel endpoints by phas
 ## Remediation (Confirm Before Running)
 > **[REMEDIATION — CONFIRM BEFORE RUNNING]** Clearing or modifying an IPsec tunnel drops ALL traffic across the site link (and may impact VoIP phones, file shares, and AD replication). Coordinate changes across both firewall administrators during an approved window, and export firewall configurations before modifying Phase 1/2 proposals or routing.
 
-1. **Align Phase 1 & Phase 2 Proposals Cleanly (No Legacy Weak Crypto):**
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1/L2 Guided ISP WAN Recovery or Single-Tunnel Bring-Up):**
+   - If the branch **WAN internet itself is offline** (modem hung after power flicker), confirm zero active emergency calls on VoIP and guide onsite staff through unplugging **ISP modem power for 30 seconds** -> wait 3 minutes for sync -> verify firewall WAN reconnects.
+   - If WAN internet is healthy yet the single tunnel is stuck **Down** after a brief ISP blip, click **Bring Up / Restart** on **only that specific IPsec Phase 1/2 tunnel** in the firewall Web GUI with supervisor/L2 approval (never reboot the entire firewall blindly during business hours!).
+2. **Align Phase 1 & Phase 2 Proposals Cleanly (No Legacy Weak Crypto — L3):**
    - Scope: Match IKEv2, AES-256 (or AES-GCM), SHA-256, DH Group 14+ (or ECP-256 / Group 19), and identical PFS/Lifetime settings on **both** peers (avoid downgrading to insecure 3DES/MD5/DH2 unless temporarily mandated by legacy hardware with documented risk acceptance).
 2. **Fix NAT-T / IKE Peer ID & Traffic Selectors:**
    - Ensure Peer WAN behind NAT sets Local IKE ID explicitly to its public IP or FQDN and passes **UDP 500** + **UDP 4500** unblocked.
@@ -114,6 +135,7 @@ Correlate firewall IKE/IPsec debug logs across **both** tunnel endpoints by phas
 - Monitor tunnel stability over 30–60 minutes (or through one full Phase 2 rekey interval, typically 3600s) to verify `DPD_TIMEOUT` does not reoccur.
 
 ## Cross-Subject Escalation & Pivot Links
+- **Only a single remote user (not an entire branch) cannot connect their VPN client:** [net-006 — Remote Client VPN Cannot Connect (FortiClient, GlobalProtect, AnyConnect, Windows VPN)](./net-006-client-vpn-wont-connect-forticlient-anyconnect-globalprotect.md)
 - **IPsec tunnel is up yet remote subnets stall on internal DNS resolution or TCP MSS/MTU:** [net-001 — No Internet, APIPA 169.254.x.x, DNS, and VPN Split-Tunnel Triage](./net-001-dns-apipa-vpn-triage.md)
 - **Remote endpoint sits in an Azure VNet with an unreachable VM or NSG block:** [srv-013 — Azure VM Boot Failures, RDP/SSH Unreachable, NSG & Serial Console Triage](../08_Servers_Cloud_Infra/srv-013-azure-vm-boot-rdp-ssh-and-serial-console.md)
 - **WAN fiber link flap traces to degraded SFP+ optical transceiver RX power:** [srv-010 — Data Center Rack Power (A/B PSU), Thermal Trips, and SFP+/Fiber Optical Diagnostics](../08_Servers_Cloud_Infra/srv-010-datacenter-rack-power-thermal-and-sfp-optics.md)

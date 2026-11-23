@@ -48,12 +48,26 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Is the server **currently online and serving users** (preventive hardware alert / amber drive LED), or has it **crashed / become completely unreachable**?
+2. Did an alert come from **Out-of-Band BMC (iDRAC / iLO / IPMI email)**, **monitoring**, or someone seeing a **blinking amber/red LED** onsite in the data center?
+3. Was any **physical maintenance, drive swap, power work (`[srv-010]`), or firmware update** performed in that rack recently?
+
+### Initial Scope & Classification
 - **Check Out-of-Band BMC (Dell iDRAC / HPE iLO / Supermicro IPMI) BEFORE walking to the rack:** Record the exact Service Tag/Serial (do not log raw serials into shared tickets outside client PSA), amber LED location (Front/Rear chassis UID blink), System Event Log (SEL) fault, and RAID Virtual Disk state (**Optimal** vs **Degraded** vs **Offline**).
 - **Critical Data Center Rule:** Before pulling ANY hot-swap drive from a rack server:
   1. **Verify RAID level** (`RAID 1/5/6/10` — **NEVER** pull a drive from `RAID 0` or a double-faulted `RAID 5`!).
   2. **Blink the exact Bay Locator LED** (`storcli` / iDRAC / iLO) and **triple-check Bay # + WWN/Serial** so you never yank a healthy member drive!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Web BMC UI & Visual Onsite Inspection)
+> An L1 / smart-hands technician can safely verify LEDs and capture iDRAC/iLO/IPMI web screenshots WITHOUT touching any RAID arrays or pulling disks!
+
+1. **Log Into iDRAC / iLO / IPMI Web Dashboard (Read-Only):** Check the **System Summary / Hardware Health** overview for red/amber badges (**Storage -> Physical Disks**, **Memory**, **Power Supplies -> `[srv-010]`**) and screenshot the **Lifecycle Log / System Event Log (SEL)** showing timestamps + slot numbers (`Bay 03`, `DIMM_A2`)!
+2. **Visual Onsite Rack Verification (If Asked to Check the Physical Server):** Check chassis rack/U label and confirm whether a single **drive bay LED is solid/blinking amber** (never pull any drive until L2/L3 confirms backups + RAID redundancy + blinks the bay LED!).
+3. **Check Active Backup Status:** Confirm today's backup completed cleanly BEFORE escalating for drive swap (`[srv-001]`).
+
+### L2 Technical Diagnostics
 1. **Query BMC System Event Log & Hardware Sensors via `ipmitool` (read-only):**
    ```bash
    sudo ipmitool chassis status
@@ -78,17 +92,18 @@ related_ids:
    sudo edac-util -v 2>/dev/null || true
    ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Server hostname, rack/U location, BMC Web Health + SEL screenshots, exact faulted slot (`Disk 0:1:3` / `DIMM_B1`), RAID level/Virtual Disk state (`Degraded` vs `Optimal`), and backup verification.
+
 ## Deep-Dive Investigation (L3)
 1. **Correctable (CE) vs. Uncorrectable (UE) ECC RAM Errors:** Occasional single-bit CE counts are logged and fixed by hardware, whereas **rapidly climbing CE counts on one specific DIMM slot** (`CPU1_DIMM_A2`) or ANY **Uncorrectable Error (`UE`)** requires scheduling a maintenance window to reseat/replace that exact DIMM.
 2. **RAID BBU / CacheVault Degraded (`Write-Back` -> `Write-Through`):** A failed RAID controller battery/supercapacitor drops array caching to `Write-Through`, crippling database/VM I/O (`D_STATE` spikes in `[srv-005]`) even when all disks are healthy!
 3. **Backplane / SAS Cable Reseat vs. Dead Drive:** Multiple drives dropping simultaneously on the same enclosure/backplane indicates a loose Mini-SAS HD cable, failing expander backplane, or HBA overheat rather than 4 dead disks at once.
 
 ## Remediation (Confirm Before Running)
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** **Locate & Hot-Swap a Confirmed Failed RAID Drive (`RAID_DEGRADED`):**
-   - Confirm backups are current and array redundancy can tolerate 1 replacement.
-   - Blink the failed drive's physical bay LED (`sudo storcli /c0/e<enc>/s<slot> start locate` or via iDRAC/iLO), visually confirm the blinking amber/blue bay in the rack, pull the failed carrier slowly (wait 30s for spin-down), and seat the matching **exact capacity / interface (SAS vs SATA, 512n vs 4Kn)** replacement drive.
-   - Verify automatic rebuild starts (or assign as hotspare / mark Foreign Config import ONLY after confirming drive is blank/intended target!).
-2. **[REMEDIATION — CONFIRM BEFORE RUNNING]** **Replace Faulty ECC DIMM / HBA / System Board:** Schedule maintenance outage -> gracefully shut down OS (`sudo systemctl poweroff`) -> drain residual flea power (unplug both A/B PSUs + hold power button 15s) -> wear ESD wrist strap -> swap exact faulted DIMM slot (`A2`/`B2`) -> clear BMC SEL fault counter only after documenting incident ID.
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Smart-Hands Pre-Swap & Locator LED Verification)** Before touching any physical hardware in the rack: confirm current backups, capture iDRAC/iLO SEL + exact failed bay number (`BAY 03`), ask L2/L3 to activate the **Physical Drive Locator LED** (`Blink`), and verify visually on the chassis before pulling ANY sled!
+2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2/L3 Hot-Swap a Confirmed Failed RAID Drive `RAID_DEGRADED`)** Confirm array redundancy (`RAID 1/5/6/10` — NEVER `RAID 0`) can tolerate 1 replacement -> blink bay LED (`sudo storcli /c0/e<enc>/s<slot> start locate`) -> wait 30s after unlatching for spin-down -> seat the **exact matching capacity / SAS-vs-SATA / 512n-vs-4Kn** replacement drive -> verify automatic rebuild starts cleanly.
+3. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L3 Replace Faulty ECC DIMM / HBA / System Board)** Schedule maintenance outage -> gracefully shut down OS (`sudo systemctl poweroff`) -> drain residual flea power (unplug both A/B PSUs + hold power button 15s) -> wear ESD wrist strap -> swap exact faulted DIMM slot (`A2`/`B2`) -> clear BMC SEL fault counter only after documenting incident ID.
 
 ## Verification & Post-Fix Checks
 1. Confirm `cat /proc/mdstat` or `storcli /c0 show` shows RAID array **`Rebuild` -> `Optimal`** (100% synced) and `smartctl -H` / `nvme smart-log` reports **`PASSED`** / `0` media errors.

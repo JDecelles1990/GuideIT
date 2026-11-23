@@ -51,12 +51,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Exact error code:** Ask the developer for the full `AADSTS` error code and HTTP response (`AADSTS65001` = missing user/admin consent, `AADSTS90094` = admin consent explicitly required by policy, `AADSTS7000215` = wrong/expired client secret, `AADSTS50105` = user/group not assigned, `AADSTS700016` = wrong Tenant ID or App ID).
-- **Flow type:** Determine whether the app uses **Delegated permissions** (acts on behalf of a signed-in user) or **Application permissions** (daemon/background service with client secret or certificate — always requires Global/Cloud App Admin consent).
-- **Tenant & environment:** Verify the developer is authenticating against the correct Tenant ID (`<tenant-id>`) and not mixing staging/dev App Registrations with production.
+### Questions to Ask the User (Classify the Issue)
+1. Who is hitting the error: an **end user trying to log into a third-party SaaS/business app** (`Need admin approval` -> `AADSTS90094` / `AADSTS65001`), or an **internal developer running a script/API** (`AADSTS7000215` expired secret)?
+2. Screenshot the full error screen including the exact **`AADSTS` error code**, **Application Name / App ID (Client ID)**, and **Correlation ID / Timestamp**!
+3. Did the app **previously work yesterday** (meaning a **Client Secret / Certificate likely just expired**!), or is it a **brand-new application onboarding** requiring security/manager sign-off?
+4. Is this an officially approved vendor app for `contoso.com`?
+
+### Initial Scope & Classification
+- **Exact error codes:** `AADSTS65001` = missing user/admin consent, `AADSTS90094` = admin consent explicitly required by policy, `AADSTS7000215` = wrong/expired client secret, `AADSTS50105` = user/group not assigned, `AADSTS700016` = wrong Tenant ID or App ID.
 - **Least-privilege check:** Confirm why each requested Microsoft Graph or Azure API scope is needed before granting tenant-wide `*.ReadWrite.All` permissions.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Entra Admin Center GUI)
+1. **Check Pending Admin Consent Requests (`entra.microsoft.com` -> Identity -> Applications -> Enterprise applications -> Admin consent requests):** See if `jsmith@example.com` already clicked **"Request approval"** and capture the business justification + requested app permissions!
+2. **Verify User Assignment (`AADSTS50105`):** Open **Enterprise applications -> `<App Name>` -> Properties** (is `Assignment required?` = `Yes`?) and **Users and groups** (is `jsmith@example.com` or their security group missing?).
+3. **Check Secret Expiration (`AADSTS7000215`):** Under **App registrations -> `<App Name>` -> Certificates & secrets**, look visually at the **Expires** column for any red `Expired` dates!
+
+### L2 Technical Diagnostics
 Connect with read-only Microsoft Graph scopes to inspect the App Registration, Enterprise Application (Service Principal), existing grants, and tenant user-consent settings:
 
 ```powershell

@@ -45,10 +45,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Power / Thermal (`PSU_FAIL` / `THERMAL_TRIP`):** Confirm whether BOTH **A-side and B-side rack PDUs** are live (a common rack cabling mistake plugs BOTH server PSUs into the SAME A-side PDU strip!). Check front/rear PSU LEDs (solid green = OK; blinking/amber = PSU fault or missing AC feed).
-- **Fiber / SFP+ Link Down (`DOM_RX_LOW`):** Check switch & NIC port LEDs (`off` vs `solid` vs `amber`), verify **SMF (Yellow, Single-Mode 1310nm LR)** vs **MMF (Aqua/Magenta, Multi-Mode 850nm SR)** cable-to-optic match — **never mix SMF and MMF optics/cables**!
+### Questions to Ask the User (Classify the Issue)
+1. Is the alert for **Power Supply Redundancy (`PSU_FAIL` — 1 power cable unplugged or PDU breaker tripped)**, **Overheating (`THERMAL_TRIP` — AC/CRAC unit warm or fans screaming)**, OR **Fiber / Switch Link Down (`DOM_RX_LOW`)**?
+2. Check **Data Center Rack Power Strips (A-side vs B-side)**: did someone plug BOTH server power cords into the same PDU strip, or trip a branch breaker?
+3. If onsite smart-hands is checking a **fiber patch cord**: are the SFP+ port LEDs dark/amber, and does cable jacket color match optic (**Yellow = Single-Mode SMF** vs **Aqua/Orange = Multi-Mode MMF**)?
+
+### Initial Scope & Classification
+- Verify PSU A/B power redundancy + optical fiber SMF/MMF match visually via BMC Web UI & rack checks BEFORE touching any live fiber or PSU!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — BMC Web UI & Visual Rack Checks)
+1. **Check iDRAC / iLO / IPMI Power & Temp Overview (Read-Only):** Screenshot **Power / Thermal** dashboard (`PS1` vs `PS2` Input Wattage — is one PSU showing `0W / Lost Input`? Check Inlet Temp `°C` and fan warning alerts!).
+2. **Onsite Visual Check (If Physically at Rack):** Confirm whether **PDU-A / PDU-B LEDs** are both lit, power cord latch clicked into PSU, front chassis bezel isn't blocked by dust/cards, and switch port SFP LED is dark vs solid green! (**Eye Safety:** NEVER look into fiber cable ends or SFP laser ports!)
+
+### L2 Technical Diagnostics
 1. **Inspect PSU Voltages, Wattage, Fan RPM, and Inlet/CPU Temperatures via IPMI (read-only):**
    ```bash
    sudo ipmitool sensor | grep -iE 'pwr|ps|volt|fan|temp'

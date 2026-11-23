@@ -160,6 +160,81 @@ QPushButton#readOnlyBatchButton:hover {{
     color: #FFFFFF;
 }}
 
+QFrame#favoritesStrip {{
+    background-color: #111824;
+    border-bottom: 1px solid {BORDER};
+}}
+
+QPushButton#pinButton {{
+    background-color: {BG_ELEVATED};
+    color: {TEXT_MUTED};
+    border: 1px solid {BORDER};
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}}
+
+QPushButton#pinButton:hover {{
+    background-color: #2A2111;
+    border-color: #F59E0B;
+    color: #FDE68A;
+}}
+
+QPushButton#pinButton[pinned="true"] {{
+    background-color: #2A2111;
+    color: #FBBF24;
+    border: 1px solid #F59E0B;
+}}
+
+QPushButton#favoritePill {{
+    background-color: #2A2111;
+    color: #FBBF24;
+    border: 1px solid #B45309;
+    border-radius: 11px;
+    padding: 2px 9px;
+    font-size: 11.5px;
+    font-weight: 600;
+}}
+
+QPushButton#favoritePill:hover {{
+    background-color: #3B2D14;
+    border-color: #F59E0B;
+    color: #FFFFFF;
+}}
+
+QPushButton#recentPill {{
+    background-color: {BG_ELEVATED};
+    color: #CBD5E1;
+    border: 1px solid {BORDER};
+    border-radius: 11px;
+    padding: 2px 9px;
+    font-size: 11.5px;
+    font-weight: 500;
+}}
+
+QPushButton#recentPill:hover {{
+    background-color: {ACCENT_BG};
+    border-color: {ACCENT};
+    color: #FFFFFF;
+}}
+
+QPushButton#stripToggleButton {{
+    background-color: transparent;
+    color: {TEXT_MUTED};
+    border: 1px solid {BORDER};
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+}}
+
+QPushButton#stripToggleButton:hover {{
+    background-color: {BG_ELEVATED};
+    color: {TEXT_PRIMARY};
+    border-color: {ACCENT};
+}}
+
 QFrame#remediationSectionCard {{
     background-color: #1B1715;
     border: 1px solid {REMEDIATION_BORDER};

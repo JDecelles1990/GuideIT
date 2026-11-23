@@ -51,11 +51,23 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Does `jsmith@example.com` see `"Need Password"` / `"Trying to connect"` in Outlook desktop while Outlook Web (`https://outlook.office.com`) works normally?
-- Did the user recently change their password, enroll in MFA (`AADSTS50076`), or switch devices?
-- Is this happening on one workstation (`PC-LAB-01`) or across multiple users in the tenant (`contoso.com`)?
+### Questions to Ask the User (Classify the Issue)
+1. Can you sign into **Outlook on the Web (`https://outlook.office.com`)** right now, or does your browser also reject your password/MFA (`[id-001]`)?
+2. Did you **just change your Windows/M365 password**, switch phones for Microsoft Authenticator (`[id-003]`), or get a new laptop?
+3. Look at the very bottom-right status bar of Classic Outlook: does it say **`Need Password`**, **`Trying to connect`**, or **`Disconnected`**?
+4. Do Teams or OneDrive also show a yellow exclamation mark / sign-in prompt?
+
+### Initial Scope & Classification
+- Is this happening on one workstation (`PC-LAB-01`) or across multiple users in the tenant (`contoso.com`)? (Single PC + OWA works = corrupted local Windows Office/WAM token cache!)
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Unblock Email via Outlook Web (`outlook.office.com`) Immediately:** Verify password/MFA works in Edge/Chrome Incognito (`[id-001]` if locked!).
+2. **Test Signing Out Inside Office + Inspect Credential Manager GUI:**
+   - Open Outlook -> **File -> Office Account -> Sign out** (do NOT click Manage Account blindly without confirming!), quit Outlook (`Ctrl+Shift+Esc` -> verify `OUTLOOK.EXE` closed!), then check **Control Panel -> Credential Manager -> Windows Credentials** for old `MicrosoftOffice16_Data` / `ADAL` / `OneAuth` entries!
+3. **Check `Work Offline` Toggle & Add-ins:** In Outlook **Send / Receive** tab, verify **Work Offline** isn't accidentally toggled blue! Try opening `outlook.exe /safe`.
+
+### L2 Technical Diagnostics
 1. Check Microsoft Entra / Hybrid join & Primary Refresh Token (PRT) health on `PC-LAB-01` (read-only):
    ```cmd
    dsregcmd /status

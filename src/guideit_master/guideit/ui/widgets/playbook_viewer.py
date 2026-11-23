@@ -77,6 +77,7 @@ class PlaybookViewer(QFrame):
     copy_scripts_bundle_requested = Signal(list, bool)
     select_scripts_batch_requested = Signal(list)
     run_script_requested = Signal(str, dict)
+    pin_toggled = Signal(str)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -98,6 +99,7 @@ class PlaybookViewer(QFrame):
         self.copy_en_button: QPushButton | None = None
         self.copy_fr_button: QPushButton | None = None
         self.back_button: QPushButton | None = None
+        self.pin_button: QPushButton | None = None
         self._root_dir: Path | None = None
 
         outer = QVBoxLayout(self)
@@ -115,6 +117,25 @@ class PlaybookViewer(QFrame):
     def set_back_enabled(self, enabled: bool) -> None:
         if self.back_button is not None:
             self.back_button.setEnabled(enabled)
+
+    def set_pinned_state(self, pinned: bool) -> None:
+        """Update the header Pin button appearance in-place without reloading the viewer."""
+        if self.pin_button is None:
+            return
+        self.pin_button.blockSignals(True)
+        try:
+            self.pin_button.setChecked(pinned)
+            self.pin_button.setText("★ Pinned" if pinned else "☆ Pin")
+            self.pin_button.setProperty("pinned", pinned)
+            self.pin_button.setToolTip(
+                "Unpin playbook from Favorites (Ctrl+D)"
+                if pinned
+                else "Pin playbook to Favorites (Ctrl+D)"
+            )
+            self.pin_button.style().unpolish(self.pin_button)
+            self.pin_button.style().polish(self.pin_button)
+        finally:
+            self.pin_button.blockSignals(False)
 
     @property
     def linked_readonly_paths(self) -> list[str]:
@@ -169,6 +190,7 @@ class PlaybookViewer(QFrame):
         self.copy_en_button = None
         self.copy_fr_button = None
         self.back_button = None
+        self.pin_button = None
 
         container = QWidget()
         container.setStyleSheet("background: transparent;")
@@ -197,6 +219,7 @@ class PlaybookViewer(QFrame):
         titles_by_id: dict[str, str] | None = None,
         subcategory_label: str = "",
         linked_scripts: list[LinkedScriptSummary] | None = None,
+        is_pinned: bool = False,
     ) -> None:
         """Render full metadata header, linked script cards, L1-L3 sections, and EN/FR snippets."""
         self._root_dir = root_dir
@@ -215,6 +238,7 @@ class PlaybookViewer(QFrame):
         self._copy_readonly_bundle_timer = None
         self.copy_en_button = None
         self.copy_fr_button = None
+        self.pin_button = None
 
         resolved_scripts = list(linked_scripts or [])
 
@@ -231,6 +255,7 @@ class PlaybookViewer(QFrame):
                 titles_by_id=titles_by_id or {},
                 subcategory_label=subcategory_label,
                 linked_scripts=resolved_scripts,
+                is_pinned=is_pinned,
             )
         )
 
@@ -255,6 +280,7 @@ class PlaybookViewer(QFrame):
         titles_by_id: dict[str, str],
         subcategory_label: str,
         linked_scripts: list[LinkedScriptSummary],
+        is_pinned: bool = False,
     ) -> QFrame:
         card = QFrame()
         card.setObjectName("headerCard")
@@ -297,6 +323,22 @@ class PlaybookViewer(QFrame):
         verified_lbl = QLabel(f"Verified {record.get('last_verified', '')}", card)
         verified_lbl.setStyleSheet(f"color: {TEXT_DIM}; font-size: 12px; background: transparent;")
         top_row.addWidget(verified_lbl)
+
+        self.pin_button = QPushButton("★ Pinned" if is_pinned else "☆ Pin", card)
+        self.pin_button.setObjectName("pinButton")
+        self.pin_button.setCheckable(True)
+        self.pin_button.setChecked(is_pinned)
+        self.pin_button.setProperty("pinned", is_pinned)
+        self.pin_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.pin_button.setToolTip(
+            "Unpin playbook from Favorites (Ctrl+D)"
+            if is_pinned
+            else "Pin playbook to Favorites (Ctrl+D)"
+        )
+        self.pin_button.clicked.connect(
+            lambda _checked=False, target=pb_id: self.pin_toggled.emit(target)
+        )
+        top_row.addWidget(self.pin_button)
 
         rel_path = str(record.get("path", ""))
         copy_path_btn = QPushButton("Copy Path", card)

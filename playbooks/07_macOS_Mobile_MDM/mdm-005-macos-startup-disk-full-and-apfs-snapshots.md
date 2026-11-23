@@ -43,15 +43,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- User sees **`"Your startup disk is almost full"`** or macOS updates fail due to < 15–20 GB free (`ENOSPC`), even though Documents/Downloads look small (**`"System Data"`** shows 100+ GB!).
+### Questions to Ask the User (Classify the Issue)
+1. Did you see `"Your startup disk is almost full"`, fail a **macOS update**, or notice **100+ GB under `"System Data"`** in Storage settings (`ENOSPC`)?
+2. Do you have **old iPhone/iPad local backups**, lots of **`.dmg`/video files in Downloads / Trash**, or huge **OneDrive / SharePoint synced folders** set to *Keep on Device*?
+3. **Important Beginner Warning:** Never randomly delete files inside `~/Library` or `Macintosh HD/System` — always check folder sizes first!
+
+### Initial Scope & Classification
 - Remember macOS **Finder -> Get Info** shows **Available = Free + Purgeable**, whereas **macOS updates and installers need actual non-purgeable Free space**!
-- Never randomly delete `~/Library` folders blindly — always inspect sizes first.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — macOS System Settings GUI)
 1. **Check Storage Breakdown in GUI (Beginner Step-by-Step):**
    - Click **` Apple menu -> System Settings -> General -> Storage`**.
-   - Click the **`(i)`** info icon next to **Applications**, **Documents**, **iOS Files** (old iPhone backups!), and **Trash** (remember: emptying Trash is often forgotten!).
-2. **Inspect True APFS Space, Local Time Machine Snapshots, and Largest Folders in Terminal (`⌘ + Space` -> `Terminal`, read-only):**
+   - Click the **`(i)`** info icon next to **Applications**, **Documents**, **iOS Files** (old iPhone backups often eat 50+ GB!), and **Trash** (remember: emptying Trash is often forgotten!).
+   - Click the **OneDrive cloud icon** top-right -> **Settings/Preferences** -> check if **Files On-Demand** is turned on so large SharePoint folders aren't stored locally!
+
+### L2 Technical Diagnostics
+1. **Inspect True APFS Space, Local Time Machine Snapshots, and Largest Folders in Terminal (`⌘ + Space` -> `Terminal`, read-only):**
    ```bash
    df -h /System/Volumes/Data
    diskutil apfs list

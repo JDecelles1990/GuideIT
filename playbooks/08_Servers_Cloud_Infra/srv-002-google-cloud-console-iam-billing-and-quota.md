@@ -44,25 +44,38 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- What exact Google Cloud Console message appeared: **`PERMISSION_DENIED (403)`**, **`You do not have sufficient permissions`**, **`Billing account not linked / disabled`**, **`Service disabled by Org Policy`**, or **`RESOURCE_EXHAUSTED`**?
-- Is the user (`admin@contoso.com`) signed into the exact right Google Workspace corporate identity and **Project ID** (`contoso-prod-app`) in the top selector?
-- Did the client recently toggle **Google Cloud Platform** service availability off for an Organizational Unit inside **Google Admin Console (`admin.google.com`)**?
+### Questions to Ask the User (Classify the Issue)
+1. Which **Google Workspace email** (`admin@contoso.com` vs personal `@gmail.com`) is shown in the top-right avatar inside Google Cloud Console, and which **Project Name / ID** is selected at the top?
+2. What exact error message appears (`PERMISSION_DENIED (403)`, `Google Cloud Platform has been disabled by your admin`, `Billing account closed/suspended`, or `RESOURCE_EXHAUSTED quota limit`)?
+3. Did it previously work for this user, or is this a **brand-new developer/project** request needing role or billing setup?
+4. Does the error appear for **only one user** or **every team member** on `contoso-prod-app`?
+
+### Initial Scope & Classification
+- Capture exact Google Cloud Console message + signed-in identity (`admin@contoso.com`) + Project ID (`contoso-prod-app`), and check whether the client toggled **Google Cloud Platform** service availability off inside **Google Admin Console (`admin.google.com`)**.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Check Workspace Service Enablement (`admin.google.com`):**
-   - In Google Admin Console, open **Apps -> Additional Google services -> Google Cloud Platform** and verify it is **ON** for the user's **Organizational Unit (OU)** (if OFF, `console.cloud.google.com` rejects login even if IAM roles exist!).
-2. **Inspect active `gcloud` identity, project IAM bindings, and billing status (read-only):**
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Isolate Multi-Account Browser Confusion (`Incognito` Test):** Have `jsmith@example.com` open an **Incognito / InPrivate** browser window -> sign into `https://console.cloud.google.com` using ONLY their corporate `@contoso.com` account (many `403` errors happen when Chrome defaults to the user's personal `@gmail.com`!).
+2. **Verify Correct Project Selected:** Check the top-left Project selector dropdown in Cloud Console — switching from an old/deleted project to `contoso-prod-app` often resolves `"You do not have permissions"` instantly!
+3. **Check Workspace Service Enablement (`admin.google.com` GUI):** In Google Admin Console, open **Apps -> Additional Google services -> Google Cloud Platform** and verify it is **ON** for the user's **Organizational Unit (OU)** (if OFF, `console.cloud.google.com` rejects login even if IAM roles exist!).
+4. **Check Cloud Billing Banner & Screenshot Exact `403` Permission Name:** Note the exact missing permission string (e.g., `compute.instances.list` or `billing.accounts.get`) from the red console popup for L2/L3!
+
+### L2 Technical Diagnostics
+1. **Inspect active `gcloud` identity, project IAM bindings, and billing status (read-only):**
    ```bash
    gcloud auth list
    gcloud config get-value project
    gcloud projects get-iam-policy contoso-prod-app --format="table(bindings.role,bindings.members)"
    gcloud billing projects describe contoso-prod-app
    ```
-3. **Check Enabled APIs & Quotas (read-only):**
+2. **Check Enabled APIs & Quotas (read-only):**
    ```bash
    gcloud services list --enabled --project=contoso-prod-app
    ```
    Also check **IAM & Admin -> Quotas & System Limits** in Cloud Console for any `100%` utilization alerts (`RESOURCE_EXHAUSTED`).
+
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Affected user email (`jsmith@example.com`), exact Project ID (`contoso-prod-app`), Workspace OU GCP service toggle status, screenshot of `403` / billing error, and required role/API requested with manager approval.
 
 ## Deep-Dive Investigation (L3)
 1. **Organization Policy & IAM Deny Policies:** Run `gcloud resource-manager org-policies list --project=contoso-prod-app` (or inspect **IAM & Admin -> Organization Policies**) for restrictive constraints such as `iam.allowedPolicyMemberDomains` (blocking external collaborator emails), `compute.vmExternalIpAccess`, or `iam.disableServiceAccountKeyCreation`.
@@ -71,18 +84,18 @@ related_ids:
 4. **Missing Organization Administrator Role:** If a Workspace Super Admin cannot see the Cloud Organization node, grant the Super Admin **`Organization Administrator`** (`roles/resourcemanager.organizationAdmin`) in Cloud Console **IAM** at the Organization scope.
 
 ## Remediation (Confirm Before Running)
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** If Google Cloud access was disabled at the Workspace OU level, enable **Google Cloud Platform** for the scoped OU/Group inside `admin.google.com` (never enable broadly if restricted by security policy).
-2. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Grant the least-privilege IAM role required on the project (`roles/viewer`, `roles/editor`, or targeted service role — avoid `roles/owner` unless strictly required):
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Browser Profile & Project Selection Fix)** Have `jsmith@example.com` open an Incognito window signed in ONLY with their work account and select exact project ID `contoso-prod-app`; if **Google Cloud Platform** service was disabled at Workspace OU level, request Super Admin approval to toggle it ON ONLY for the scoped OU/Group inside `admin.google.com`.
+2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2 Scoped Least-Privilege IAM Role)** Grant ONLY the minimum required role on the project (`roles/viewer` or targeted service role — avoid `roles/owner` unless strictly required):
    ```bash
    gcloud projects add-iam-policy-binding contoso-prod-app \
        --member="user:jsmith@example.com" \
        --role="roles/viewer"
    ```
-3. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Enable a required disabled API or link an active Billing Account (requires Billing Admin / Service Usage Admin):
+3. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2 Enable Required API / Billing Check)** Enable a required disabled API or link an active Billing Account (requires Billing Admin / Service Usage Admin):
    ```bash
    gcloud services enable compute.googleapis.com --project=contoso-prod-app
    ```
-4. **[REMEDIATION — CONFIRM BEFORE RUNNING]** For **`RESOURCE_EXHAUSTED`**, submit a **Quota Increase** request in **IAM & Admin -> Quotas** or scale down runaway scheduled jobs/API loops before raising limits.
+4. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L3 Quota Increase)** For **`RESOURCE_EXHAUSTED`**, submit a **Quota Increase** request in **IAM & Admin -> Quotas** or scale down runaway scheduled jobs/API loops before raising limits.
 
 ## Verification & Post-Fix Checks
 1. Confirm `gcloud projects get-iam-policy contoso-prod-app` reflects the expected role binding and `billingEnabled: true`.

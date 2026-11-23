@@ -42,14 +42,28 @@ related_ids:
   - net-001
   - id-001
   - srv-013
+linked_scripts:
+  - 02_Network/Get-ListeningPorts.ps1
+  - 02_Network/Test-PortConnectivity.ps1
+  - 05_Security_Defender/Get-FirewallStatus.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Capture the exact RDP dialog error on `PC-LAB-01`: **`An authentication error has occurred / CredSSP encryption oracle remediation`**, **`The remote computer requires Network Level Authentication (NLA)`**, or **`Remote Desktop can't connect to the remote computer`** (timeout/port blocked).
-- Does RDP fail only over VPN / another subnet, or also from a jump host on the same LAN (`10.0.10.x`)?
-- Verify `jsmith@example.com` is NOT locked out in AD (`[id-001]`) and is actually authorized in **Remote Desktop Users** on `SRV-FILE-01`.
+### Questions to Ask the User (Classify the Issue)
+1. Does RDP fail for **only ONE user (`jsmith@example.com`)** (`Credentials did not work` / missing permissions) or for **EVERYONE** (`Remote Desktop can't connect to the remote computer` / `CredSSP`)?
+2. Are you trying to connect **over corporate VPN** (verify VPN is actually Connected -> `[net-001]`) vs **inside the office LAN**?
+3. Screenshot the exact popup (`CredSSP encryption oracle remediation`, `Network Level Authentication`, `Your account has been locked out`, or `Remote computer turned off`)!
+4. Can you still access **shared folders (`\\SRV-FILE-01`)** or **RMM/hypervisor console** on `SRV-FILE-01` (checking if the server itself crashed/froze)?
+
+### Initial Scope & Classification
+- Verify caller isn't locked out (`[id-001]`), VPN is active, target server `SRV-FILE-01` is powered ON in hypervisor/Azure (`[srv-013]`), and caller belongs to **Remote Desktop Users**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic Server Health, Lockout & GUI Checks)
+1. **Verify Server Is Online & User Account Isn't Locked:** Check RMM dashboard / hypervisor console (confirm `SRV-FILE-01` isn't frozen on Windows Update reboot or BitLocker!), verify `jsmith@example.com` isn't locked out (`[id-001]`), and test connecting with `DOMAIN\jsmith` username format!
+2. **Check VPN & Windows RDP Service (`services.msc` + `System Properties -> Remote` via RMM):** Verify **`Remote Desktop Services` (`TermService`)** is `Running` and **`Remote Desktop Users`** group includes `jsmith` or their AD group (`lusrmgr.msc`).
+
+### L2 Technical Diagnostics
 1. **Test TCP `3389` reachability from client `PC-LAB-01` (read-only):**
    ```powershell
    Test-NetConnection -ComputerName "SRV-FILE-01" -Port 3389 | Select-Object ComputerName, RemoteAddress, TcpTestSucceeded

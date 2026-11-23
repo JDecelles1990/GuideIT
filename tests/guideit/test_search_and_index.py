@@ -266,3 +266,89 @@ def test_ensure_index_current_and_domain_subcategory_counts(tmp_path: Path) -> N
     with closing(sqlite3.connect(str(db_path))) as conn:
         row = conn.execute("SELECT value FROM index_meta WHERE key = 'schema_version'").fetchone()
     assert row is not None and row[0] == SCHEMA_VERSION
+
+
+def test_search_precision_vpn_and_natural_language_queries(built_db: Path) -> None:
+    vpn_res = search_playbooks(built_db, "VPN can't connect", root_dir=REPO_ROOT, limit=20)
+    assert vpn_res.total_hits >= 1
+    vpn_ids = [hit.id for hit in vpn_res.hits]
+    assert vpn_ids[0] == "net-006"
+    assert "net-001" in vpn_ids
+    assert "net-005" in vpn_ids
+    assert "prt-002" not in vpn_ids
+    assert "m365-002" not in vpn_ids
+
+    fr_vpn = search_playbooks(built_db, "vpn ne se connecte pas", root_dir=REPO_ROOT, limit=15)
+    assert fr_vpn.total_hits >= 1
+    assert fr_vpn.hits[0].id == "net-006"
+    assert "prt-002" not in [h.id for h in fr_vpn.hits]
+    assert "m365-002" not in [h.id for h in fr_vpn.hits]
+
+    forti_res = search_playbooks(built_db, "forticlient won't connect", root_dir=REPO_ROOT, limit=10)
+    assert forti_res.hits[0].id == "net-006"
+    assert "prt-002" not in [h.id for h in forti_res.hits]
+
+    prt_res = search_playbooks(built_db, "printer can't connect", root_dir=REPO_ROOT, limit=10)
+    assert "prt-001" in [h.id for h in prt_res.hits]
+    assert "m365-002" not in [h.id for h in prt_res.hits]
+
+    sql_res = search_playbooks(built_db, "sql server login failed", root_dir=REPO_ROOT, limit=10)
+    assert sql_res.hits[0].id == "srv-016"
+
+    ops_res = search_playbooks(built_db, "OR AND NOT *", root_dir=REPO_ROOT)
+    assert ops_res.hits == []
+
+    # Body-only diagnostic command queries still return exact playbooks
+    ipsec_res = search_playbooks(built_db, "ipsec statusall", root_dir=REPO_ROOT)
+    assert ipsec_res.total_hits >= 1
+    assert ipsec_res.hits[0].id == "net-005"
+
+    vss_res = search_playbooks(built_db, "vssadmin", root_dir=REPO_ROOT)
+    assert vss_res.total_hits >= 1
+    assert vss_res.hits[0].id == "srv-001"
+
+
+def test_search_pc_no_power_black_screen_and_boot_queries(built_db: Path) -> None:
+    dead_res = search_playbooks(built_db, "dead PC", root_dir=REPO_ROOT, limit=10)
+    assert dead_res.total_hits >= 1
+    assert dead_res.hits[0].id == "win-012"
+
+    start_res = search_playbooks(built_db, "PC won't start", root_dir=REPO_ROOT, limit=10)
+    assert start_res.total_hits >= 1
+    assert start_res.hits[0].id == "win-012"
+
+    black_res = search_playbooks(built_db, "black screen", root_dir=REPO_ROOT, limit=10)
+    assert black_res.total_hits >= 1
+    black_ids = [hit.id for hit in black_res.hits]
+    assert black_ids[0] == "win-013"
+    assert "win-010" in black_ids[:5]
+
+    post_login_black = search_playbooks(
+        built_db, "black screen after login windows", root_dir=REPO_ROOT, limit=10
+    )
+    assert post_login_black.total_hits >= 1
+    assert post_login_black.hits[0].id == "win-010"
+    assert (
+        search_playbooks(built_db, "black screen after login", root_dir=REPO_ROOT, limit=10)
+        .hits[0]
+        .id
+        == "win-010"
+    )
+
+    boot_res = search_playbooks(built_db, "PC won't boot up", root_dir=REPO_ROOT, limit=10)
+    assert boot_res.total_hits >= 1
+    assert boot_res.hits[0].id == "win-014"
+
+    repair_res = search_playbooks(built_db, "automatic repair loop", root_dir=REPO_ROOT, limit=10)
+    assert repair_res.total_hits >= 1
+    assert repair_res.hits[0].id == "win-014"
+
+    assert search_playbooks(built_db, "pc mort", root_dir=REPO_ROOT).hits[0].id == "win-012"
+    assert (
+        search_playbooks(built_db, "ecran noir demarrage", root_dir=REPO_ROOT).hits[0].id
+        == "win-013"
+    )
+    assert (
+        search_playbooks(built_db, "boucle reparation automatique", root_dir=REPO_ROOT).hits[0].id
+        == "win-014"
+    )

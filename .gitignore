@@ -3,6 +3,8 @@ data/*.db
 data/*.db-*
 data/logs/
 data/user_scripts/
+data/user_state.json
+data/user_state.json.tmp
 index/*.db
 index/*.db-*
 

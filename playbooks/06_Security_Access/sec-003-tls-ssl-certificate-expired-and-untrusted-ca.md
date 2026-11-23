@@ -54,13 +54,26 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Read the exact browser/app TLS error code and inspect the certificate details (**Click lock/warning icon -> Connection is not secure -> Certificate**):
-  - **`NET::ERR_CERT_DATE_INVALID`:** Either the **server certificate expired** OR the **client's system clock/year is wrong** (`PC-LAB-01` clock off -> quick check!).
-  - **`NET::ERR_CERT_AUTHORITY_INVALID`:** Self-signed cert, missing **Intermediate CA** on the server, OR a corporate **Firewall/Proxy SSL Inspection (DPI)** intercepting HTTPS without the firewall Root CA installed on `PC-LAB-01`!
-  - **`NET::ERR_CERT_COMMON_NAME_INVALID`:** Certificate Subject Alternative Name (`SAN`) does not include the hostname in the URL bar (e.g., visiting `https://app` shortname when cert only covers `app.example.com`).
-- Does the warning happen on **every HTTPS site** (SSL Inspection / AV HTTPS scanning / wrong PC clock!) or **only one specific internal/external site**?
+### Questions to Ask the User (Classify the Issue)
+1. Does the `"Your connection is not private"` / certificate warning appear on **EVERY website (`google.com`, `microsoft.com`)** OR on **ONLY ONE specific internal/client website**?
+2. Click **Advanced** on the browser warning page and read the exact error code (`NET::ERR_CERT_DATE_INVALID`, `NET::ERR_CERT_AUTHORITY_INVALID`, `NET::ERR_CERT_COMMON_NAME_INVALID`).
+3. Look at the **Date & Time in the user's taskbar corner**: is the year/month/day wrong on `PC-LAB-01`? *(Wrong PC clock breaks ALL HTTPS certificates immediately!)*
+4. Are you using **Mozilla Firefox** vs Edge/Chrome, OR connected to a new corporate firewall / proxy / hotel Wi-Fi?
+
+### Initial Scope & Classification
+- **`NET::ERR_CERT_DATE_INVALID`:** Server cert expired OR `PC-LAB-01` system clock is wrong.
+- **`NET::ERR_CERT_AUTHORITY_INVALID`:** Missing Intermediate CA on server, self-signed internal cert, OR corporate Firewall SSL Inspection (DPI) missing its Root CA on `PC-LAB-01` (or inside Firefox!).
+- **`NET::ERR_CERT_COMMON_NAME_INVALID`:** URL visited (e.g. `https://app`) doesn't match certificate SAN (`app.example.com`).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Browser Lock Icon & Clock Check)
+1. **Check `PC-LAB-01` System Clock & Hotel Captive Portal First:** Look at taskbar clock date/time! On Guest/Hotel Wi-Fi, an un-accepted login portal often triggers `ERR_CERT_AUTHORITY_INVALID` on HTTPS sites until you open `http://neverssl.com` to sign in!
+2. **Inspect Who Issued the Certificate (3-Click Browser Check):** Click **`Not Secure` / Warning icon** left of URL bar -> **Certificate is not valid -> Details / General**:
+   - Check **`Valid to` date** (did a public SSL cert expire today?).
+   - Check **`Issued by`** — if it says **Fortinet / Zscaler / Sophos / SonicWall / Bitdefender**, HTTPS Inspection is active and `PC-LAB-01` or Firefox lacks that proxy Root CA!
+   - Test **Edge/Chrome vs Firefox** (Firefox maintains its own trust store unless `security.enterprise_roots.enabled` is set!).
+
+### L2 Technical Diagnostics
 1. **Check Client System Date/Time & Inspect Remote TLS Chain Live (read-only):**
    ```powershell
    Get-Date

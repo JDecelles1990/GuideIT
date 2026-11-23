@@ -43,11 +43,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **WARN THE USER IMMEDIATELY:** Tell `jsmith@example.com` **NOT** to save new files onto the Desktop or Documents while logged into the Temporary Profile (`C:\Users\TEMP`), because Windows **deletes temporary profile folders on sign-out**!
-- Confirm the banner **`"We can't sign into your account"`** appeared and verify that the user's real profile folder (`C:\Users\jsmith`) is still intact on disk.
-- Check whether `C:` is critically low on free disk space or an AV/backup lock prevented loading `NTUSER.DAT`.
+### Questions to Ask the User (Classify the Issue)
+1. Do you see a toast/banner saying **`"We can't sign into your account"`** or `"You've been signed in with a temporary profile"` right after login?
+2. **CRITICAL FIRST WARNING FOR USER:** Tell `jsmith@example.com` immediately **NOT** to save any new work, downloads, or emails locally while logged into this temporary desktop, because Windows deletes `C:\Users\TEMP` when signing out!
+3. Did anything happen right before signing in (a forced shutdown, Windows Update `[win-001]`, or `C:` drive full `[win-011]`)?
+
+### Initial Scope & Classification
+- Reassure the user that their original files (`C:\Users\jsmith`) are almost certainly intact on disk (`ProfileList` `.bak` key swap) — **never** panic-delete `C:\Users\*`!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Safe Checks Before Touching Registry)
+1. **Confirm Real Folder Integrity in File Explorer (`This PC -> C:\Users`):** Have the user or admin peek into **`C:\Users\jsmith`** (NOT `TEMP`) to reassure `jsmith@example.com` their Desktop/Documents/Favorites files are safe!
+2. **Try Clean Sign-Out + Restart Once:** Occasionally a lingering background process locked `NTUSER.DAT` briefly during logon; verify **no temporary files were saved to `TEMP`**, sign out completely, **Restart** `PC-LAB-01` cleanly (via `Start -> Power -> Restart`), and test logging in again! (Check `C:` free space `[win-011]` too!)
+
+### L2 Technical Diagnostics
 1. **Verify Profile Folders & `Event ID 1511 / 1515` in Application Log (read-only):**
    ```powershell
    Get-ChildItem "C:\Users" | Select-Object Name, LastWriteTime

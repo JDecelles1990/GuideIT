@@ -7,8 +7,13 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from guideit_master.guideit.models import SearchHit
-from guideit_master.guideit.search import _build_safe_fts_query, search_playbooks
-from guideit_master.guideit.taxonomy import expand_query, load_taxonomy, normalize_text
+from guideit_master.guideit.search import _build_safe_fts_query, _fts_term, search_playbooks
+from guideit_master.guideit.taxonomy import (
+    expand_query,
+    extract_search_tokens,
+    load_taxonomy,
+    normalize_text,
+)
 from guideit_master.paths import (
     get_bundle_dir,
     get_guideit_db_path,
@@ -173,6 +178,7 @@ def search_all(
     cross_link = CrossLinkService(guideit_db_path=pb_db, catalog_repo=repo)
     norm_query = normalize_text(query)
     raw_tokens = _TOKEN_RE.findall(norm_query)
+    content_tokens = extract_search_tokens(query)
 
     if not raw_tokens and not expanded_tags and not matched_codes:
         if not include_all_scripts_on_empty:
@@ -216,21 +222,40 @@ def search_all(
             script_hits=sliced,
         )
 
-    fts_tokens: list[str] = list(raw_tokens)
-    for tag in expanded_tags:
-        fts_tokens.append(tag)
-        for part in tag.split("_"):
-            if len(part) >= 2:
-                fts_tokens.append(part)
-    for code in matched_codes:
-        fts_tokens.append(normalize_text(code))
+    if not content_tokens and not expanded_tags and not matched_codes and not boost_playbooks:
+        return UnifiedSearchResponse(
+            query=query,
+            expanded_tags=expanded_tags,
+            suggested_domains=suggested_domains,
+            total_playbook_hits=total_playbook_hits,
+            total_script_hits=0,
+            playbook_hits=playbook_hits,
+            script_hits=[],
+        )
 
-    fts_expr = _build_safe_fts_query(fts_tokens)
     candidates: dict[str, tuple[ScriptRecord, float, list[str]]] = {}
 
-    if fts_expr:
-        for rec, fts_score in repo.search_scripts_fts(fts_expr, limit=50):
-            candidates[rec.relative_path] = (rec, fts_score, ["fts_bm25"])
+    if content_tokens:
+        and_terms = [t for t in (_fts_term(tok) for tok in content_tokens) if t]
+        if and_terms:
+            strict_expr = and_terms[0] if len(and_terms) == 1 else f"({' AND '.join(and_terms)})"
+            for rec, fts_score in repo.search_scripts_fts(strict_expr, limit=50):
+                candidates[rec.relative_path] = (rec, fts_score + 10.0, ["fts_bm25_and"])
+
+    has_linked_boost = any(pb.linked_scripts for pb in boost_playbooks)
+    if not candidates and not has_linked_boost:
+        fallback_tokens: list[str] = list(content_tokens)
+        for tag in expanded_tags:
+            fallback_tokens.append(tag)
+            for part in tag.split("_"):
+                if len(part) >= 2:
+                    fallback_tokens.append(part)
+        for code in matched_codes:
+            fallback_tokens.append(normalize_text(code))
+        fts_expr = _build_safe_fts_query(fallback_tokens)
+        if fts_expr:
+            for rec, fts_score in repo.search_scripts_fts(fts_expr, limit=50):
+                candidates[rec.relative_path] = (rec, fts_score, ["fts_bm25"])
 
     # Exact path match (e.g., user searches "04_Devices/Reset-PrintSpooler.ps1")
     norm_rel_guess = query.strip().replace("\\", "/")

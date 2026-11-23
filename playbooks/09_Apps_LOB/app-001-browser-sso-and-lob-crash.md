@@ -50,11 +50,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Browser SSO / White Page:** Does the redirect loop (`ERR_TOO_MANY_REDIRECTS` / `HTTP 400`) disappear inside an **InPrivate / Incognito** window?
-- **LOB App Crash:** Does the application crash only for `jsmith@example.com` on `PC-LAB-01`, or for all users on RDS/local desktops?
-- Did an Office, browser, `.NET`, or LOB software update run recently?
+### Questions to Ask the User (Classify the Issue)
+1. Is this a **web portal / SaaS login loop** (`ERR_TOO_MANY_REDIRECTS` / blank white login screen / `HTTP 400`), OR an **installed desktop LOB app crashing on launch (`Event ID 1000`)**?
+2. Does opening the website inside an **InPrivate (`Edge`) / Incognito (`Chrome`)** window fix the sign-in loop immediately? *(Testing InPrivate takes 15 seconds and proves immediately whether old cookies/profiles caused it!)*
+3. Does it happen for **only you (`PC-LAB-01`)** or **everyone trying that website/app**?
+4. Look at the PC taskbar **Date & Time**: is the clock accurate?
+
+### Initial Scope & Classification
+- Separate **Browser Profile / Cookie Bloat** (InPrivate passes -> clear site cookies/use work profile!) from **Desktop App Crash / Runtime Corruption (`1000` / `1026`)** or **Network/DNS/Cert block (`[net-001]` / `[sec-003]`)**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — InPrivate Test & App Update Check)
+1. **Test InPrivate / Incognito & Alternate Browser (`Edge` vs `Chrome`):** Open `Ctrl + Shift + N` (Edge/Chrome InPrivate) and sign in with ONLY `jsmith@example.com`! Also disable ad-blockers/privacy extensions (`Extensions -> toggle Off`) briefly if login frames stall blank!
+2. **Verify Clock Accuracy & Windows Security History:** Confirm taskbar time is accurate (`SAML` fails if off >5 min) and check whether **Microsoft Defender** blocked the LOB desktop app (`[sec-002]`).
+3. **For Crashes on Desktop LOB Apps:** Restart `PC-LAB-01` once, check if an app update is pending, and note the exact crash popup or open **Reliability Monitor (`perfmon /rel`)**!
+
+### L2 Technical Diagnostics
 1. **Browser SSO / Web App Triage:**
    - Test in **InPrivate** (`msedge.exe --inprivate`) or **Incognito** to isolate cookies/extensions vs tenant IdP outage.
    - Verify system clock & time zone accuracy on `PC-LAB-01` (SAML/OIDC tokens fail immediately if clock skew > 5 minutes):

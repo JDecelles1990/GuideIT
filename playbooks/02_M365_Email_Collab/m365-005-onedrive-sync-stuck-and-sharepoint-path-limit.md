@@ -48,11 +48,23 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Hover/click the **OneDrive cloud icon** in the taskbar/menu bar: does it report **`Processing changes`**, **`Looking for changes`**, **`Sign in` (`0x8004de40`)**, **`Storage full` (`0x8004def7`)**, or specific file path/character errors?
-- How many total files are synced locally across all SharePoint libraries on `PC-LAB-01`? (Microsoft's practical sync ceiling is **300,000 items** across all synced libraries!)
-- Are files stuck inside **OneDrive -> View sync problems** due to illegal characters (`" * : < > ? / \ |`), trailing spaces, or >400-character SharePoint URLs?
+### Questions to Ask the User (Classify the Issue)
+1. Look at the blue **OneDrive cloud icon** near the clock: is it **gray/crossed out (`Not signed in` / `Paused`)**, showing a **red `X`**, or spinning forever on **`Processing X changes`**?
+2. Click the cloud icon: does **View sync problems** list a specific file/folder (e.g., invalid character `# % * : < > ? / \ |`, `.pst` file, `"Path too long"`, or `"File is open in another app"`)?
+3. Did you recently click **Sync** on a massive company **SharePoint Teams library** (`100,000+` files) or run low on `C:` drive space (`[win-011]`)?
+
+### Initial Scope & Classification
+- Microsoft's practical sync ceiling is **300,000 items** across all synced libraries! Note SharePoint Web (`Open in SharePoint`) always provides immediate access even while local sync catches up.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Inspect OneDrive Tray Icon (`Click Cloud -> View sync problems / Pause / Settings`):**
+   - Check if OneDrive was accidentally **Paused** (`Resume syncing`) or signed out (`Sign in` -> `0x8004de40`).
+   - Check **OneDrive -> View sync problems**: if 1 specific `.tmp`, `.pst`, or weird filename (`Report?.xlsx`) is jamming the whole queue, renaming/closing that file unblocks everything!
+   - Open **OneDrive Settings -> Account** to check how many huge SharePoint libraries are synced locally and whether M365 storage quota (`0x8004def7`) is full!
+2. **Verify Local Disk Free Space:** Check `This PC` -> ensure `C:` isn't full (if `C:` is full -> `[win-011]`).
+
+### L2 Technical Diagnostics
 1. **Check OneDrive client status, local sync root item counts, and long paths on `PC-LAB-01` (read-only):**
    ```powershell
    Get-Process OneDrive -ErrorAction SilentlyContinue | Select-Object ProcessName, Id, StartTime

@@ -47,14 +47,23 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Excel/Word Freeze:** Does the freeze disappear when launching **Office Safe Mode** (`excel.exe /safe` or `winword.exe /safe`)?
-- Does Excel freeze only on one specific workbook (large volatile formulas, external links to offline network drives, or printer driver query), or even on a blank workbook?
-- **PDF Preview Failure (`PDF_PREVIEW`):** Is preview broken in **Outlook**, **Windows File Explorer**, or both (`"This file cannot be previewed because there is no previewer installed"` / Adobe Acrobat vs Microsoft Edge handler conflict)?
+### Questions to Ask the User (Classify the Issue)
+1. Is **Excel / Word freezing or crashing on launch (`COM_ADDIN`)**, OR is **PDF Attachment Preview in Outlook / File Explorer broken (`PDF_PREVIEW`)**?
+2. Does Excel/Word freeze ONLY when opening **one specific workbook** (or does it freeze even on a **new blank document**)?
+3. When launching Excel/Word in **Safe Mode (`Win + R -> excel /safe`)**, does it open smoothly right away? *(Safe Mode temporarily skips add-ins in 5 seconds!)*
+4. For **PDF Preview**: does double-clicking the PDF open **Adobe Acrobat / Edge** normally (`[app-005]` / `[app-003]`), and is ONLY the inline preview pane broken?
+
+### Initial Scope & Classification
+- Isolate **Conflicting COM Add-in** (`excel /safe` passes!), **Offline Default Printer Slowdown**, **Word `Normal.dotm` Corruption**, or **Outlook / Adobe 32-vs-64-bit PDF Previewer mismatch**.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Isolate COM Add-ins & Hardware Acceleration:**
-   - Run `excel.exe /safe` or `winword.exe /safe` from `Win+R`. If Safe Mode launches smoothly, a COM add-in, Excel add-in (`.xlam`), or corrupted `Normal.dotm` template is the cause.
-2. **Inspect Installed Office COM Add-ins & PDF Preview Handler Registrations (read-only):**
+### L1 First-Line Checks (Start Here — Safe Mode & Outlook Attachment Settings GUI)
+1. **Run Office Safe Mode (`Win + R -> excel.exe /safe` or `winword.exe /safe`):** Press `Win + R`, type `excel /safe`, press Enter! If it opens fast -> a COM Add-in (Acrobat PDFMaker, ERP/accounting add-in, Teams/CRM plugin) is freezing startup!
+2. **Check Windows Default Printer (Surprising Excel Freeze Cause!):** Open **Settings -> Bluetooth & devices -> Printers & scanners**: if the default printer is a disconnected/offline office printer (`[prt-001]`), change Default temporarily to **`Microsoft Print to PDF`** and test opening Excel!
+3. **Check Outlook PDF Previewer Setting:** Open **Outlook -> File -> Options -> Trust Center -> Trust Center Settings -> Attachment Handling** -> verify **Turn off Attachment Preview** is unchecked and check **Attachment and Document Previewers**!
+
+### L2 Technical Diagnostics
+1. **Inspect Installed Office COM Add-ins & PDF Preview Handler Registrations (read-only):**
    ```powershell
    Get-ChildItem "HKCU:\Software\Microsoft\Office\Excel\Addins", "HKLM:\SOFTWARE\Microsoft\Office\Excel\Addins" -ErrorAction SilentlyContinue |
        ForEach-Object { Get-ItemProperty $_.PSPath } |

@@ -43,22 +43,30 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Quick Windows-to-Mac Cheatsheet (for technicians new to Apple):**
-  - **Command key (`⌘`)** = Windows `Ctrl` (Copy `⌘+C`, Paste `⌘+V`, Quit app `⌘+Q`).
-  - **Option key (`⌥`)** = Windows `Alt`.
-  - **Spotlight (`⌘ + Space`)** = Windows Start Search (type any app name like **`Terminal`** or **`Activity Monitor`** and press Enter!).
-  - **Finder** (blue smiley face in bottom Dock) = Windows File Explorer.
-  - **System Settings** (top-left **` Apple menu -> System Settings`**) = Windows Settings / Control Panel.
-  - **Activity Monitor** = Windows Task Manager.
-  - **Note:** Clicking the red `✕` circle on a Mac window closes the window, **NOT** the app — press **`⌘ + Q`** (or right-click Dock icon -> **Quit**) to fully close an app!
-- Ask `jsmith@example.com`: Is one single app frozen (**spinning rainbow beachball**), or is the entire Mac sluggish and running hot?
+### Questions to Ask the User (Classify the Issue)
+1. Is **only ONE specific app frozen** (spinning rainbow beachball, `(Not Responding)`), OR is the **entire Mac sluggish / fans loud / freezing across everything**?
+2. When was the **last time you actually clicked ` -> Restart...`** (many MacBook users only close the lid for weeks/months without rebooting!)?
+3. Are you connected to an external dock/4K monitor (`[prt-003]`), or running low on Mac storage (`[mdm-005]`)?
+
+### Quick Windows-to-Mac Cheatsheet (for Technicians New to Apple)
+- **Command key (`⌘`)** = Windows `Ctrl` (Copy `⌘+C`, Paste `⌘+V`, Quit app `⌘+Q`).
+- **Option key (`⌥`)** = Windows `Alt`.
+- **Spotlight (`⌘ + Space`)** = Windows Start Search (type any app name like **`Terminal`** or **`Activity Monitor`** and press Enter!).
+- **Finder** (blue smiley face in bottom Dock) = Windows File Explorer.
+- **System Settings** (top-left **` Apple menu -> System Settings`**) = Windows Settings / Control Panel.
+- **Activity Monitor** = Windows Task Manager.
+- **Note:** Clicking the red `✕` circle on a Mac window closes the window, **NOT** the app — press **`⌘ + Q`** (or right-click Dock icon -> **Quit**) to fully close an app!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Activity Monitor GUI, Zero Terminal!)
 1. **Open Activity Monitor (GUI — zero Terminal needed):**
    - Press **`⌘ + Space`**, type **`Activity Monitor`**, press **Return**.
    - Click the **CPU** tab and click **`% CPU`** header so highest consumers sort to the top (look for apps labeled `(Not Responding)` in red).
    - Click the **Memory** tab and check **Memory Pressure** graph at the bottom (**Green** = healthy; **Yellow/Red** = RAM exhausted / heavy swap!).
-2. **Or run quick read-only system checks in Terminal (`⌘ + Space` -> type `Terminal` -> Return):**
+2. **Check Apple Menu (` -> About This Mac` & Storage):** Check whether **Startup Disk** is nearly full (`< 15 GB free` slows macOS severely -> `[mdm-005]`).
+
+### L2 Technical Diagnostics
+1. **Run quick read-only system checks in Terminal (`⌘ + Space` -> type `Terminal` -> Return):**
    ```bash
    sw_vers
    uname -m

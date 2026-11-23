@@ -48,11 +48,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Capture the exact Windows Defender toast/error message (`"Your IT administrator has limited access..."` = ASR rule; `"Virus & threat protection"` quarantine; or `"Mark of the Web"` / Protected View macro block) and full path of the executable/script on `PC-LAB-01`.
-- **Never whitelist first:** Confirm the binary/macro originates from an approved software vendor or signed internal workflow, and check whether multiple endpoints hit the same block.
-- Inspect the file's **SHA-256 hash** and digital signature before considering any exclusion.
+### Questions to Ask the User (Classify the Issue)
+1. What **exact software, Excel macro, or file download** was blocked (`C:\Path\To\LobApp.exe`), and **where did it come from** (trusted vendor/SharePoint vs unknown email attachment)?
+2. Screenshot the exact Windows popup/banner (`"Your IT administrator has limited access..."` = ASR rule vs `"Threat found / Quarantined"` = Antivirus vs `"Microsoft has blocked macros from running"` = Mark of the Web)!
+3. Does this affect **only `PC-LAB-01`** or **multiple coworkers** trying to run the same business tool?
+4. **Never whitelist blindly:** Confirm software legitimacy + SHA-256 hash before requesting any security exclusion!
+
+### Initial Scope & Classification
+- Separate **Microsoft Defender Antivirus Quarantine (`1116` / `1117`)**, **Attack Surface Reduction (ASR) Policy Block (`1121`)**, and **Office Mark of the Web macro block** cleanly.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Windows Security GUI & Origin Check)
+1. **Check Windows Security Protection History (`windowsdefender://history`):** Open **Windows Security -> Virus & threat protection -> Protection history** on `PC-LAB-01` -> expand the top recent **`Protected folder access` / `Threat blocked` / `App & browser control`** item -> capture the exact **Affected items path** and timestamp!
+2. **Verify Office Macro `"Unblock"` Checkbox (Only for Confirmed Safe Internal Files):** Right-click a blocked downloaded `.xlsm` -> **Properties** -> check if there is a **`Security: Unblock`** checkbox at the bottom (ONLY check this if the file came from a verified trusted internal source, NOT random internet/phishing mail -> `[sec-001]`!).
+3. **Check File Digital Signature & Hash:** Check `Right-click EXE -> Properties -> Digital Signatures` to confirm it's legitimately signed by the business vendor, and check the SHA-256 hash against the threat-intelligence link below (without uploading client files!).
+
+### L2 Technical Diagnostics
 1. **Query Defender Operational Event Log for ASR blocks (`Event ID 1121` = Blocked, `1122` = Audited) and AV detections (read-only):**
    ```powershell
    Get-WinEvent -FilterHashtable @{ LogName = 'Microsoft-Windows-Windows Defender/Operational'; Id = 1116, 1117, 1121, 1122; StartTime = (Get-Date).AddDays(-3) } -ErrorAction SilentlyContinue |

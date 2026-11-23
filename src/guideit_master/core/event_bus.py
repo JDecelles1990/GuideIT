@@ -20,6 +20,7 @@ class AppEventBus(QObject):
     open_playbook_requested = Signal(str, bool)      # (playbook_id, split_view)
     catalog_synced = Signal()
     playbooks_reindexed = Signal()
+    user_state_changed = Signal()
     status_toast_requested = Signal(str, int)        # (message, timeout_ms)
 
     def __init__(self, parent: QObject | None = None) -> None:

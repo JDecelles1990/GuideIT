@@ -44,11 +44,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Strict Identity Verification First:** Before resetting MFA for `jsmith@example.com`, verify the caller's identity per MSP policy (callback on verified corporate/HR phone number, manager approval, or live video ID check — **never** reset MFA based solely on an unverified email request!).
-- Did the user replace/wipe their phone, disable notifications on Microsoft Authenticator, or switch SIM carriers?
-- Check if any **Authentication Strength** Conditional Access policy requires phishing-resistant MFA (Passkey / FIDO2) vs Authenticator app.
+### Questions to Ask the User (Classify the Issue)
+1. Did you **get a new phone**, wipe/reset your phone, delete **Microsoft Authenticator**, or stop receiving push notifications?
+2. On the Microsoft sign-in prompt, can you click **"I can't use my Microsoft Authenticator app right now"** or **"Sign in another way"** to see if a backup **SMS / Call / FIDO2 key** still works?
+3. Before resetting MFA for `jsmith@example.com`, complete **Strict Identity Verification** per MSP policy (callback on verified corporate/HR phone number, manager approval, or live video ID check — **NEVER** reset MFA solely from an unverified email request!).
+
+### Initial Scope & Classification
+- Check if any **Authentication Strength** Conditional Access policy requires phishing-resistant MFA (Passkey / FIDO2) vs Authenticator app before issuing a Temporary Access Pass (TAP).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check Backup Methods & Phone Notifications First:** Ask `jsmith@example.com` to test **"Sign in another way"** (SMS/voice/email/second device). If using Authenticator push, verify the mobile phone has **Automatic date & time ON** (wrong time breaks 6-digit TOTP codes!), **Notifications allowed**, **Low Power / Battery Optimization off** for Authenticator, and open Authenticator directly -> **pull down to refresh**!
+2. **View Registered MFA Methods in Entra GUI (`entra.microsoft.com` -> Users -> `jsmith@example.com` -> Authentication methods):** Check which phone models are listed and delete zero entries before verifying which phone is physically in front of the user!
+
+### L2 Technical Diagnostics
 1. Inspect the user's currently registered authentication methods in **Entra Admin Center -> Users -> `jsmith@example.com` -> Authentication methods** (or via Microsoft Graph PowerShell, read-only):
    ```powershell
    Connect-MgGraph -Scopes "UserAuthenticationMethod.Read.All", "AuditLog.Read.All"

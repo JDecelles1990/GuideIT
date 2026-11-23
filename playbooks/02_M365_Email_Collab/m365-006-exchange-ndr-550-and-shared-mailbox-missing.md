@@ -46,11 +46,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **For Bounce / NDR:** Collect the exact Non-Delivery Report code (`550 5.4.1` recipient address rejected / Directory-Based Edge Blocking, `550 5.7.1` policy/transport rule/blocklist reject, `550 5.7.511` banned sender/high spam score) and whether it affects internal or external mail.
-- **For Missing Shared Mailbox:** Does `jsmith@example.com` see the shared mailbox (`sales@example.org`) in **Outlook on the Web (`Open another mailbox`)**, or only miss it in desktop Outlook?
-- Remember Exchange Online Automapping propagation can take up to 60 minutes after permission assignment.
+### Questions to Ask the User (Classify the Issue)
+1. Is an **email bouncing back with an error (`NDR 550`)** or **missing in Quarantine**, OR is a **Shared Mailbox (`sales@example.org`) not showing up in Outlook**?
+2. For **Bounced Mail**: request the **exact full bounce message** (`550 5.4.1`, `550 5.7.1`, `550 5.7.511`), sender, recipient, and time — does it fail for all external domains or just one recipient?
+3. For **Missing Shared Mailbox**: was permission granted **within the last 60 minutes** (wait for propagation!), AND can `jsmith@example.com` open it right now in **Outlook on the Web (`Open another mailbox`)**?
+
+### Initial Scope & Classification
+- **`550 5.4.1`:** recipient address rejected / Directory-Based Edge Blocking; **`550 5.7.1`:** policy/transport rule/blocklist reject; **`550 5.7.511`:** banned sender / outbound spam block (always check `[sec-001]` compromise!).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Web & Admin Center GUI)
+1. **Quick Shared Mailbox Workaround & Check (`Outlook Web` + `Exchange Admin Center`):**
+   - Have `jsmith@example.com` open **`https://outlook.office.com` -> click top-right Avatar -> Open another mailbox -> type `sales@example.org`**: if it opens cleanly on the Web, permissions ARE active and Desktop Outlook just needs propagation time or manual folder add!
+   - In **Exchange Admin Center (`admin.exchange.microsoft.com`) -> Recipients -> Mailboxes -> `sales@example.org` -> Delegation**: check whether `Read and manage (Full Access)` was given **directly** to `jsmith@example.com` vs nested inside a **Security Group** (Security Groups don't automap in Outlook!).
+2. **Check Quarantine & Message Trace in GUI:** Open **`security.microsoft.com` -> Email & collaboration -> Review -> Quarantine** (filter by sender/recipient) and **Exchange Admin Center -> Mail flow -> Message trace** to see `Delivered` vs `Quarantined` vs `Failed`!
+
+### L2 Technical Diagnostics
 1. **Inspect Exchange Online Message Trace & Defender Quarantine (read-only):**
    ```powershell
    Connect-ExchangeOnline -ShowBanner:$false

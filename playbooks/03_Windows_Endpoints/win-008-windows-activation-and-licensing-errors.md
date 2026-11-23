@@ -52,14 +52,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Read the exact error code under **Settings -> System -> Activation** on `PC-LAB-01`:
-  - **`0xC004F074`:** KMS host cannot be contacted (`_vlmcs._tcp` SRV DNS missing, VPN disconnected, or OEM PC mistakenly loaded a KMS GVLK instead of Retail/Subscription!).
-  - **`0xC004C003`:** Activation server rejected the product key (Home key used on Pro, missing OEM UEFI OA3 key, or revoked MAK).
-  - **`0xC004F050` / `0x803FA067`:** Key mismatch (e.g., trying to upgrade Windows Home -> Pro while disconnected or using an incompatible edition key).
-  - **`0x8007007B`:** DNS name does not exist (invalid KMS server DNS entry or missing DNS suffix).
-- Determine which licensing model the client owns (verify in [M365 Maps](https://m365maps.com/)): **OEM BIOS Embedded Pro**, **Entra Subscription Activation** (`Windows 10/11 Enterprise E3/E5` or `Business Premium`), **AD-Based Activation (ADBA)**, or **MAK / KMS**.
+### Questions to Ask the User (Classify the Issue)
+1. Are you seeing the **"Activate Windows — Go to Settings to activate Windows"** watermark, OR an error in **Settings -> System -> Activation** (`0xC004F074`, `0xC004C003`, `0xC004F050`, `0x8007007B`, `0x803FA067`)?
+2. Is `PC-LAB-01` currently on **Windows Home, Pro, or Enterprise** (`winver` / System -> About), and was it recently **re-imaged**, **repaired (motherboard swap)**, or running **off corporate VPN for months**?
+3. What licensing model does the client use (**M365 Business Premium / E3 Enterprise Subscription**, **OEM laptop key**, or **on-prem AD KMS/ADBA**)?
+
+### Initial Scope & Classification
+- **`0xC004F074`:** Cannot reach internal KMS server (often remote laptop off VPN or imaged with Volume GVLK instead of OEM key); **`0xC004C003`:** Invalid/Home key; **`0xC004F050`/`0x803FA067`:** Edition mismatch (Home vs Pro).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Windows Activation UI & M365 Portal)
+1. **Inspect Settings -> System -> Activation (`Troubleshoot`):** Expand the **Activation state** arrow to record exact error code + Edition (`Windows 11 Pro` vs `Home` vs `Enterprise`), and try clicking **Troubleshoot** (for OEM hardware changes or Microsoft Store digital licenses!).
+2. **Check M365 License & Connect VPN (If KMS/Entra Subscription):**
+   - If the company uses **M365 Business Premium / E3 / E5**, verify in **M365 Admin Center (`admin.microsoft.com`)** that `jsmith@example.com` actually has an active license assigned, have the user sign out/in (`Work or school account`), and wait 5 minutes!
+   - If the error is `0xC004F074` (`KMS`), test connecting **corporate VPN** (`[net-006]`) or plugging into office LAN first!
+
+### L2 Technical Diagnostics
 1. **Inspect Current Windows Edition, License Status, Channel, and Partial Key (read-only):**
    ```cmd
    slmgr /dlv

@@ -47,10 +47,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Identify all failing units immediately (`systemctl --failed`) and distinguish whether the service fails during startup (`203/EXEC`, config syntax error, port bind conflict `EADDRINUSE`) or runs briefly and crashes (`137` SIGKILL/OOM, `139` SIGSEGV).
-- Check whether a package update, configuration file edit, or disk/memory exhaustion (`[srv-005]` / `[srv-006]`) occurred immediately prior.
+### Questions to Ask the User (Classify the Issue)
+1. Is **one specific web app / database / daemon (`nginx`, `postgresql`, `docker`) down**, OR is the entire Linux host offline/unresponsive (`[srv-005]`)?
+2. Roughly **when** did the service stop responding, and did someone run `apt/dnf` updates, edit a config file, or run out of disk space (`[srv-006]`) right before?
+3. Did a monitoring alert show a specific service name (`<service_name>.service`)?
+
+### Initial Scope & Classification
+- Check disk space (`df -h`), failed units (`systemctl --failed`), and exit codes (`203/EXEC`, `137` OOM, `139` SIGSEGV) cleanly before restarting anything blindly.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Safe Status & Disk Glance)
+1. **Check RMM / Console & Basic Health First (`No Config Edits!`):** Run **`systemctl --failed`**, **`systemctl status <service_name> --no-pager`**, and **`df -h`** (a 100% full `/var` disk stops Linux services instantly -> `[srv-006]`!) and capture the last ~20 log lines shown in `systemctl status`!
+2. **Verify Recent File Edits / Restarts:** Ask the team whether anyone modified `/etc/...` config or deployed code within the last hour.
+
+### L2 Technical Diagnostics
 1. **Inspect failed units, unit status, and full journal logs (read-only):**
    ```bash
    systemctl --failed

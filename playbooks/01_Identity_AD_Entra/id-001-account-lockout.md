@@ -50,11 +50,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is the lockout happening across all services (Windows + M365) or only one workstation (`PC-LAB-01`)?
-- Did `jsmith@example.com` change their password within the last 24 hours on a phone, secondary laptop, or browser?
-- Are multiple accounts locking at the same time (possible password spray -> cross-check `[sec-001]`)?
+### Questions to Ask the User (Classify the Issue)
+1. Is the lockout happening across **every app (Windows login + Outlook + M365 Web)** or ONLY on one workstation (`PC-LAB-01`)?
+2. Did you **recently change your password** within the last 24 hours on a phone, tablet, Outlook, or secondary PC (`[m365-001]`)?
+3. Are other coworkers also locked out simultaneously (if YES -> immediate password-spray warning `[sec-001]`)?
+4. Do you have any mapped network drives (`net use`), stored Windows credentials, or unattended reports/scripts using your login?
+
+### Initial Scope & Classification
+- Verify whether only one device (`CallerComputer`) is locking `jsmith@example.com` or multiple accounts are locking simultaneously (`[sec-001]`).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check ADUC / Entra Admin Center Account Status (GUI):** Confirm `jsmith@example.com` shows **Locked out** (vs Password Expired -> `[id-009]` vs Disabled). Wait 60 seconds before unlocking blindly if you haven't found what device is sending bad passwords, otherwise it will re-lock in seconds!
+2. **Ask About Phones, Browser Saved Passwords & Wi-Fi:** Check if the user has corporate email in **iOS/Android Apple Mail/Outlook** or corporate **Wi-Fi (`802.1X` using AD credentials)** holding their old password!
+3. **Check Windows Credential Manager (`control /name Microsoft.CredentialManager` GUI on `PC-LAB-01`):** Open **Windows Credentials** tab and look for old `MicrosoftOffice16`, `Teams`, `VPN`, or file server `SRV-FILE-01` entries!
+
+### L2 Technical Diagnostics
 1. Query the PDC Emulator for `Event ID 4740` to identify the `Caller Computer Name` triggering the lockout:
    ```powershell
    $pdc = (Get-ADDomain).PDCEmulator

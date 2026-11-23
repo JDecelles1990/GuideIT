@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QSplitter,
     QVBoxLayout,
     QWidget,
@@ -39,6 +41,7 @@ from guideit_master.services.cross_link_service import (
     CrossLinkService,
     coerce_param_overrides,
 )
+from guideit_master.services.user_state_service import UserStateService
 from guideit_master.ui.flow_layout import FlowLayout
 
 logger = logging.getLogger(__name__)
@@ -65,6 +68,7 @@ class ScriptsWorkspaceWidget(QWidget):
         report_service: ReportService | None = None,
         event_bus: AppEventBus | None = None,
         cross_link_service: CrossLinkService | None = None,
+        user_state_service: UserStateService | None = None,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
@@ -93,12 +97,19 @@ class ScriptsWorkspaceWidget(QWidget):
         )
         self.event_bus = event_bus
         self.cross_link_service = cross_link_service
+        self.user_state_service = (
+            user_state_service if user_state_service is not None else UserStateService()
+        )
 
         self._current_script: ScriptRecord | None = None
         self._saved_params: dict[str, dict[str, Any]] = {}
         self._sidebar_expanded: bool = True
         self._compact_mode: bool = False
+        self._is_bulk_refreshing: bool = False
+        self._favorites_strip_collapsed: bool = False
         self.used_in_playbook_buttons: dict[str, QPushButton] = {}
+        self.favorite_script_buttons: dict[str, QPushButton] = {}
+        self.recent_script_buttons: dict[str, QPushButton] = {}
 
         self._init_ui()
         self._init_watcher()
@@ -117,7 +128,49 @@ class ScriptsWorkspaceWidget(QWidget):
     def _init_ui(self) -> None:
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
-        root_layout.setSpacing(0)
+        root_layout.setSpacing(6)
+
+        self.favorites_strip = QFrame(self)
+        self.favorites_strip.setObjectName("favoritesStrip")
+        strip_layout = QHBoxLayout(self.favorites_strip)
+        strip_layout.setContentsMargins(12, 4, 12, 4)
+        strip_layout.setSpacing(6)
+        strip_layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+        self.favorites_strip_toggle_btn = QPushButton("▾ ★ Quick Access", self.favorites_strip)
+        self.favorites_strip_toggle_btn.setObjectName("stripToggleButton")
+        self.favorites_strip_toggle_btn.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
+        )
+        self.favorites_strip_toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.favorites_strip_toggle_btn.setToolTip(
+            "Collapse or expand pinned Favorites & Recents script strip"
+        )
+        self.favorites_strip_toggle_btn.clicked.connect(self._toggle_favorites_strip)
+        strip_layout.addWidget(self.favorites_strip_toggle_btn)
+
+        self.favorites_pills_scroll = QScrollArea(self.favorites_strip)
+        self.favorites_pills_scroll.setWidgetResizable(True)
+        self.favorites_pills_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.favorites_pills_scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.favorites_pills_scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.favorites_pills_scroll.setFixedHeight(30)
+        self.favorites_pills_scroll.viewport().setStyleSheet("background: transparent;")
+
+        self.favorites_pills_container = QWidget(self.favorites_pills_scroll)
+        self.favorites_pills_container.setStyleSheet("background: transparent;")
+        self._favorites_pills_layout = QHBoxLayout(self.favorites_pills_container)
+        self._favorites_pills_layout.setContentsMargins(0, 0, 0, 0)
+        self._favorites_pills_layout.setSpacing(6)
+        self.favorites_pills_scroll.setWidget(self.favorites_pills_container)
+
+        strip_layout.addWidget(self.favorites_pills_scroll, 1)
+        self.favorites_strip.setVisible(False)
+        root_layout.addWidget(self.favorites_strip)
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
 
@@ -151,6 +204,15 @@ class ScriptsWorkspaceWidget(QWidget):
         self.script_title_label.setObjectName("HeaderTitle")
         self.script_title_label.setWordWrap(True)
         top_header_layout.addWidget(self.script_title_label, 1)
+
+        self.pin_script_btn = QPushButton("☆ Pin")
+        self.pin_script_btn.setObjectName("pinButton")
+        self.pin_script_btn.setCheckable(True)
+        self.pin_script_btn.setEnabled(False)
+        self.pin_script_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.pin_script_btn.setToolTip("Pin script to Favorites (Ctrl+D)")
+        self.pin_script_btn.clicked.connect(self.toggle_current_script_favorite)
+        top_header_layout.addWidget(self.pin_script_btn)
 
         layout.addLayout(top_header_layout)
 
@@ -310,13 +372,170 @@ class ScriptsWorkspaceWidget(QWidget):
         """Toggles compact Split View layout without reparenting widgets."""
         self._compact_mode = bool(compact)
         if self._compact_mode:
+            self.favorites_strip.setVisible(False)
             self.sidebar.setVisible(False)
             self.catalog_view.setVisible(False)
         else:
+            self.refresh_favorites_and_recents_strip()
             self.catalog_view.setVisible(True)
             self.sidebar.setVisible(self._sidebar_expanded)
             self.catalog_view.set_sidebar_button_state(self._sidebar_expanded)
             self.splitter.setSizes([240, 450, 670])
+
+    def _toggle_favorites_strip(self) -> None:
+        self._favorites_strip_collapsed = not self._favorites_strip_collapsed
+        self.refresh_favorites_and_recents_strip()
+
+    def refresh_favorites_and_recents_strip(self) -> None:
+        """Rebuild the single-row Favorites & Recents script pills strip."""
+        while self._favorites_pills_layout.count():
+            item = self._favorites_pills_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.hide()
+                widget.setParent(None)
+                widget.deleteLater()
+        self.favorite_script_buttons.clear()
+        self.recent_script_buttons.clear()
+
+        scripts_by_path = {s.relative_path: s for s in self.repo.get_all_scripts()}
+        favs = [
+            p for p in self.user_state_service.get_favorite_scripts() if p in scripts_by_path
+        ]
+        fav_set = set(favs)
+        recents = [
+            p
+            for p in self.user_state_service.get_recent_scripts()
+            if p in scripts_by_path and p not in fav_set
+        ]
+
+        if not favs and not recents:
+            self.favorites_strip.setVisible(False)
+            return
+
+        if favs:
+            fav_lbl = QLabel("★ Favorites:", self.favorites_pills_container)
+            fav_lbl.setStyleSheet(
+                "color: #FBBF24; font-size: 11.5px; font-weight: 700; background: transparent;"
+            )
+            self._favorites_pills_layout.addWidget(fav_lbl)
+            for rel_path in favs:
+                rec = scripts_by_path[rel_path]
+                btn = QPushButton(f"★ {rec.title}", self.favorites_pills_container)
+                btn.setObjectName("favoritePill")
+                btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                btn.setToolTip(f"★ {rec.title} ({rel_path}) — Click to select")
+                btn.clicked.connect(
+                    lambda _checked=False, target=rel_path: self._on_quick_script_pill_clicked(
+                        target
+                    )
+                )
+                self._favorites_pills_layout.addWidget(btn)
+                self.favorite_script_buttons[rel_path] = btn
+
+        if recents:
+            rec_lbl = QLabel("🕒 Recent:", self.favorites_pills_container)
+            rec_lbl.setStyleSheet(
+                "color: #9ca3af; font-size: 11.5px; font-weight: 600; background: transparent;"
+            )
+            self._favorites_pills_layout.addWidget(rec_lbl)
+            for rel_path in recents:
+                rec = scripts_by_path[rel_path]
+                btn = QPushButton(rec.title, self.favorites_pills_container)
+                btn.setObjectName("recentPill")
+                btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                btn.setToolTip(f"{rec.title} ({rel_path}) — Click to select")
+                btn.clicked.connect(
+                    lambda _checked=False, target=rel_path: self._on_quick_script_pill_clicked(
+                        target
+                    )
+                )
+                self._favorites_pills_layout.addWidget(btn)
+                self.recent_script_buttons[rel_path] = btn
+
+        self._favorites_pills_layout.addStretch(1)
+
+        if self._favorites_strip_collapsed:
+            self.favorites_strip_toggle_btn.setText(
+                f"▸ ★ Quick Access ({len(favs)}★ · {len(recents)}🕒)"
+            )
+        else:
+            self.favorites_strip_toggle_btn.setText("▾ ★ Quick Access")
+        self.favorites_pills_scroll.setVisible(not self._favorites_strip_collapsed)
+        self.favorites_strip.setVisible(not self._compact_mode)
+
+    def _on_quick_script_pill_clicked(self, relative_path: str) -> None:
+        visible_paths = {s.relative_path for s in self.catalog_view._scripts}
+        if relative_path not in visible_paths and self.sidebar.has_active_filters():
+            self.sidebar.reset_filters(emit_signal=True)
+        self.select_and_preload_script(relative_path)
+
+    def _update_pin_button_state(self) -> None:
+        if self._current_script is None:
+            self.pin_script_btn.blockSignals(True)
+            try:
+                self.pin_script_btn.setEnabled(False)
+                self.pin_script_btn.setChecked(False)
+                self.pin_script_btn.setText("☆ Pin")
+                self.pin_script_btn.setProperty("pinned", False)
+                self.pin_script_btn.setToolTip("Pin script to Favorites (Ctrl+D)")
+                self.pin_script_btn.style().unpolish(self.pin_script_btn)
+                self.pin_script_btn.style().polish(self.pin_script_btn)
+            finally:
+                self.pin_script_btn.blockSignals(False)
+            return
+
+        pinned = self.user_state_service.is_favorite_script(self._current_script.relative_path)
+        self.pin_script_btn.blockSignals(True)
+        try:
+            self.pin_script_btn.setEnabled(True)
+            self.pin_script_btn.setChecked(pinned)
+            self.pin_script_btn.setText("★ Pinned" if pinned else "☆ Pin")
+            self.pin_script_btn.setProperty("pinned", pinned)
+            self.pin_script_btn.setToolTip(
+                "Unpin script from Favorites (Ctrl+D)"
+                if pinned
+                else "Pin script to Favorites (Ctrl+D)"
+            )
+            self.pin_script_btn.style().unpolish(self.pin_script_btn)
+            self.pin_script_btn.style().polish(self.pin_script_btn)
+        finally:
+            self.pin_script_btn.blockSignals(False)
+
+    def _record_recent_script(self, relative_path: str) -> None:
+        self.user_state_service.record_recent_script(relative_path)
+        self.refresh_favorites_and_recents_strip()
+        if self.event_bus is not None:
+            self.event_bus.user_state_changed.emit()
+
+    def toggle_script_favorite(self, relative_path: str) -> bool:
+        """Toggle Favorite pin for a script and refresh pin button, strip, and filters."""
+        norm_rel = relative_path.strip().replace("\\", "/")
+        if not norm_rel:
+            return False
+        pinned = self.user_state_service.toggle_favorite_script(norm_rel)
+        self._update_pin_button_state()
+        self.refresh_favorites_and_recents_strip()
+        if self.sidebar.pinned_only_checkbox.isChecked():
+            self._on_filters_changed(
+                self.sidebar._current_category,
+                self.sidebar.search_input.text(),
+                self.sidebar.risk_combo.currentText(),
+                self.sidebar.edition_combo.currentText(),
+            )
+        if self.event_bus is not None:
+            self.event_bus.user_state_changed.emit()
+        script = self.repo.get_script_by_path(norm_rel)
+        label = script.title if script is not None else norm_rel
+        action = "★ Pinned" if pinned else "☆ Unpinned"
+        self._emit_status(f"{action} '{label}' {'to' if pinned else 'from'} Favorites", 3000)
+        return pinned
+
+    def toggle_current_script_favorite(self) -> bool:
+        """Toggle Favorite pin for the currently selected script."""
+        if self._current_script is None:
+            return False
+        return self.toggle_script_favorite(self._current_script.relative_path)
 
     def set_startup_checked(self, enabled: bool) -> None:
         self.sidebar.set_startup_checked(enabled)
@@ -540,9 +759,11 @@ class ScriptsWorkspaceWidget(QWidget):
             or self._current_script.relative_path != script.relative_path
         ):
             self._on_script_selected(script)
-        elif validated_overrides:
-            self.param_form.set_parameter_values(validated_overrides)
-            self._on_param_values_changed(self.param_form.get_parameter_values())
+        else:
+            self._record_recent_script(script.relative_path)
+            if validated_overrides:
+                self.param_form.set_parameter_values(validated_overrides)
+                self._on_param_values_changed(self.param_form.get_parameter_values())
 
         return True
 
@@ -696,6 +917,8 @@ class ScriptsWorkspaceWidget(QWidget):
             self.sidebar.risk_combo.currentText(),
             self.sidebar.edition_combo.currentText(),
         )
+        self.refresh_favorites_and_recents_strip()
+        self._update_pin_button_state()
 
         if self.event_bus is not None:
             self.event_bus.catalog_synced.emit()
@@ -722,12 +945,23 @@ class ScriptsWorkspaceWidget(QWidget):
             risk_level=risk_filter,
             ps_edition=edition_filter,
         )
-        self.catalog_view.set_scripts(scripts)
+        if self.sidebar.pinned_only_checkbox.isChecked():
+            pinned_set = set(self.user_state_service.get_favorite_scripts())
+            scripts = [s for s in scripts if s.relative_path in pinned_set]
+
+        self._is_bulk_refreshing = True
+        try:
+            self.catalog_view.set_scripts(scripts)
+        finally:
+            self._is_bulk_refreshing = False
 
     def _on_script_selected(self, script: ScriptRecord) -> None:
         self._current_script = script
         self.script_title_label.setText(script.title)
         self.category_chip.setText(script.category)
+        self._update_pin_button_state()
+        if not self._is_bulk_refreshing:
+            self._record_recent_script(script.relative_path)
 
         if script.risk_level == "remediation":
             self.risk_chip.setText("REMEDIATION")

@@ -47,13 +47,25 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Are you working **remotely over VPN (`[net-006]`)** or inside the **office**? *(Remote mapped drives often show a red `X` simply because VPN wasn't connected BEFORE opening Explorer!)*
+2. When clicking the drive (`S:` / `Z:`), what exact error pops up: **`The network path was not found` (`0x80070035`)**, **`Multiple connections... Error 1219`**, **`Access is denied` (`[srv-017]`)**, or a **password prompt**?
+3. Can anyone else in the office open `\\SRV-FILE-01\Share` right now, or did you recently **change your Windows password**?
+
+### Initial Scope & Classification
 - Distinguish the exact Windows SMB error on `PC-LAB-01`:
   - **`0x80070035` / `Error 53` (`The network path was not found`):** DNS cannot resolve `SRV-FILE-01`, VPN isn't connected/routing to `10.0.10.25`, or firewall/ISP blocks **TCP `445`**.
   - **`0x80070043` (`The network name cannot be found`):** Server is reachable, but the share name (`\Share`) is misspelled, moved, or offline.
-  - **`Error 1219` (`Multiple connections to a server or shared resource by the same user, using more than one user name, are not allowed`):** Windows already holds an open SMB session to `SRV-FILE-01` (or an existing mapped drive/cached credential under a different account)!
-- Does `\\10.0.10.25\Share` open when `\\SRV-FILE-01\Share` fails? *(If IP works and hostname fails -> DNS suffix / NRPT issue `[net-001]`!)*
+  - **`Error 1219` (`Multiple connections to a server...`):** Windows already holds an open SMB session to `SRV-FILE-01` under a different credential/mapped drive!
+- **L1 Shortcut Check:** Does `\\10.0.10.25\Share` open when `\\SRV-FILE-01\Share` fails? *(If IP works and hostname fails -> DNS suffix / VPN DNS issue `[net-001]`!)*
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Verify Active VPN & Test Full Path (`Win + R`):** Confirm VPN is **Connected** (`[net-006]`), press `Win + R` -> type `\\SRV-FILE-01.domain.local\Share` (using the full FQDN instead of bare server name!).
+2. **Check Credential Manager (`control /name Microsoft.CredentialManager`):** Look under **Windows Credentials** for old saved passwords under `SRV-FILE-01` or `10.0.10.25` (stale saved creds often cause `Error 1219` or account lockouts `[id-001]`!).
+3. **Try Lock/Unlock or Sign Out (`gpupdate`):** If the drive usually maps automatically at login over LAN, connecting VPN and signing out/in or browsing by UNC refreshes it.
+
+### L2 Technical Diagnostics
 1. **Inspect Existing Mapped Drives, SMB Connections, and Cached Credentials (read-only):**
    ```cmd
    net use

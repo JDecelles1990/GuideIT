@@ -43,17 +43,24 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Identify the Boot Screen Symbol:**
-  - **Flashing Folder with Question Mark (`?` / `QUESTION_MARK_FOLDER`):** Mac cannot find a valid macOS startup volume (corrupted boot volume, APFS damage, or failed SSD).
-  - **Circle with Slash (`⊘` / `PROHIBITED_SYMBOL`):** Volume contains an incompatible or damaged macOS system build.
-  - **Padlock Icon (Intel Macs):** Firmware Password enabled (contact MDM/asset admin for the firmware password!).
-- **Know the Chip Type First (Step 0):**
-  - **Apple Silicon (M1 / M2 / M3 / M4 — ~2020+ Macs):** Shut down completely -> press and **HOLD the Power button** continuously for ~10 seconds until **`"Loading startup options"`** appears -> click **`Options` (gear icon) -> `Continue`**.
-  - **Intel Macs (pre-2020/2020 Intel):** Press Power once, then **immediately press and HOLD `⌘ + R`** until the Apple logo or spinning globe appears.
+### Questions to Ask the User (Classify the Issue)
+1. What **exact icon or screen** appears when turning on the Mac: **Flashing `?` Folder (`QUESTION_MARK_FOLDER`)**, **Circle with Slash `⊘` (`PROHIBITED_SYMBOL`)**, **Padlock icon**, or **Apple logo stuck loading forever**?
+2. Is this Mac an **Apple Silicon (`M1 / M2 / M3 / M4` — ~2020+)** or older **Intel Mac**? *(Hold **Power button** for Silicon vs Hold **`⌘ + R`** for Intel!)*
+3. Did a **macOS software update**, sudden battery shutdown, or low storage (`[mdm-005]`) happen right before it failed to boot?
+4. Do we have **OneDrive / Time Machine backups** and the **FileVault Recovery Key (`intune.microsoft.com`)** handy?
+
+### Initial Scope & Classification
+- Capture the boot screen symbol + Apple chip type (`Silicon` vs `Intel`) first so you hold the right recovery key combination.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **In macOS Recovery, unlock FileVault if prompted** (enter the user's Mac login password, OR if forgotten, click **`Forgot all passwords?`** and use the **FileVault Personal Recovery Key** stored in **Intune Admin Center -> Devices -> Recovery keys**!).
-2. **Verify Disk & Volume Health Read-Only (inside Recovery -> Utilities -> Terminal, or booted macOS):**
+### L1 First-Line Checks (Start Here — Safe Recovery Boot & Key Lookup)
+1. **Boot Into macOS Recovery & Look Up FileVault Key in Intune GUI:**
+   - **Apple Silicon:** Shut down -> hold **Power button** ~10 sec -> `Options` -> `Continue`. **Intel:** Power on -> immediately hold **`⌘ + R`**.
+   - If asked for FileVault unlock and the user's password fails, click **`Forgot all passwords?`** -> fetch the **FileVault Personal Recovery Key** in **Intune Admin Center -> Devices -> `Device` -> Recovery keys**! (If it asks for **MDM Recovery Lock**, check **Intune -> Devices -> `Device` -> Hardware/Monitor**!)
+2. **Ensure AC Power & Wi-Fi:** Keep MacBook plugged into charger and check Wi-Fi menu top-right of Recovery screen before trying Disk Utility First Aid!
+
+### L2 Technical Diagnostics
+1. **Verify Disk & Volume Health Read-Only (inside Recovery -> Utilities -> Terminal, or booted macOS):**
    ```bash
    diskutil list
    diskutil verifyVolume /System/Volumes/Data

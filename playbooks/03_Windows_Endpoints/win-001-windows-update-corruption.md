@@ -51,11 +51,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Which specific KB or feature update failed, and what exact error code (`0x80070005`, `0x800f081f`, `0x80240034`) appears in **Settings -> Windows Update -> Update history**?
-- Does `PC-LAB-01` have at least 15–20 GB of free space on `C:`?
-- Is the device managed by Intune/WSUS/Group Policy, and is a third-party AV/EDR blocking update services?
+### Questions to Ask the User (Classify the Issue)
+1. Which specific KB or feature update failed, and what exact error code (`0x80070005`, `0x800f081f`, `0x80240034`) appears under **Settings -> Windows Update -> Update history**?
+2. Is `C:` drive critically low on free space (Windows Updates usually need **15–20 GB free** -> if full `[win-011]`)?
+3. Has `PC-LAB-01` been pending a **Restart** for days/weeks, or is it running behind a corporate **VPN / WSUS server**?
+
+### Initial Scope & Classification
+- Check free space (`>= 15 GB`), BitLocker escrow safety (`[win-002]`) if firmware/BIOS updates are queued, and whether the device receives updates via Microsoft Cloud vs Intune/WSUS/GPO.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check Free Space (`This PC` -> C: >= 15 GB Free) & Pending Reboot (`win-011`):** Low disk space fails Windows Updates silently; check Settings -> Windows Update to see if `"Restart required"` is already queued!
+2. **Run Built-In Windows Update Troubleshooter & Check Error Code:**
+   - Open **Settings -> System -> Troubleshoot -> Other troubleshooters -> Windows Update -> Run** (or note the exact `0x80...` code under **Update history**).
+3. **Verify VPN / Network & Services (`services.msc` GUI):** Confirm **`Windows Update` (`wuauserv`)** and **`Background Intelligent Transfer Service` (`bits`)** aren't `Disabled`.
+
+### L2 Technical Diagnostics
 1. Check free disk space, pending reboot indicators, and core Windows Update service status (read-only):
    ```powershell
    Get-PSDrive C | Select-Object Name, @{N='FreeGB';E={[math]::Round($_.Free/1GB,2)}}

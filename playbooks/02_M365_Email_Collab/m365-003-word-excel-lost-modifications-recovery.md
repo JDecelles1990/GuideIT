@@ -46,12 +46,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Stop overwriting immediately:** Ask `jsmith@example.com` NOT to repeatedly save or close/reopen the file while inspecting recovery locations.
-- Where was the document stored: **OneDrive / SharePoint**, **local disk (`C:\`)**, **Windows SMB file server**, or opened directly from an **Outlook email attachment** (which saves edits to a hidden `INetCache\Content.Outlook` temp folder!)?
-- Did Office crash, did **AutoSave** toggle off, or did another user overwrite edits concurrently?
+### Questions to Ask the User (Classify the Issue)
+1. Where was the document saved: **OneDrive / SharePoint / Teams** (`AutoSave` icon top-left), **local `C:\` Desktop/Documents**, a **shared network drive (`S:\`)**, or opened directly from an **Outlook email attachment**?
+2. Roughly **what time** were your edits last saved/seen cleanly, and did Word/Excel crash or did a coworker edit the same file?
+3. **URGENT RULE:** Stop hitting Ctrl+S / overwriting the live file until we inspect Version History and AutoRecover copies!
+
+### Initial Scope & Classification
+- Check **SharePoint/OneDrive Version History**, Windows **`Previous Versions`** (Shadow Copy on SMB shares), local **Office AutoRecover**, and **Outlook `Content.Outlook` temp folders** cleanly before touching the live document.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Check Cloud Version History first (OneDrive / SharePoint / Teams):**
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Check Cloud Version History FIRST (`File -> Info -> Version History` or OneDrive/SharePoint Web `... -> Version History`):** Every 10-minute cloud autosave creates a snapshot! Check timestamps over the last 24–48 hours and also check OneDrive **Recycle Bin**!
+2. **Check Built-In Office Recovery (`File -> Info -> Manage Document / Manage Workbook -> Recover Unsaved Documents`):** Inspect local `.asd` / `.xlsb` unsaved drafts inside Word/Excel GUI!
+3. **If Opened Directly From an Outlook Attachment (`Didn't Save As First`):** Have `jsmith@example.com` re-open the same attachment or check **Outlook `INetCache\Content.Outlook`** via the PowerShell helper below — users frequently close an edited Outlook attachment thinking it saved to Documents!
+4. **If on an Office Shared Drive (`S:\`):** Right-click the folder in File Explorer -> **Properties -> Previous Versions** (checks hourly server shadow copies!).
+
+### L2 Technical Diagnostics
+1. **Check Cloud Version History details:**
    - Open the file in the browser or **File -> Info -> Version History** in Word/Excel. Inspect timestamped versions across the last 24–48 hours — minor/auto-saved versions often hold the missing edits!
    - Also check OneDrive **Recycle Bin** and **Second-stage recycle bin** if a sync conflict copy was deleted.
 2. **Search local Office AutoRecover, UnsavedFiles, and Outlook Attachment temp folders on `PC-LAB-01` (read-only):**

@@ -47,11 +47,22 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Does the Wi-Fi drop occur for one endpoint (`PC-LAB-01`) or all colleagues connected to the same office SSID / access point?
-- Does it happen specifically when `PC-LAB-01` wakes from sleep, switches between `2.4 GHz` / `5 GHz` / `6 GHz`, or docks via Ethernet?
-- Is the SSID using **WPA2/WPA3-PSK** (pre-shared key) or **WPA2/WPA3-Enterprise (802.1X RADIUS)**?
+### Questions to Ask the User (Classify the Issue)
+1. Is the Wi-Fi dropping for **only you (`PC-LAB-01`)**, or for **everyone nearby in the office**?
+2. Which Wi-Fi network (`SSID`) are you connecting to (**Corporate Wi-Fi**, **Guest Wi-Fi**, or **Home Wi-Fi**), and did you recently **change your Windows/M365 password** (for 802.1X Enterprise Wi-Fi)?
+3. Does it show **"Connected, no internet"**, **`Can't connect to this network`**, or randomly drop right after waking the laptop from sleep?
+4. Look at the physical Wi-Fi icon in the taskbar: is **Airplane Mode** off, and are there 1–2 signal bars (weak distance / concrete wall)?
+
+### Initial Scope & Classification
+- Distinguish **Radio / Weak Signal / Sleep Power Saving drops** from **Wrong Password / Expired 802.1X Certificate** (`Can't connect`) and **IP / DHCP / Captive Portal block** (`Connected, no internet` -> `[net-001]`).
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Basic Connectivity & Airplane Mode / Captive Portal Check:** Verify Airplane Mode is Off, toggle Wi-Fi Off -> Wait 5s -> On, move closer to an Access Point if signal <= 1 bar, or plug in Ethernet temporarily if urgent. If on Hotel/Guest Wi-Fi showing `Connected, no internet`, open browser to `http://neverssl.com` to force the captive login portal!
+2. **Test Alternate Network (Mobile Hotspot Check):** Connect briefly to a phone Wi-Fi hotspot — if `PC-LAB-01` stays rock-solid on hotspot while dropping on office Wi-Fi, the laptop Wi-Fi card is fine and the issue is office AP/802.1X/DHCP!
+3. **Look Visually at Wi-Fi Properties (`Settings -> Network & internet -> Wi-Fi -> Hardware properties`):** Note the **Protocol (`Wi-Fi 5/6`)**, **Network band (`2.4 GHz` vs `5 GHz`)**, and **IPv4 address** (`169.254.x.x` = DHCP fail -> `[net-001]`).
+
+### L2 Technical Diagnostics
 1. **On Windows**, inspect live Wi-Fi signal strength, radio band, channel, and adapter link details (read-only):
    ```cmd
    netsh wlan show interfaces

@@ -49,10 +49,25 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Distinguish **Single Endpoint Issue** (`Event ID 1055` computer not ready / `1129` DC unreachable over VPN / `1058` missing `Authenticated Users` Read permission!) vs. **Domain-Wide AD / SYSVOL Outage** (`Event ID 1030` across all workstations, `4012` DFSR stale replication, `2213` DFSR database dirty shutdown).
-- If an admin recently removed **`Authenticated Users`** from a GPO's **Security Filtering** without adding **`Authenticated Users` -> `Read`** on the **Delegation** tab, Windows computers can no longer read the Computer GPO (`MS16-072` hardening)!
+### Questions to Ask the User (Classify the Issue)
+1. Is a policy/mapped drive/printer missing on **only this single computer (`PC-LAB-01`)**, or for **everyone in that department/OU**?
+2. Is `PC-LAB-01` currently working **remotely over VPN** (sometimes VPN connects *after* Windows login, skipping startup Computer GPOs!) or **plugged into the office LAN**?
+3. Did you recently **move this user/computer into a different AD group or OU**, or reboot/sign out & back in since the change was made?
+4. What exact error (if any) appears, e.g., `"Access is denied"`, missing shortcut, or stale desktop settings?
+
+### Initial Scope & Classification
+- Distinguish **Single Endpoint / Remote VPN Timing** (`PC-LAB-01` hasn't refreshed GPOs since login or lost network trust -> L1/L2) from **Security Filtering Misconfiguration (`1058`)** or **Domain-Wide AD / DFSR SYSVOL Replication Failure (`1030` / `4012` / `2213` -> L3)**.
+- **Quick check (`MS16-072`):** If an admin recently removed **`Authenticated Users`** from a GPO's **Security Filtering** without adding **`Authenticated Users` -> `Read`** on the **Delegation** tab, Windows computers cannot read the Computer GPO (`1058`)!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic / GUI)
+1. **Confirm Office Network / Active VPN & OU Placement:**
+   - Have `jsmith@example.com` confirm corporate **VPN** is actually **Connected** (`[net-006]`) or they are on office LAN — GPOs cannot refresh over plain home internet!
+   - In **ADUC (`dsa.msc`)**, verify BOTH the **User account (`jsmith`)** and **Computer object (`PC-LAB-01`)** are enabled, in the right **Organizational Unit (OU)**, and members of any required GPO security group (`[srv-017]` — remember new group memberships require **Sign out + Sign in**, or reboot for Computer policies!).
+2. **Run Basic Non-Destructive GPO Summary (`PC-LAB-01`):** Run `gpresult /r` in regular CMD (`User Configuration`) or elevated CMD (`Computer Configuration`) to check whether the GPO shows under **Applied Group Policy Objects** vs **The following GPOs were not applied because they were filtered out**!
+3. **Check Endpoint Domain Trust & Event Viewer:** Confirm `PC-LAB-01` hasn't lost its AD secure channel (`[id-005]`), and open **Event Viewer -> Windows Logs -> System**, filter Source = **`GroupPolicy`** for `1058` / `1030` / `1129`.
+
+### L2 Technical Diagnostics
 1. **On the affected workstation (`PC-LAB-01`), inspect applied/denied GPOs and GroupPolicy Operational events (read-only):**
    ```cmd
    gpresult /r
@@ -81,18 +96,22 @@ related_ids:
        Select-Object TimeCreated, Id, Message
    ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Target GPO name, affected user/computer OU, `gpresult /r` output (which GPOs were *Applied* vs *Filtered Out*), `Test-Path SYSVOL` result, and any Event IDs (`1058` / `1030` / `2213` / `4012`).
+
 ## Deep-Dive Investigation (L3)
 1. **MS16-072 Security Filtering Trap (`Event ID 1058`):** Inspect the failing GPO in **GPMC (`gpmc.msc`) -> Delegation tab**; even when scoped to a custom User Group under Security Filtering, **`Authenticated Users`** (or `Domain Computers`) **MUST retain `Read` permission** so the machine account can fetch `gpt.ini`!
 2. **DFSR Dirty Shutdown (`Event ID 2213`) or MaxOfflineTime Exceeded (`Event ID 4012`):** After an ungraceful DC power loss, DFSR pauses SYSVOL replication until explicitly resumed (`ResumeReplication` WMI method), or requires authoritative/non-authoritative DFSR recovery (`D4` / `D2`) if tombstoned (`4012`) > `MaxOfflineTimeInDays`.
 3. **Slow Link / Missing Always-Wait-For-Network:** Wireless/VPN laptops often log `1055`/`1129` because Windows attempts user logon before Wi-Fi/VPN connects (`Always wait for the network at computer startup and logon` or scheduled background refresh).
 
 ## Remediation (Confirm Before Running)
-1. **[REMEDIATION — CONFIRM BEFORE RUNNING]** If a GPO lost read access after narrowing Security Filtering (`Event ID 1058`), open **GPMC -> `<Target GPO>` -> Delegation -> Add -> `Authenticated Users` -> `Read`** (NOT `Apply group policy`).
-2. **[REMEDIATION — CONFIRM BEFORE RUNNING]** Force clean Group Policy refresh on `PC-LAB-01` once DC/SYSVOL access is verified (warning: `/force` re-applies all policies and may log off/reboot if required by CSEs):
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Safe Client Refresh After VPN/OU Fix)** Once `PC-LAB-01` is on office LAN or connected to corporate VPN (`[net-006]`) and in the correct AD OU/security group, force a clean Group Policy refresh (`gpupdate /force` may prompt for **`Y`** to log off/reboot ONLY for Software Install/Folder Redirection CSEs — warn the user first!):
    ```cmd
    gpupdate /force
    ```
-3. **[REMEDIATION — CONFIRM BEFORE RUNNING]** For **DFSR `Event ID 2213`** on a single paused DC (verify Event `2213` message text on `DC01` first — follow exact Microsoft WMI recovery command displayed inside that Event `2213` description, and confirm healthy DC replication BEFORE proceeding):
+   *(Then have `jsmith@example.com` **Sign out & Sign in**, or **Restart** once for Computer-scope GPOs / new AD group memberships.)*
+2. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L2 GPO Read Delegation Fix `Event ID 1058`)** If a GPO lost read access after narrowing Security Filtering, open **GPMC (`gpmc.msc`) -> `<Target GPO>` -> Delegation -> Add -> `Authenticated Users` -> `Read`** (NOT `Apply group policy`).
+3. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L3 DFSR `Event ID 2213` Recovery)** On a single paused DC (verify Event `2213` message text on `DC01` first — follow exact Microsoft WMI recovery command displayed inside that Event `2213` description, and confirm healthy DC replication BEFORE proceeding):
    ```powershell
    Get-CimInstance -Namespace "root\MicrosoftDFS" -ClassName DfsrVolumeConfig |
        Invoke-CimMethod -MethodName ResumeReplication

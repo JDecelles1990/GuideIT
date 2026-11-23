@@ -50,20 +50,24 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is this a **brand-new Windows Autopilot OOBE** deployment (`Shift+F10` gives Command Prompt at OOBE), or **manual enrollment** via **Settings -> Accounts -> Access work or school** / **Company Portal**?
-- Capture the exact error code:
-  - **`80180014`**: MDM enrollment disabled or Windows MDM device limit reached for `jsmith@example.com` (or Windows Home edition — Home cannot join Entra/Intune!).
-  - **`80180005` / `80180018`**: Device already enrolled or invalid Intune license on user.
-  - **`80070774`**: Hybrid Autopilot cannot reach on-prem Domain Controller (`DC01.domain.local`) via VPN/line-of-sight!
-  - **`0x800705b4` / `0x8018002b`**: Enrollment Status Page (ESP) timeout waiting for Win32/LOB apps or device sync.
+### Questions to Ask the User (Classify the Issue)
+1. Is this a **brand-new PC at the Windows Setup Welcome / Out-of-Box screen (`Autopilot OOBE`)**, OR an **already set-up PC failing Company Portal / Work or School join**?
+2. What exact screen error is shown (`80180014`, `80180005`, `80180018`, `80070774`, `0x800705b4` ESP Timeout), and is the PC running **Windows Home** vs **Pro / Enterprise**? *(Windows Home CANNOT join Entra/Intune!)*
+3. Verify the PC is on a clean unrestricted network (**wired Ethernet or stable Wi-Fi** without captive hotel login) and confirm **how many old devices** `jsmith@example.com` already has enrolled!
+
+### Initial Scope & Classification
+- **`80180014`:** Device limit reached or Windows Home/MDM disabled; **`80070774`:** Hybrid Autopilot cannot reach DC; **`0x800705b4`:** ESP app timeout.
 
 ## Read-Only Diagnostics (L1-L2)
-1. **Verify Prerequisites in Entra ID & Intune Admin Center:**
-   - Confirm `jsmith@example.com` holds an active **Microsoft Intune Plan 1** license (e.g., Business Premium / E3 / E5).
-   - Check **Entra ID -> Mobility (MDM and WIP) -> Microsoft Intune**: verify **MDM user scope** includes the user's group (`All` or scoped pilot group).
-   - Check **Entra ID -> Devices -> Device settings** (`Maximum number of devices per user`) and **Intune -> Devices -> Enrollment -> Device limit restrictions** (default 5–15 devices; old stale phones/PCs often hit the cap -> `80180014`!).
-   - For **Autopilot**: check **Intune -> Devices -> Enrollment -> Windows -> Devices** to confirm the hardware serial/hash is imported and **`Profile status = Assigned`**.
-2. **On the Windows Endpoint (`Shift+F10` during OOBE or local PowerShell), inspect join & enrollment state (read-only):**
+### L1 First-Line Checks (Start Here — Entra / Intune Portal Prerequisites)
+1. **Verify Prerequisites in Entra ID & Intune Admin Center GUI:**
+   - **License:** Confirm `jsmith@example.com` holds **Microsoft Intune Plan 1** (Business Premium / E3 / E5).
+   - **MDM Scope:** Open **Entra ID -> Mobility (MDM and WIP) -> Microsoft Intune**: confirm user is in **MDM user scope**!
+   - **Device Cap (`80180014`!):** Open **Intune Admin Center -> Users -> `jsmith@example.com` -> Devices**: if 5–15 stale old laptops/phones are sitting enrolled, hitting the enrollment cap blocks any new PC until stale records are removed!
+   - **Autopilot Hash:** For new Autopilot laptops, check **Intune -> Devices -> Enrollment -> Windows -> Devices** and verify the laptop Serial Number shows **`Profile status = Assigned`**!
+
+### L2 Technical Diagnostics
+1. **On the Windows Endpoint (`Shift+F10` during OOBE or local PowerShell), inspect join & enrollment state (read-only):**
    ```cmd
    dsregcmd /status
    winver

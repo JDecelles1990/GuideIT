@@ -47,11 +47,26 @@ linked_scripts:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Is the USB-C cable plugged into a laptop **DisplayPort Alt-Mode / Thunderbolt** port (look for the lightning bolt or `DP` icon — some ports are power/data-only!) and using the **dock's original high-wattage AC power brick**?
-- Does the monitor power LED turn solid/amber (`NO_SIGNAL`), and is the monitor input manually locked to the right source (`HDMI` vs `DisplayPort`)?
-- Try pressing **`Win + P`** -> **Extend** and **`Win + Ctrl + Shift + B`** to reset the Windows graphics driver immediately!
+### Questions to Ask the User (Classify the Issue)
+1. Are the external monitors **completely black / `"No Signal"` (`NO_SIGNAL`)**, **flickering off and on**, or **not powered on at all**?
+2. Are BOTH **power + monitors + USB keyboard** through the dock dead (dock power brick unplugged / bad USB-C port!), or ONLY the video monitors?
+3. Did you plug the dock cable into a **DisplayPort / Thunderbolt USB-C port** on the laptop (check side icon!), and is the dock plugged into its **own original high-wattage AC power brick**?
+4. When pressing **`Win + P`**, is **PC screen only** accidentally selected instead of **Extend**?
+
+### Initial Scope & Classification
+- Distinguish **wrong laptop USB-C port / dead power brick / monitor input (`HDMI` vs `DisplayPort`)**, **`Win + P` / `Win + Ctrl + Shift + B` Windows display state**, and **missing DisplayLink driver (`DISPLAYLINK`)** on multi-monitor Macs/PCs.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Basic Physical & Shortcut Checks)
+1. **Check Physical Cables, Monitor Power & Source Input (Zero Tools Needed!):**
+   - Check the monitor's physical power LED + **Input button** (`HDMI 1` vs `DisplayPort` — often someone bumped the input button!).
+   - Verify the **dock's AC power brick** is plugged into the wall outlet AND dock LED is lit; verify the laptop USB-C cable sits snugly in the **Thunderbolt / DP-Alt-Mode** USB-C port (try the adjacent USB-C port on the laptop!).
+   - Disconnect & plug **1 monitor directly into the laptop HDMI/USB-C port** (if available) to confirm the monitor + HDMI cable work outside the dock!
+2. **Test Instant Windows Display Shortcuts & Check Display Settings:**
+   - Press **`Win + P`** -> click **Extend**, then press **`Win + Ctrl + Shift + B`** (resets Windows graphics driver safely in 1 second).
+   - Right-click Desktop -> **Display settings**: click **Detect** and confirm external screens aren't marked **"Disconnect this display"**!
+
+### L2 Technical Diagnostics
 1. **On Windows**, inspect connected displays, USB/Thunderbolt controllers, and DisplayLink/GPU driver status (read-only):
    ```powershell
    Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorBasicDisplayParams -ErrorAction SilentlyContinue |

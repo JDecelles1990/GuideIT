@@ -44,14 +44,22 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- **Control Plane vs. Data Plane (Critical Distinction):**
-  - **`AuthorizationFailed`:** Missing Management Plane RBAC (`Reader`, `Contributor`) when creating/listing Azure resources.
-  - **`AuthorizationPermissionMismatch` (Storage) or HTTP `403` inside Key Vault:** Missing **Data Plane RBAC** (`Storage Blob Data Reader/Contributor`, `Key Vault Secrets User`) — note that `Owner` and `Contributor` do **NOT** automatically grant Azure Storage or Key Vault RBAC data access!
-- **RBAC vs. Firewall `403`:** Check whether the 403 error body says **"does not have authorization to perform action"** (identity/RBAC issue) versus **"Client address is not authorized"** / **"Public network access is disabled"** (`KeyVaultFirewall` / Storage Networking).
-- **Verify identity & subscription context:** Confirm whether the caller is a human Entra user, an App Registration Service Principal, or an Azure VM/App Service **Managed Identity**, and confirm they are targeting the right subscription (`<subscription-id>`).
-- **PIM & RBAC propagation:** Ask if the user activated a **Privileged Identity Management (PIM)** role in the last 5–10 minutes or just received a new role assignment (new RBAC assignments can take several minutes + OAuth token refresh).
+### Questions to Ask the User (Classify the Issue)
+1. Screenshot the exact **`403`** message: does it say **"does not have authorization to perform action"** (Identity/RBAC missing -> `AuthorizationFailed` / `AuthorizationPermissionMismatch`), OR **"Client address is not authorized / Public network access is disabled"** (Firewall IP allow-list -> `KeyVaultFirewall`)?
+2. Which **exact Azure Resource (`Subscription` / `Resource Group` / `Storage Account or Key Vault name`)** and which **user/app identity** needs access?
+3. Did you **just activate a PIM role** or get assigned a role within the last 10 minutes (needs **Sign out + Sign in / `az login` refresh**!), and has the resource owner/client approved the permission request?
+
+### Initial Scope & Classification
+- Remember `Owner` / `Contributor` do **NOT** grant Storage/Key Vault **Data Plane** access (`Storage Blob Data Reader` / `Key Vault Secrets User`)!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Azure Portal IAM & Networking UI)
+1. **Verify Correct Subscription & Sign-Out/In Refresh:** Have `jsmith@example.com` confirm the top-right Portal Directory + Subscription matches `<subscription-id>`, wait 5–10 minutes if role was just added, and sign out/back into Azure Portal!
+2. **Check Resource `Access control (IAM) -> Check access` & `Networking` Tab in Azure Portal:**
+   - Look under **Check access** for `jsmith@example.com` -> confirm Data Plane role (`Storage Blob Data Reader/Contributor`, `Key Vault Secrets User`) exists!
+   - Open **Storage Account / Key Vault -> Networking -> Firewalls and virtual networks**: see if `Public network access` is set to **Selected networks** blocking the caller's office/VPN IP (`KeyVaultFirewall`)!
+
+### L2 Technical Diagnostics
 Verify caller context and enumerate effective Azure RBAC assignments across Subscriptions, Resource Groups, and Resources:
 
 ```bash

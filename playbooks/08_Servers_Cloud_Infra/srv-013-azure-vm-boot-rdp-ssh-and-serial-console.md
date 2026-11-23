@@ -53,12 +53,31 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Are you trying to reach the Azure VM **over Corporate VPN / Azure Bastion**, or directly over a **Public IP** (verify whether your home/office public IP changed and no longer matches the NSG allow-list!)?
+2. Is **only this 1 Azure VM (`<vm-name>`) unreachable**, or are **ALL VMs in the Azure VNet / Subnet unreachable**?
+3. Did someone recently **deallocate/resize the VM**, run **Windows/Linux OS updates**, or change **Firewall / NSG rules**?
+4. Does the **Azure Portal -> Boot diagnostics Screenshot** show a **login screen**, a **blue error / BitLocker / OS repair screen**, or **completely black**?
+
+### Initial Scope & Classification
 - **Check Azure Service Health & Region Status first:** Before troubleshooting guest OS internals, confirm the Azure region is healthy and inspect **VM -> Resource Health** for platform host reboots or maintenance events.
 - **Check VM PowerState & ProvisioningState:** Determine if the VM shows `VM running`, `VM deallocated`, `AllocationFailed` (regional capacity exhaustion on VM SKU/zone), or `Failed` (`OSProvisioningTimedOut` / `VMExtensionProvisioningError`).
-- **Scope outage (One VM vs. All VMs in Subnet):** If all VMs in a subnet lost RDP/SSH simultaneously, suspect **Subnet NSG**, **User-Defined Route (UDR `0.0.0.0/0` to an unhealthy NVA/Firewall)**, or **Site-to-Site VPN / ExpressRoute**.
 - **Check Boot Diagnostics screenshot immediately:** A screenshot showing the Windows login screen or Linux `login:` prompt proves the guest OS booted cleanly — focus immediately on **NSG**, **OS Firewall**, or **Routing/Bastion**, not OS recovery!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Azure Portal GUI Only)
+> An L1 technician can isolate 80% of `"Azure VM unreachable"` tickets right inside **Azure Portal (`portal.azure.com`)** without running any disk repair commands!
+
+1. **Check VM Power Status & Resource Health (`Azure Portal -> Virtual Machines -> <vm-name> -> Overview`):**
+   - Look at **Status**: is it **`Running`**, **`Stopped (deallocated)`** (e.g., auto-shutdown schedule ran!), or **`Failed` (`AllocationFailed`)**?
+   - Click **Help -> Resource Health**: check if Azure reported a platform host reboot or regional outage.
+2. **View Boot Diagnostics Screenshot (`Help -> Boot diagnostics -> Screenshot`):**
+   - If you see the **Windows Lock Screen / Linux `login:` prompt**: the server is ALIVE! The block is just **NSG / Corporate VPN (`[net-005]`/`[net-006]`) / User's Public IP changed / Windows Firewall**!
+   - If you see a **BSOD / BitLocker / GRUB Rescue / Black screen**: take a screenshot immediately for L2/L3 Serial Console or OS recovery!
+3. **Check Network / NSG Inbound Rules Visually (`Networking -> Network settings`):**
+   - Confirm whether **Azure Bastion** works (clicking **Connect -> Bastion** bypasses public IP NSG locks safely!), and verify the caller's current public IP matches any approved source IP allow rule (`Port 3389 / 22` — remember **NEVER** open `0.0.0.0/0`!).
+
+### L2 Technical Diagnostics
 Use Azure CLI (`az`) read-only commands to check VM power state, provisioning messages, Boot Diagnostics serial log, extensions, and effective NIC security rules:
 
 ```bash
@@ -90,6 +109,9 @@ Get-AzVM -ResourceGroupName "<rg-name>" -Name "<vm-name>" -Status |
   Select-Object Name, ResourceGroupName -ExpandProperty Statuses | Format-Table Code, DisplayStatus, Message
 ```
 
+### Escalation Handoff Checklist (Before Sending to L2 / L3)
+- Exact Azure Subscription + Resource Group + VM Name, VM `Status` / `Resource Health`, **Boot diagnostics Screenshot**, user's source IP / Bastion result, and whether other VMs in that VNet work.
+
 ## Deep-Dive Investigation (L3)
 Analyze the failure layer based on Boot Diagnostics and Effective NSG/Routes:
 
@@ -117,7 +139,8 @@ Analyze the failure layer based on Boot Diagnostics and Effective NSG/Routes:
 ## Remediation (Confirm Before Running)
 > **[REMEDIATION — CONFIRM BEFORE RUNNING]** NEVER open TCP `3389` (RDP) or `22` (SSH) to `0.0.0.0/0` (`Any`) on a Public IP NSG. Prefer **Azure Bastion**, **Corporate VPN private IP**, or **Microsoft Defender for Cloud Just-In-Time (JIT) VM Access**. NEVER redeploy or resize an Azure VM before verifying no production data resides on the **ephemeral temporary disk (`D:` / `/mnt`)**, because redeployment wipes the temporary disk!
 
-1. **Resolve OS Firewall / Dead RDP/SSH Service Without Downtime:**
+1. **[REMEDIATION — CONFIRM BEFORE RUNNING] (L1 Start Deallocated VM or Request Bastion / Scoped IP Allow)** If **Overview** shows the VM is **`Stopped (deallocated)`** unintentionally (e.g., auto-shutdown fired), confirm with owner and click **Start** in Azure Portal, OR instruct the user to connect via **Azure Bastion** / approved **Corporate VPN** (`[net-006]`) if public RDP/SSH is restricted.
+2. **Resolve OS Firewall / Dead RDP/SSH Service Without Downtime (L2/L3):**
    - Scope: Single VM guest OS via **Azure Serial Console** or **VM Reset password / Reset configuration only** (`VMAccessAgent`).
    - Prerequisite: `VMAccess` extension healthy or Serial Console interactive credentials available; backup/snapshot taken before registry or `fstab` edits.
    - Enable **Remote Desktop** / restart `sshd` or reset local admin configuration via Portal -> **Help -> Reset password -> Reset configuration only** (`sshd_config` / Windows RDP settings).

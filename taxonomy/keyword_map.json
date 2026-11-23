@@ -879,6 +879,277 @@
       "tags": ["dev_ssl_proxy_cert", "git_powershell_policy"],
       "domains": ["09_Apps_LOB"],
       "error_codes": ["SELF_SIGNED_CERT_IN_CHAIN", "PSSecurityException"]
+    },
+    {
+      "phrases": [
+        "vpn can't connect",
+        "vpn won't connect",
+        "vpn cannot connect",
+        "vpn not connecting",
+        "vpn error 809",
+        "vpn error 789",
+        "forticlient won't connect",
+        "forticlient stuck",
+        "globalprotect won't connect",
+        "anyconnect won't connect",
+        "vpn ne se connecte pas",
+        "connexion vpn echouee",
+        "vpn bloque",
+        "client vpn ne fonctionne pas"
+      ],
+      "tags": ["client_vpn_connect", "vpn_auth_mfa", "vpn_client_error"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["809", "789", "691", "VPN_AUTH_FAILED", "SSL_VPN_98"]
+    },
+    {
+      "phrases": [
+        "voip phone not working",
+        "desk phone no dial tone",
+        "yealink poly phone stuck registering",
+        "telephone ip ne fonctionne pas",
+        "poste telephonique pas de tonalite"
+      ],
+      "tags": ["voip_desk_phone", "voip_poe_registration"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["SIP_403", "SIP_408", "NO_SERVICE", "POE_OFF"]
+    },
+    {
+      "phrases": [
+        "password reset sspr",
+        "new password not working windows",
+        "cached password out of sync",
+        "reinitialisation mot de passe",
+        "nouveau mot de passe fonctionne pas windows"
+      ],
+      "tags": ["password_reset_sspr", "cached_credentials_sync"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["0xC000006A", "SSPR_NOT_REGISTERED"]
+    },
+    {
+      "phrases": [
+        "windows hello pin not working",
+        "your pin isn't available",
+        "reset windows hello pin",
+        "code pin windows hello ne fonctionne pas",
+        "reinitialiser code pin windows"
+      ],
+      "tags": ["windows_hello_pin", "ngc_pin_reset"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["0x80090016", "0x8009002D", "PIN_UNAVAILABLE"]
+    },
+    {
+      "phrases": [
+        "outlook search not working",
+        "outlook search no results",
+        "rebuild outlook search index",
+        "recherche outlook ne fonctionne pas",
+        "reindexer recherche outlook"
+      ],
+      "tags": ["outlook_search_broken", "outlook_ost_index"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["0x80040119", "WSEARCH_STOPPED", "OST_CORRUPT"]
+    },
+    {
+      "phrases": [
+        "teams app won't load",
+        "teams blank white screen",
+        "clear teams cache",
+        "teams ne se charge pas",
+        "vider cache microsoft teams"
+      ],
+      "tags": ["teams_wont_load", "teams_cache_reset"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["CAA2000B", "80090016", "TEAMS_BLANK_SCREEN"]
+    },
+    {
+      "phrases": [
+        "outlook calendar sharing permission",
+        "meeting room booking declined",
+        "outlook delegate access error",
+        "partage calendrier outlook erreur",
+        "salle de reunion refusee outlook"
+      ],
+      "tags": ["outlook_calendar_sharing", "room_booking_delegate"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["ROOM_DECLINED", "CALENDAR_PERM_DENIED"]
+    },
+    {
+      "phrases": [
+        "missing files sharepoint",
+        "deleted folder teams files",
+        "restore file onedrive recycle bin",
+        "fichiers manquants sharepoint",
+        "restaurer corbeille sharepoint onedrive"
+      ],
+      "tags": ["sharepoint_files_missing", "sharepoint_recycle_bin"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["SP_FILE_DELETED", "SYNC_LIBRARY_LIMIT"]
+    },
+    {
+      "phrases": [
+        "laptop battery draining fast",
+        "plugged in not charging windows",
+        "laptop won't wake from sleep",
+        "batterie portable se decharge vite",
+        "branche pas en charge windows"
+      ],
+      "tags": ["laptop_battery_drain", "sleep_wake_failure"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["PLUGGED_IN_NOT_CHARGING", "MODERN_STANDBY_DRAIN"]
+    },
+    {
+      "phrases": [
+        "windows slow startup",
+        "black screen after login windows",
+        "black screen after login",
+        "taskbar missing explorer freeze",
+        "demarrage windows tres lent",
+        "ecran noir apres connexion windows",
+        "ecran noir apres connexion"
+      ],
+      "tags": ["windows_slow_startup", "black_screen_explorer"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["EXPLORER_HANG", "BLACK_SCREEN_LOGIN"]
+    },
+    {
+      "phrases": [
+        "c drive full windows",
+        "low disk space warning windows",
+        "safe disk cleanup windows",
+        "disque c plein windows",
+        "liberer espace disque windows"
+      ],
+      "tags": ["windows_c_drive_full", "workstation_disk_cleanup"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0x80070070", "LOW_DISK_SPACE"]
+    },
+    {
+      "phrases": [
+        "usb device not recognized",
+        "keyboard mouse not working windows",
+        "external hard drive not showing up",
+        "peripherique usb non reconnu",
+        "disque dur externe invisible windows"
+      ],
+      "tags": ["usb_device_not_recognized", "usb_peripheral_driver"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["USB_DESC_FAIL", "Code 28"]
+    },
+    {
+      "phrases": [
+        "uac admin prompt software install",
+        "user cannot install program",
+        "msi installer error 1603",
+        "demande mot de passe administrateur uac",
+        "utilisateur ne peut pas installer logiciel"
+      ],
+      "tags": ["software_install_uac", "local_admin_audit"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["UAC_ELEVATION_REQUIRED", "1603", "ERROR_ELEVATION_REQUIRED"]
+    },
+    {
+      "phrases": [
+        "iphone outlook not syncing email",
+        "android teams mobile not working",
+        "intune app protection policy mobile",
+        "outlook iphone ne synchronise plus",
+        "portail entreprise mobile intune requis"
+      ],
+      "tags": ["mobile_outlook_sync", "intune_app_protection"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["MAM_APP_PROTECT", "AADSTS530003"]
+    },
+    {
+      "phrases": [
+        "shared folder access denied",
+        "ntfs permissions vs share permissions",
+        "file in use by another user file server",
+        "acces refuse dossier partage serveur",
+        "permissions ntfs et partage windows server"
+      ],
+      "tags": ["file_server_access_denied", "ntfs_share_permissions"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["ERROR_ACCESS_DENIED", "SMB_FILE_LOCK"]
+    },
+    {
+      "phrases": [
+        "browser slow chrome edge",
+        "unwanted popups fake notifications browser",
+        "pdf opens in edge instead of adobe",
+        "fenetres popups publicites navigateur",
+        "pdf s'ouvre dans edge au lieu d'adobe"
+      ],
+      "tags": ["browser_slow_popups", "default_app_handler"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["BROWSER_ADWARE_POPUP", "DEFAULT_PDF_RESET"]
+    },
+    {
+      "phrases": [
+        "dead pc",
+        "pc won't start",
+        "pc won't turn on",
+        "computer won't turn on",
+        "no power pc",
+        "laptop won't turn on",
+        "pc mort",
+        "pc ne s'allume pas",
+        "ordinateur ne s'allume pas",
+        "aucune alimentation pc"
+      ],
+      "tags": ["pc_no_power", "dead_pc_triage", "hardware_power_fail"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["NO_POWER", "DEAD_PC", "NO_LED_NO_FANS", "PSU_FAIL"]
+    },
+    {
+      "phrases": [
+        "black screen",
+        "pc black screen",
+        "black screen on startup",
+        "pc turns on black screen",
+        "no display no post",
+        "monitor no signal boot",
+        "ecran noir demarrage",
+        "ecran noir pc",
+        "pc s'allume mais ecran noir",
+        "aucun signal ecran"
+      ],
+      "tags": ["pc_black_screen_nopost", "post_blink_codes"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["NO_POST", "NO_SIGNAL", "BLACK_SCREEN_BOOT", "POST_BEEP_LED"]
+    },
+    {
+      "phrases": [
+        "pc won't boot up",
+        "pc won't boot",
+        "windows won't boot",
+        "windows won't start",
+        "automatic repair loop",
+        "stuck on automatic repair",
+        "no bootable device",
+        "inaccessible boot device",
+        "pc ne demarre pas",
+        "windows ne demarre pas",
+        "boucle reparation automatique",
+        "aucun peripherique amorcable"
+      ],
+      "tags": ["windows_wont_boot", "automatic_repair_loop", "bcd_winre_recovery"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0xc000000f", "0xc000000e", "0xc0000225", "INACCESSIBLE_BOOT_DEVICE", "3F0", "NO_BOOTABLE_DEVICE"]
+    },
+    {
+      "phrases": [
+        "windows firewall blocking app",
+        "port blocked by firewall windows",
+        "port already in use windows",
+        "listening ports audit windows",
+        "pare-feu windows bloque application",
+        "port bloque par pare-feu windows",
+        "port deja utilise windows",
+        "verifier ports ecoute windows"
+      ],
+      "tags": ["windows_firewall_block", "listening_port_conflict"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["WSAEADDRINUSE", "0x80072740", "FIREWALL_BLOCK", "5152"]
     }
   ]
 }

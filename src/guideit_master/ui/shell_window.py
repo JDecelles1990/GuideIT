@@ -44,6 +44,7 @@ from guideit_master.psstore.services.startup_service import StartupService
 from guideit_master.psstore.ui.launcher_view import ScriptsWorkspaceWidget
 from guideit_master.services.cross_link_service import CrossLinkService, coerce_param_overrides
 from guideit_master.services.unified_search import UnifiedSearchResponse, search_all
+from guideit_master.services.user_state_service import UserStateService
 from guideit_master.ui.backdrop_fx import install_backdrop_fx
 from guideit_master.ui.effects import install_item_view_glow_recursive
 
@@ -67,6 +68,7 @@ class UnifiedShellWindow(QMainWindow):
         startup_service: StartupService | None = None,
         hotkey_manager: GlobalHotkeyManager | None = None,
         event_bus: AppEventBus | None = None,
+        user_state_service: UserStateService | None = None,
         playbooks_root_dir: Path | None = None,
         guideit_db_path: Path | None = None,
         initial_mode: int = MODE_SCRIPTS,
@@ -80,6 +82,9 @@ class UnifiedShellWindow(QMainWindow):
         self.setWindowIcon(self.app_icon)
 
         self.event_bus = event_bus if event_bus is not None else AppEventBus(self)
+        self.user_state_service = (
+            user_state_service if user_state_service is not None else UserStateService()
+        )
         self.startup_service = (
             startup_service if startup_service is not None else StartupService()
         )
@@ -231,12 +236,14 @@ class UnifiedShellWindow(QMainWindow):
         self.playbooks_workspace = PlaybooksWorkspaceWidget(
             **self._playbooks_kw,
             event_bus=self.event_bus,
+            user_state_service=self.user_state_service,
             embedded_in_shell=True,
             parent=self.mode_splitter,
         )
         self.scripts_workspace = ScriptsWorkspaceWidget(
             **self._workspaces_kw,
             event_bus=self.event_bus,
+            user_state_service=self.user_state_service,
             parent=self.mode_splitter,
         )
 
@@ -412,6 +419,11 @@ class UnifiedShellWindow(QMainWindow):
             "copy_linked_readonly_bundle",
             "Ctrl+Shift+B",
             self._shortcut_copy_linked_readonly_bundle,
+        )
+        self._register_shortcut(
+            "toggle_pin_favorite",
+            "Ctrl+D",
+            self._shortcut_toggle_pin_favorite,
         )
         self._register_shortcut("sync_catalog", "F5", self._sync_all_libraries)
         self._register_shortcut("escape_action", "Esc", self._handle_escape)
@@ -803,6 +815,21 @@ class UnifiedShellWindow(QMainWindow):
         if loaded_count > 0:
             self.set_mode(MODE_SCRIPTS)
         self.status_bar.showMessage(toast_msg, 5000)
+
+    def _shortcut_toggle_pin_favorite(self) -> None:
+        if self._current_mode == MODE_SCRIPTS:
+            self.scripts_workspace.toggle_current_script_favorite()
+        elif self._current_mode == MODE_SPLIT:
+            focus_widget = QApplication.focusWidget()
+            if focus_widget is not None and (
+                focus_widget is self.scripts_workspace
+                or self.scripts_workspace.isAncestorOf(focus_widget)
+            ):
+                self.scripts_workspace.toggle_current_script_favorite()
+            else:
+                self.playbooks_workspace.toggle_current_playbook_favorite()
+        else:
+            self.playbooks_workspace.toggle_current_playbook_favorite()
 
     def resizeEvent(self, event) -> None:  # noqa: N802
         super().resizeEvent(event)

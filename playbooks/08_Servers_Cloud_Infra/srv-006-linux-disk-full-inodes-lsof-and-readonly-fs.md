@@ -46,12 +46,23 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
+### Questions to Ask the User (Classify the Issue)
+1. Did monitoring flag **90–100% disk usage on `/` or `/var` (`ENOSPC`)**, OR did an app/upload fail with **`Read-only file system (EROFS)`**?
+2. Is this host running **Docker (`[srv-015]`)**, a **web/app server writing big logs**, or a **database**?
+3. Has any storage/SAN outage or hypervisor host snapshot issue occurred recently?
+
+### Initial Scope & Classification
 - Distinguish **two classic Linux surprises** before deleting anything:
-  1. **`df -h` shows free GB, yet apps fail with `No space left on device (ENOSPC)`:** Check **`df -i`** — 100% **inode exhaustion** (millions of tiny session/mail/temp files)!
-  2. **`du -sh` total is MUCH smaller than `df -h` Used space:** A running daemon is still holding an open file handle to a **deleted** large log file (`lsof +L1`) — disk blocks won't free until that service closes or restarts!
-- If writes fail with **`Read-only file system (EROFS)`**, DO NOT force-remount `rw` blindly — the kernel dropped the mount to `ro` to protect against disk/RAID corruption (`EXT4_ERROR` -> inspect `dmesg` and `[srv-009]` first!).
+  1. **`df -h` shows free GB, yet apps fail with `No space left on device (ENOSPC)`:** Check **`df -i`** — 100% **inode exhaustion**!
+  2. **`du -sh` total is MUCH smaller than `df -h` Used space:** Running daemon still holds an open handle to a **deleted** log (`lsof +L1`)!
+- If **`Read-only file system (EROFS)`**, DO NOT force-remount `rw` blindly — inspect `dmesg` and hardware health (`[srv-009]`) first!
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Safe Read-Only Capacity Snapshot)
+1. **Inspect Disk % and Monitoring Alert Scope:** Run `df -hT` and `df -ihT` (read-only!) to verify WHICH mount (`/`, `/var`, `/var/lib/docker`) hit 100% blocks or 100% inodes, and screenshot the output!
+2. **Never `rm` Active Database or App Files at L1:** Confirm with L2/dev owner before deleting or truncating any large `.log` or backup file, and verify backups completed (`[srv-009]` if `EROFS` hardware warnings exist!).
+
+### L2 Technical Diagnostics
 1. **Check Block Capacity, Inode Usage, Mount Options (`ro` vs `rw`), and Block Devices (read-only):**
    ```bash
    df -hT

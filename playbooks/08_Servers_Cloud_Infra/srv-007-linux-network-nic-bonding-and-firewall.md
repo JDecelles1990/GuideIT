@@ -47,12 +47,20 @@ related_ids:
 ---
 
 ## Fast Triage (Under 2 Minutes)
-- Distinguish **Physical / Layer 1 (`NO-CARRIER`)** vs. **Service Not Listening (`ECONNREFUSED`)** vs. **Firewall / Routing Drop (`ETIMEDOUT`)**:
-  - `NO-CARRIER`: Cable unplugged, bad SFP+ transceiver (`[srv-010]`), disabled switch port, or wrong VLAN trunk.
-  - `ECONNREFUSED`: Packet reached the server, but no daemon is listening on that IP:port (bound to `127.0.0.1` instead of `0.0.0.0`, or service crashed `[srv-004]`).
-  - `ETIMEDOUT`: Packet silently dropped by host firewall (`nftables`/`ufw`/`firewalld`), upstream switch ACL, or missing return route.
+### Questions to Ask the User (Classify the Issue)
+1. Is **one specific TCP port blocked** (`443` / `8080` -> `ECONNREFUSED` or `ETIMEDOUT`), OR is the **entire server unreachable from the network (`NO-CARRIER` / VM offline)**?
+2. Did someone recently **change firewall rules (`ufw` / `firewalld` / `nftables`)**, edit **Netplan / NIC config**, or move a **rack patch cable / SFP+ module (`[srv-010]`)**?
+3. Are other servers on the same VLAN/rack reachable right now?
+
+### Initial Scope & Classification
+- Distinguish **Physical / Layer 1 (`NO-CARRIER`)** vs **Service Not Listening (`ECONNREFUSED`)** vs **Firewall / Routing Drop (`ETIMEDOUT`)**.
 
 ## Read-Only Diagnostics (L1-L2)
+### L1 First-Line Checks (Start Here — Hypervisor/Switch LED & Safe Read-Only Checks)
+1. **Verify Hypervisor NIC "Connected" Checkbox or Onsite Rack Link LED:** If a VM lost networking suddenly, check VMware/Hyper-V/Proxmox VM settings first to make sure the virtual NIC didn't lose its **Connected** checkmark or get moved to the wrong VLAN port group! If physical rack server, check switch/NIC port link LED (`[srv-010]`).
+2. **Capture Read-Only Network Snapshot via Out-of-Band Console:** Run **`ip -br addr`** and **`ping -c 3 <default_gateway>`** without changing anything and capture output for L2/L3!
+
+### L2 Technical Diagnostics
 1. **Inspect Link State, IP Addresses, Routing Table, and NIC Speed/Duplex (read-only):**
    ```bash
    ip -br link

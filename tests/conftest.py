@@ -19,6 +19,7 @@ from guideit_master.guideit.indexer import build_index
 from guideit_master.paths import get_bundle_dir
 from guideit_master.psstore.repositories.catalog_repo import CatalogRepo
 from guideit_master.psstore.services.scanner import ScriptScanner
+from guideit_master.services.user_state_service import UserStateService
 from guideit_master.ui.backdrop_fx import BACKDROP_FX_PROPERTY
 from guideit_master.ui.shell_window import MODE_SCRIPTS, UnifiedShellWindow
 from guideit_master.ui.unified_theme import DARK_THEME_QSS
@@ -109,11 +110,17 @@ def shell_window_factory(
         startup_service: object | None = None,
         hotkey_manager: object | None = None,
         event_bus: AppEventBus | None = None,
+        user_state_service: UserStateService | None = None,
         user_scripts_dir: Path | None = None,
     ) -> UnifiedShellWindow:
         nonlocal counter
         counter += 1
         effective_db = db_path if db_path is not None else (tmp_path / f"catalog_{counter}.db")
+        effective_user_state = (
+            user_state_service
+            if user_state_service is not None
+            else UserStateService(state_path=tmp_path / f"user_state_{counter}.json")
+        )
         repo = CatalogRepo(db_path=effective_db)
         if scripts_dir is not None:
             scanner = ScriptScanner(
@@ -129,6 +136,7 @@ def shell_window_factory(
             startup_service=startup_service or DummyStartupService(),
             hotkey_manager=hotkey_manager,
             event_bus=event_bus,
+            user_state_service=effective_user_state,
             playbooks_root_dir=playbooks_root_dir,
             guideit_db_path=guideit_db if guideit_db is not None else guideit_db_path,
             initial_mode=initial_mode,

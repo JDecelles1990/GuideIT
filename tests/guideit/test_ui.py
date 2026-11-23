@@ -75,6 +75,16 @@ def test_parse_section_blocks_splits_code_remediation_and_links() -> None:
     assert "net-001 — No Internet" in pivot_prose[0].html
     assert "→" in pivot_prose[0].html
 
+    triage = parse_section_blocks(
+        "Fast Triage (Under 2 Minutes)",
+        "### Questions to Ask the User (Classify the Issue)\n1. Single user or whole office?\n",
+    )
+    assert triage.category == "triage"
+    triage_prose = [b for b in triage.blocks if isinstance(b, ProseBlock)]
+    assert len(triage_prose) == 1
+    assert "###" not in triage_prose[0].html
+    assert "Questions to Ask the User (Classify the Issue)" in triage_prose[0].html
+
 
 def test_all_seed_playbooks_produce_en_and_fr_client_snippets() -> None:
     playbooks = sorted((REPO_ROOT / "playbooks").glob("*/*.md"))
@@ -89,6 +99,24 @@ def test_all_seed_playbooks_produce_en_and_fr_client_snippets() -> None:
         assert parsed.snippets is not None
         assert parsed.snippets.en, f"Missing EN snippet in {pb.id}"
         assert parsed.snippets.fr, f"Missing FR snippet in {pb.id}"
+
+
+def test_all_playbooks_have_classification_questions_and_l1_steps() -> None:
+    playbooks = sorted((REPO_ROOT / "playbooks").glob("*/*.md"))
+    assert len(playbooks) >= 80
+    for pb_file in playbooks:
+        pb = load_playbook_file(REPO_ROOT, pb_file)
+        order, sections = extract_sections(pb.body_markdown)
+        triage_headings = [h for h in order if "fast triage" in h.lower()]
+        diag_headings = [h for h in order if "read-only diagnostics" in h.lower()]
+        assert len(triage_headings) == 1, f"Missing Fast Triage section in {pb.id}"
+        assert len(diag_headings) == 1, f"Missing Read-Only Diagnostics section in {pb.id}"
+        assert sections[triage_headings[0]].count("?") >= 2, (
+            f"Expected >= 2 classification questions in {pb.id}"
+        )
+        assert "L1" in sections[diag_headings[0]], (
+            f"Expected L1 diagnostic guidance in {pb.id}"
+        )
 
 
 def test_mainwindow_startup_search_and_facets(
