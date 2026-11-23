@@ -40,6 +40,8 @@ related_ids:
   - net-001
   - m365-006
   - id-002
+linked_scripts:
+  - 03_M365/Get-MailDNSRecords.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

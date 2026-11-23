@@ -47,6 +47,8 @@ related_ids:
   - id-006
   - srv-015
 linked_scripts:
+  - 05_Security_Defender/Get-ExpiringCertificates.ps1
+  - 02_Network/Test-PortConnectivity.ps1
   - 99_Custom/Sample-CustomDiagnostic.ps1
 ---
 

@@ -41,6 +41,9 @@ related_ids:
   - sec-004
   - m365-005
   - net-003
+linked_scripts:
+  - 03_M365/Get-TeamsDiagnostics.ps1
+  - 03_M365/Clear-TeamsCache.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

@@ -51,6 +51,7 @@ related_ids:
   - m365-001
 linked_scripts:
   - 05_Security_Defender/Get-ExpiringCertificates.ps1
+  - 02_Network/Test-PortConnectivity.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

@@ -46,6 +46,10 @@ related_ids:
   - m365-006
   - id-001
   - m365-001
+linked_scripts:
+  - 06_AD_Identity/Get-ADReplicationAndTime.ps1
+  - 07_Servers_Infra/Get-ServerAutoServices.ps1
+  - 01_System/Get-RecentEventErrors.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

@@ -48,6 +48,13 @@ related_ids:
   - win-001
   - win-002
   - win-008
+linked_scripts:
+  - 01_System/Get-OSInformation.ps1
+  - 01_System/Get-HardwareInventory.ps1
+  - 01_System/Get-DiskSpaceReport.ps1
+  - 01_System/Get-PendingRebootStatus.ps1
+  - 03_M365/Get-EntraRegistrationStatus.ps1
+  - 01_System/Update-Windows.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

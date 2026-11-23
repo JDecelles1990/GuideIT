@@ -40,6 +40,10 @@ related_ids:
   - win-007
   - net-003
   - prt-003
+linked_scripts:
+  - 04_Devices/Get-ProblemDevices.ps1
+  - 04_Devices/Get-DeviceDrivers.ps1
+  - 04_Devices/Update-DeviceDrivers.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

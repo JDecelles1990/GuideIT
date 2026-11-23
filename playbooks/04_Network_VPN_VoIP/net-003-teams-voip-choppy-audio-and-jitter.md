@@ -44,6 +44,7 @@ related_ids:
   - prt-002
   - win-007
 linked_scripts:
+  - 03_M365/Get-TeamsDiagnostics.ps1
   - 02_Network/Test-NetworkQuality.ps1
   - 02_Network/Get-WiFiDiagnostics.ps1
 ---

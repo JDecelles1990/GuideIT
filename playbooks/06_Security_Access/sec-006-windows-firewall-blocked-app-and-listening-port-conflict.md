@@ -47,6 +47,7 @@ related_ids:
   - sec-002
   - srv-015
 linked_scripts:
+  - 07_Servers_Infra/Get-FirewallAndListeningPorts.ps1
   - 05_Security_Defender/Get-FirewallStatus.ps1
   - 02_Network/Get-ListeningPorts.ps1
   - 02_Network/Test-PortConnectivity.ps1

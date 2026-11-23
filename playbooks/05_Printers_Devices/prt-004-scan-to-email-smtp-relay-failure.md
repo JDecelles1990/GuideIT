@@ -43,6 +43,9 @@ related_ids:
   - m365-006
   - sec-003
   - id-003
+linked_scripts:
+  - 03_M365/Get-MailDNSRecords.ps1
+  - 02_Network/Test-PortConnectivity.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

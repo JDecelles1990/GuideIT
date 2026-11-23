@@ -43,6 +43,9 @@ related_ids:
   - m365-002
   - app-002
   - m365-007
+linked_scripts:
+  - 03_M365/Get-OfficeActivationStatus.ps1
+  - 03_M365/Reset-OneDriveSync.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

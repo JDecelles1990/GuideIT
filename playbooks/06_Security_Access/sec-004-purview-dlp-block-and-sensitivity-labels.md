@@ -41,6 +41,9 @@ related_ids:
   - m365-007
   - m365-008
   - sec-001
+linked_scripts:
+  - 03_M365/Get-EntraRegistrationStatus.ps1
+  - 03_M365/Get-OfficeActivationStatus.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

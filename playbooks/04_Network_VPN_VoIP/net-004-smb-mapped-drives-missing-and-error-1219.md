@@ -44,6 +44,11 @@ related_ids:
   - id-001
   - id-004
   - mdm-007
+linked_scripts:
+  - 07_Servers_Infra/Get-SMBSharesAndSessions.ps1
+  - 06_AD_Identity/Get-KerberosTicketStatus.ps1
+  - 02_Network/Get-NetworkSnapshot.ps1
+  - 02_Network/Test-PortConnectivity.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

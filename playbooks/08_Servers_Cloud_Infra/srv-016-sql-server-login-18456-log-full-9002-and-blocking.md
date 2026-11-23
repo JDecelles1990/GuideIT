@@ -45,6 +45,9 @@ related_ids:
   - id-005
   - id-001
 linked_scripts:
+  - 07_Servers_Infra/Get-ServerAutoServices.ps1
+  - 07_Servers_Infra/Get-FirewallAndListeningPorts.ps1
+  - 01_System/Get-DiskSpaceReport.ps1
   - 02_Network/Get-ListeningPorts.ps1
   - 05_Security_Defender/Get-FirewallStatus.ps1
 ---

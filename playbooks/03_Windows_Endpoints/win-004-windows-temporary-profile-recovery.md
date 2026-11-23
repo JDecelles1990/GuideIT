@@ -40,6 +40,10 @@ related_ids:
   - net-004
   - id-005
   - win-006
+linked_scripts:
+  - 01_System/Get-UserProfileHealth.ps1
+  - 01_System/Get-RecentEventErrors.ps1
+  - 01_System/Get-DiskSpaceReport.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

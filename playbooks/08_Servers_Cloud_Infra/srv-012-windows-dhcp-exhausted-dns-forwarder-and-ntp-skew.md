@@ -45,6 +45,11 @@ related_ids:
   - id-004
   - id-005
   - prt-001
+linked_scripts:
+  - 07_Servers_Infra/Get-DHCPAndDNSServerHealth.ps1
+  - 06_AD_Identity/Get-ADReplicationAndTime.ps1
+  - 07_Servers_Infra/Get-ServerAutoServices.ps1
+  - 01_System/Get-RecentEventErrors.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

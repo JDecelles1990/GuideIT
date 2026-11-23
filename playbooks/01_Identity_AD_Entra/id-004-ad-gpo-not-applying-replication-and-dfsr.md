@@ -46,6 +46,10 @@ related_ids:
   - id-005
   - net-004
   - id-001
+linked_scripts:
+  - 06_AD_Identity/Get-GPOResultSummary.ps1
+  - 06_AD_Identity/Get-ADReplicationAndTime.ps1
+  - 02_Network/Get-NetworkSnapshot.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

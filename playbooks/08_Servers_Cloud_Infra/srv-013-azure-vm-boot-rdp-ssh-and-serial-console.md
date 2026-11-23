@@ -50,6 +50,10 @@ related_ids:
   - srv-008
   - net-005
   - srv-001
+linked_scripts:
+  - 02_Network/Test-PortConnectivity.ps1
+  - 07_Servers_Infra/Get-FirewallAndListeningPorts.ps1
+  - 07_Servers_Infra/Get-ServerAutoServices.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

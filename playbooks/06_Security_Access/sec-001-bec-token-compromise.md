@@ -45,6 +45,10 @@ related_ids:
   - m365-006
   - id-003
   - id-007
+linked_scripts:
+  - 03_M365/Get-MailDNSRecords.ps1
+  - 06_AD_Identity/Get-AccountLockoutEvents.ps1
+  - 03_M365/Get-EntraRegistrationStatus.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

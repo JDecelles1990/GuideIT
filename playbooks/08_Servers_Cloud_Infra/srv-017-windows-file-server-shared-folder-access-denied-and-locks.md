@@ -42,6 +42,10 @@ related_ids:
   - id-001
   - m365-002
   - srv-001
+linked_scripts:
+  - 07_Servers_Infra/Get-SMBSharesAndSessions.ps1
+  - 06_AD_Identity/Get-KerberosTicketStatus.ps1
+  - 07_Servers_Infra/Get-ServerAutoServices.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

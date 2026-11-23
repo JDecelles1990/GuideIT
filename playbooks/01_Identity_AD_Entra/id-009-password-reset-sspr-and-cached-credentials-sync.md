@@ -45,6 +45,8 @@ related_ids:
   - id-008
   - net-006
 linked_scripts:
+  - 06_AD_Identity/Get-KerberosTicketStatus.ps1
+  - 06_AD_Identity/Get-AccountLockoutEvents.ps1
   - 05_Security_Defender/Get-LocalAccountStatus.ps1
   - 03_M365/Get-EntraRegistrationStatus.ps1
 ---

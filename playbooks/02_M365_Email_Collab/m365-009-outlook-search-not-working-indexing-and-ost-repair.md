@@ -42,6 +42,8 @@ related_ids:
   - m365-008
   - app-002
 linked_scripts:
+  - 03_M365/Get-OutlookAddins.ps1
+  - 01_System/Get-DiskSpaceReport.ps1
   - 03_M365/Clear-OutlookCache.ps1
 ---
 

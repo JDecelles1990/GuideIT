@@ -47,6 +47,7 @@ related_ids:
 linked_scripts:
   - 03_M365/Get-EntraRegistrationStatus.ps1
   - 03_M365/Get-OfficeActivationStatus.ps1
+  - 03_M365/Get-MailDNSRecords.ps1
   - 03_M365/Clear-OutlookCache.ps1
 ---
 

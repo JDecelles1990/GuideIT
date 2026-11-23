@@ -269,24 +269,45 @@ def search_all(
             candidates[exact_rec.relative_path] = (rec_cur, score_cur + 60.0, reasons_cur)
 
     # Boost scripts linked to top-matching playbooks (bridges FR/error-code queries to .ps1 scripts)
-    if norm_query:
+    if norm_query and boost_playbooks:
+        top_pb_score = max((pb.score for pb in boost_playbooks), default=0.0)
+        linked_boosts: dict[str, float] = {}
+        linked_bonus_count: dict[str, int] = {}
+
         for rank, pb_hit in enumerate(boost_playbooks):
             if not pb_hit.linked_scripts:
                 continue
-            boost = max(15.0, 45.0 - rank * 7.0)
+            score_ratio = (
+                max(0.15, min(1.0, pb_hit.score / top_pb_score))
+                if top_pb_score > 0
+                else 1.0
+            )
+            pb_boost = max(15.0, 45.0 - rank * 7.0) * score_ratio
             linked_map = repo.get_scripts_by_paths(pb_hit.linked_scripts)
             for rel_path, rec in linked_map.items():
                 if rel_path in candidates:
                     existing_rec, cur_score, reasons = candidates[rel_path]
                     reasons_new = list(reasons)
                     reasons_new.append(f"linked_playbook:{pb_hit.id}")
-                    candidates[rel_path] = (existing_rec, cur_score + boost, reasons_new)
+                    candidates[rel_path] = (existing_rec, cur_score, reasons_new)
                 else:
                     candidates[rel_path] = (
                         rec,
-                        boost,
+                        0.0,
                         [f"linked_playbook:{pb_hit.id}"],
                     )
+
+                if rel_path not in linked_boosts:
+                    linked_boosts[rel_path] = pb_boost
+                    linked_bonus_count[rel_path] = 0
+                else:
+                    linked_boosts[rel_path] = max(linked_boosts[rel_path], pb_boost)
+                    linked_bonus_count[rel_path] += 1
+
+        for rel_path, primary_boost in linked_boosts.items():
+            rec, cur_score, reasons = candidates[rel_path]
+            corroboration_bonus = min(6.0, linked_bonus_count[rel_path] * 2.0)
+            candidates[rel_path] = (rec, cur_score + primary_boost + corroboration_bonus, reasons)
 
     # Exact filename / title token boost
     scored_scripts: list[ScriptSearchHit] = []

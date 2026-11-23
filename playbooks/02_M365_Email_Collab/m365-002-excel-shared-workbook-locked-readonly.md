@@ -43,6 +43,10 @@ related_ids:
   - m365-003
   - net-004
   - sec-004
+linked_scripts:
+  - 07_Servers_Infra/Get-SMBSharesAndSessions.ps1
+  - 03_M365/Get-OfficeActivationStatus.ps1
+  - 03_M365/Reset-OneDriveSync.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)

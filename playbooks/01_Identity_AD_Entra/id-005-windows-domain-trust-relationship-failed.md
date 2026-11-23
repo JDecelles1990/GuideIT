@@ -43,6 +43,8 @@ related_ids:
   - id-001
   - win-004
 linked_scripts:
+  - 06_AD_Identity/Get-ADReplicationAndTime.ps1
+  - 06_AD_Identity/Get-KerberosTicketStatus.ps1
   - 03_M365/Get-EntraRegistrationStatus.ps1
   - 01_System/Get-OSInformation.ps1
 ---

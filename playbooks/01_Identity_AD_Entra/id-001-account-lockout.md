@@ -45,6 +45,7 @@ related_ids:
   - id-005
   - net-004
 linked_scripts:
+  - 06_AD_Identity/Get-AccountLockoutEvents.ps1
   - 05_Security_Defender/Get-LocalAccountStatus.ps1
   - 01_System/Get-RecentEventErrors.ps1
 ---

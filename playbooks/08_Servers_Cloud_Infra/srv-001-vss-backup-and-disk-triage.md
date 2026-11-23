@@ -44,7 +44,9 @@ related_ids:
   - srv-016
   - srv-013
 linked_scripts:
+  - 07_Servers_Infra/Get-VSSWriterHealth.ps1
   - 01_System/Get-DiskSpaceReport.ps1
+  - 07_Servers_Infra/Get-ServerAutoServices.ps1
   - 01_System/Invoke-DeepSystemCleanup.ps1
 ---
 

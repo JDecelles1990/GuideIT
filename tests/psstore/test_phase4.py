@@ -27,6 +27,10 @@ def test_production_catalog_syncs_all_38_scripts(tmp_path: Path) -> None:
 
     all_scripts = repo.get_all_scripts()
     assert len(all_scripts) == expected_count
+    cat_names = {c["category"] for c in repo.get_categories_with_counts()}
+    assert {"System", "Network", "M365", "Devices", "Security_Defender", "AD_Identity", "Servers_Infra"}.issubset(
+        cat_names
+    )
 
 
 @pytest.mark.parametrize(
@@ -100,6 +104,60 @@ def test_production_catalog_syncs_all_38_scripts(tmp_path: Path) -> None:
             "02_Network/Get-ListeningPorts.ps1",
             {"Protocol": "TCP", "PortFilter": 443},
             ["[string]$Protocol = 'TCP'", "[int]$PortFilter = 443"],
+        ),
+        (
+            "06_AD_Identity/Get-AccountLockoutEvents.ps1",
+            {"Username": "jsmith", "HoursBack": 48, "IncludeFailedLogons": False, "MaxEvents": 50},
+            [
+                "[string]$Username = 'jsmith'",
+                "[int]$HoursBack = 48",
+                "[bool]$IncludeFailedLogons = $false",
+                "[int]$MaxEvents = 50",
+            ],
+        ),
+        (
+            "06_AD_Identity/Get-GPOResultSummary.ps1",
+            {"Scope": "User", "IncludeDenied": False},
+            ["[string]$Scope = 'User'", "[bool]$IncludeDenied = $false"],
+        ),
+        (
+            "03_M365/Get-MailDNSRecords.ps1",
+            {"Domain": "contoso.com", "DkimSelector": "selector2", "DnsServer": "9.9.9.9", "CheckAutodiscover": False},
+            [
+                "[string]$Domain = 'contoso.com'",
+                "[string]$DkimSelector = 'selector2'",
+                "[string]$DnsServer = '9.9.9.9'",
+                "[bool]$CheckAutodiscover = $false",
+            ],
+        ),
+        (
+            "03_M365/Get-TeamsDiagnostics.ps1",
+            {"TestEndpoints": False, "TimeoutMs": 2000, "WarnCacheSizeMB": 750},
+            ["[bool]$TestEndpoints = $false", "[int]$TimeoutMs = 2000", "[int]$WarnCacheSizeMB = 750"],
+        ),
+        (
+            "07_Servers_Infra/Get-ServerAutoServices.ps1",
+            {"IncludeDelayedAuto": False, "IncludeTriggerStart": True, "HoursBack": 12, "MaxEvents": 15},
+            [
+                "[bool]$IncludeDelayedAuto = $false",
+                "[bool]$IncludeTriggerStart = $true",
+                "[int]$HoursBack = 12",
+                "[int]$MaxEvents = 15",
+            ],
+        ),
+        (
+            "07_Servers_Infra/Get-FirewallAndListeningPorts.ps1",
+            {"PortFilter": 3389, "IncludeLoopback": True, "CheckInboundRules": False},
+            [
+                "[int]$PortFilter = 3389",
+                "[bool]$IncludeLoopback = $true",
+                "[bool]$CheckInboundRules = $false",
+            ],
+        ),
+        (
+            "01_System/Get-UserProfileHealth.ps1",
+            {"HoursBack": 96, "IncludeSystemProfiles": True},
+            ["[int]$HoursBack = 96", "[bool]$IncludeSystemProfiles = $true"],
         ),
     ],
 )

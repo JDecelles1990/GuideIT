@@ -42,6 +42,9 @@ related_ids:
   - net-003
   - net-001
   - srv-012
+linked_scripts:
+  - 02_Network/Test-NetworkQuality.ps1
+  - 02_Network/Test-PortConnectivity.ps1
 ---
 
 ## Fast Triage (Under 2 Minutes)
