@@ -19,6 +19,9 @@ from PySide6.QtWidgets import QApplication, QFrame, QMainWindow, QWidget
 BACKDROP_FX_PROPERTY = "_psstore_backdrop_fx"
 BACKDROP_PANEL_NAMES: tuple[str, ...] = (
     "ShellHeaderFrame",
+    "filterSidebar",
+    "resultsPane",
+    "viewerPane",
     "SidebarFrame",
     "CatalogFrame",
     "InspectorFrame",

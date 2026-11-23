@@ -2,14 +2,17 @@
 
 A unified, offline-capable **Python 3.11+ / PySide6 / SQLite** Windows desktop workstation combining **PowerShellStore** (production Windows PowerShell 5.1 diagnostic & remediation workstation) and **GuideIT** (L1–L3 bilingual EN/FR troubleshooting playbook library).
 
-> **Build Status:** **Phase 1 Complete** — Root project scaffolding, PyInstaller-ready `paths.py`, `AppEventBus`, `UnifiedShellWindow` (with Split View layout, tray, global `Win+F8` hotkey, opacity slider, and cyber-aurora frosted-glass UI), and the complete **PowerShellStore** 38-script workstation are active and tested. GuideIT playbooks (`Phase 2`), bidirectional cross-linking (`Phase 3`), and PyInstaller packaging (`Phase 4`) follow incrementally.
+> **Build Status:** **Phase 2 Complete** — Root project scaffolding, PyInstaller-ready `paths.py`, `AppEventBus`, `UnifiedShellWindow` (with Split View layout, tray, global `Win+F8` hotkey, opacity slider, and cyber-aurora frosted-glass UI), the complete **PowerShellStore** 38-script workstation, and the full **GuideIT** 65-playbook bilingual (EN/FR) library, FTS5 search engine, strict PII/redaction validator, and 3-pane viewer UI are active and tested. Bidirectional cross-linking (`Phase 3`) and PyInstaller packaging (`Phase 4`) follow next.
 
 ---
 
-## 🚀 Phase 1 Key Features
+## 🚀 Phase 1 & Phase 2 Key Features
 
+- **65 Bilingual (EN/FR) L1–L3 Playbooks Across 9 Domains & 23 Subcategories:** Canonical troubleshooting workflows under `playbooks/` (`01_Identity_AD_Entra` through `09_Apps_LOB`) with progressive triage, read-only diagnostics, confirmation-gated remediations, verification checks, and 1-click EN/FR client update snippets.
+- **Accent-Insensitive SQLite FTS5 Search & Taxonomy Expansion:** `data/guideit.db` indexes titles, error codes, tags, EN/FR keywords, tools, and full Markdown bodies, expanding colloquial EN/FR ticket phrases via `taxonomy/keyword_map.json`.
+- **Curated External Tools Directory (`Ctrl+T`) & Multi-Tenant PII Health Pill:** Searchable `ResourcesDialog` (`taxonomy/resources.json`) with 31+ MSP lookup sites and live `ValidationDialog` enforcing zero non-placeholder emails, public IPs, raw GUIDs, or secret tokens.
 - **38 Ready-to-Use PowerShell 5.1 Scripts Across 6 Categories:** Production diagnostics and remediations under `powershell_scripts/` (`01_System`, `02_Network`, `03_M365`, `04_Devices`, `05_Security_Defender`, and `99_Custom`).
-- **Unified Shell Window & Mode Switcher (`Alt+1` / `Alt+2` / `Alt+3`):** Permanent top-level `QSplitter` housing the Playbooks pane and `ScriptsWorkspaceWidget` with compact-mode Split View (`Alt+3`) without widget reparenting or duplicate runners.
+- **Unified Shell Window & Mode Switcher (`Alt+1` / `Alt+2` / `Alt+3`):** Permanent top-level `QSplitter` housing `PlaybooksWorkspaceWidget` and `ScriptsWorkspaceWidget` with compact-mode Split View (`Alt+3`) without widget reparenting or duplicate runners.
 - **Single Shell Owner for System Services:** `UnifiedShellWindow` exclusively owns the system tray icon (`QSystemTrayIcon`), minimize-to-tray `closeEvent`, global `Win+F8` Win32 hotkey (`hotkey_service.py`), Windows login startup (`startup_service.py`), and the **60%–100% window opacity slider**.
 - **Multi-Script Checkboxes & Clickable Sorting:** Click column headers (`Title`, `Risk Level`, `Admin`) to sort alphanumerically or by risk/admin flags, and check multiple scripts across categories/filters (including one-click **Read-Only** `Ctrl+Shift+O` selection) to copy combined PowerShell 5.1 `& { ... }` bundles or run sequentially locally / in one UAC-elevated session.
 - **File-First Architecture with Live Sync:** Real `.ps1` files under `powershell_scripts/` are the single source of truth. `ScriptScanner` parses `.PSSTORE_META` JSON headers, computes SHA-256 hashes, and indexes scripts into SQLite (`data/powershell_store.db`) automatically via `QFileSystemWatcher`.
@@ -40,13 +43,22 @@ python main.py
 pythonw main.py --startup
 ```
 
-### Phase 1 Verification Commands
+### Phase 2 Verification & CLI Commands
 ```powershell
+# Strictly validate all 65 playbooks (schema, sections, links, and multi-tenant PII rules)
+python tools/validate_playbooks.py --strict
+
+# Build or rebuild the GuideIT SQLite FTS5 search index (data/guideit.db)
+python tools/build_index.py
+
+# Search playbooks from the CLI using EN/FR symptoms or error codes
+python tools/search_cli.py "compte verrouille" --json
+
 # Lint all 38 PowerShell scripts against the .PSSTORE_META and PS 5.1 AST contract
 python tools/lint_scripts.py
 
-# Run Phase 1 path resolver and PowerShellStore test suites
-python -m pytest tests/test_paths.py tests/psstore/ -v
+# Run the complete unified test suite (Paths + PowerShellStore + GuideIT)
+python -m pytest tests/ -v
 ```
 
 ---
@@ -70,14 +82,22 @@ Standard text-editing shortcuts (`Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+Z
 ### Navigation & Catalog
 | Shortcut | Scope | Action / Function | Behavior & Notes |
 | :--- | :--- | :--- | :--- |
-| `Ctrl+B` | In-App | **Toggle Sidebar** (`toggle_sidebar`) | Collapses or expands the left Categories & Filters sidebar to maximize catalog/workstation width. |
+| `Ctrl+B` | In-App | **Toggle Active Sidebar** (`_toggle_active_sidebar`) | Collapses or expands the active workspace's left filter/category sidebar (exits Split View to Scripts if pressed in Split mode). |
 | `Ctrl+O` | In-App | **Open Scripts Folder** (`open_scripts_folder`) | Opens the local `powershell_scripts/` catalog directory in Windows File Explorer. |
-| `Ctrl+F` | In-App | **Focus Search Box** (`_focus_search_input`) | Expands the sidebar if collapsed, switches out of Playbooks-only mode if needed, focuses the script search input, and selects existing query text. |
-| `F5` | In-App | **Sync Catalog** (`sync_and_refresh`) | Rescans all `powershell_scripts/` subfolders, updates SHA-256 checksums in SQLite, and refreshes counts. |
-| `Esc` | In-App | **Stop / Clear Search** (`_handle_escape`) | Context-aware: stops the active script if currently running; otherwise clears any active search filter and returns focus to the catalog table. |
+| `Ctrl+F` | In-App | **Focus Script Search Box** (`_focus_search_input`) | Expands the sidebar if collapsed, switches out of Playbooks-only mode if needed, focuses the script search input, and selects existing query text. |
+| `F5` | In-App | **Sync Scripts & Re-Index Playbooks** (`_sync_all_libraries`) | Rescans `powershell_scripts/` into `powershell_store.db` AND validates & rebuilds `guideit.db` in the background. |
+| `Esc` | In-App | **Stop / Clear Active Search** (`_handle_escape`) | Context-aware: stops the active script if currently running; otherwise clears the Playbooks search bar (in Playbooks mode) or the Scripts search filter. |
 | `Ctrl+Shift+A` | In-App | **Check Visible Scripts** (`_shortcut_check_all_visible`) | Checks all scripts currently shown in the Script Catalog table for batch copy or execution. |
 | `Ctrl+Shift+O` | In-App | **Check Read-Only Scripts** (`_shortcut_check_read_only_visible`) | Checks all visible `read_only` scripts in the Script Catalog table while leaving remediation scripts unchecked. |
 | `Ctrl+Shift+D` | In-App | **Clear Checked Scripts** (`_shortcut_clear_checked`) | Unchecks all selected scripts across all categories. |
+
+### GuideIT Playbooks & External Tools
+| Shortcut | Scope | Action / Function | Behavior & Notes |
+| :--- | :--- | :--- | :--- |
+| `Ctrl+K` | In-App | **Focus Playbook Search** (`_focus_playbook_search`) | Switches to Playbooks mode (`Alt+1`) if needed, focuses the EN/FR playbook search bar, and selects existing text. |
+| `Ctrl+T` | In-App | **Useful Websites & External Tools** (`open_resources_dialog`) | Opens the searchable `ResourcesDialog` directory of 31+ curated MSP & Data Center websites (`taxonomy/resources.json`). |
+| `Ctrl+R` | In-App | **Reset Playbook Search & Filters** (`reset_all`) | Clears the playbook search query, resets Tier/Subjects/OS/Environment/Risk filters, and clears viewer navigation history. |
+| `Alt+Left` | In-App | **Back to Previous Playbook** (`navigate_back`) | Steps back through visited playbooks after clicking related `[id-NNN]` pills or inline `guideit://` links. |
 
 ### Script Actions & Parameters
 | Shortcut | Scope | Action / Function | Behavior & Notes |

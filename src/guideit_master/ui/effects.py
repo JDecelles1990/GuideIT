@@ -508,6 +508,8 @@ def install_item_view_glow_recursive(root: QWidget) -> list[GlowItemDelegate]:
     """Installs the glow delegate on every list/table inside ``root`` (skips combo-box popups)."""
     delegates: list[GlowItemDelegate] = []
     for view in root.findChildren(QAbstractItemView):
+        if view.property("_skip_glow_delegate"):
+            continue
         parent = view.parentWidget()
         inside_combo = False
         while parent is not None and parent is not root:

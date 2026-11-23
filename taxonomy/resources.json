@@ -1,0 +1,253 @@
+{
+  "version": "1.0",
+  "resources": [
+    {
+      "name": "MXToolbox SuperTool",
+      "category": "Email & DNS",
+      "url": "https://mxtoolbox.com/SuperTool.aspx",
+      "tags": ["mx", "spf", "dkim", "dmarc", "smtp", "blacklist", "dns", "mailflow", "courriel"],
+      "when_to_use": "Email bounces (550), SPF/DKIM/DMARC verification, MX routing, and IP blacklist checks.",
+      "instructions": "Enter client domain and prefix commands like mx:contoso.com, spf:contoso.com, dmarc:contoso.com, or blacklist:198.51.100.10. Count SPF DNS lookups (must stay <= 10). Never test private RFC1918 IPs."
+    },
+    {
+      "name": "Google Admin Toolbox (Dig & Messageheader)",
+      "category": "Email & DNS",
+      "url": "https://toolbox.googleapps.com/apps/main/",
+      "tags": ["google workspace", "gmail", "dig", "headers", "spf", "dkim", "har", "dns"],
+      "when_to_use": "Inspect raw email headers (Messageheader) for delivery hops/delay or check DNS/HAR traces.",
+      "instructions": "Use Messageheader to paste sanitized email headers and highlight delay hops + Authentication-Results (SPF/DKIM/DMARC). Use Dig to query TXT/MX/CNAME records against 8.8.8.8."
+    },
+    {
+      "name": "Microsoft Remote Connectivity Analyzer",
+      "category": "Email & DNS",
+      "url": "https://testconnectivity.microsoft.com/",
+      "tags": ["exchange", "autodiscover", "outlook", "smtp", "activesync", "m365", "ndr"],
+      "when_to_use": "Exchange Online Autodiscover failures, Outlook desktop connectivity, or inbound/outbound SMTP TLS checks.",
+      "instructions": "Open Office 365 -> Outlook Connectivity or Inbound/Outbound SMTP Email tests. Verify Autodiscover CNAME points to autodiscover.outlook.com and SMTP supports TLS 1.2."
+    },
+    {
+      "name": "DNS Checker (Global Propagation)",
+      "category": "Email & DNS",
+      "url": "https://dnschecker.org/",
+      "tags": ["dns", "propagation", "a record", "cname", "txt", "mx", "nxdomain"],
+      "when_to_use": "Verify whether recent DNS/MX/SPF/SSL validation TXT edits have propagated globally.",
+      "instructions": "Enter the FQDN, pick record type (A, MX, TXT, CNAME), and compare global resolvers before concluding a DNS cutover failed."
+    },
+    {
+      "name": "Qualys SSL Labs Server Test",
+      "category": "Email & DNS",
+      "url": "https://www.ssllabs.com/ssltest/",
+      "tags": ["ssl", "tls", "certificate", "certificat", "intermediate", "cipher", "https"],
+      "when_to_use": "Public HTTPS certificate errors, missing intermediate CA chain, or deprecated TLS 1.0/1.1 audits.",
+      "instructions": "Enter the public hostname and check 'Do not show the results on the boards'. Inspect 'Chain issues' for Incomplete Intermediate Chains and verify TLS 1.2/1.3 grades."
+    },
+    {
+      "name": "VirusTotal",
+      "category": "Security & Threat Intel",
+      "url": "https://www.virustotal.com/",
+      "tags": ["malware", "phishing", "hash", "sha256", "url", "ip", "defender", "false positive"],
+      "when_to_use": "Verify suspect executables by SHA-256 hash, inspect malicious IPs/domains, or check Defender false positives.",
+      "instructions": "PRIVACY RULE: Compute SHA-256 locally via PowerShell (Get-FileHash) and search ONLY the hash/URL/IP — NEVER upload confidential client documents or proprietary installers."
+    },
+    {
+      "name": "AbuseIPDB",
+      "category": "Security & Threat Intel",
+      "url": "https://www.abuseipdb.com/",
+      "tags": ["ip", "bec", "impossible travel", "brute force", "ssh", "entra", "threat"],
+      "when_to_use": "Check whether an external sign-in IP in Entra/Workspace/SSH logs is a known VPN, Tor exit, or brute-force scanner.",
+      "instructions": "Paste the suspicious source IP from Sign-in Logs or /var/log/auth.log to check ASN, ISP, usage type (Data Center/VPN vs Residential), and recent abuse reports."
+    },
+    {
+      "name": "URLScan.io",
+      "category": "Security & Threat Intel",
+      "url": "https://urlscan.io/",
+      "tags": ["phishing", "hameconnage", "bec", "redirect", "link", "url", "sandbox"],
+      "when_to_use": "Safely detonate suspicious phishing links from user tickets without opening them on a corporate endpoint.",
+      "instructions": "Select 'Unlisted' or 'Private' scan before submitting suspicious URLs (strip user tracking/token query parameters first!) to inspect screenshots, redirects, and hosting ASN."
+    },
+    {
+      "name": "Have I Been Pwned",
+      "category": "Security & Threat Intel",
+      "url": "https://haveibeenpwned.com/",
+      "tags": ["breach", "compromised", "password", "credential", "fuite", "bec"],
+      "when_to_use": "Check if a user's corporate email appeared in third-party credential breaches during BEC/lockout investigations.",
+      "instructions": "Search the user address or check Domain Search for tenant-wide breach exposure and verify the user does not reuse passwords across external sites."
+    },
+    {
+      "name": "Microsoft Security Intelligence File Submission",
+      "category": "Security & Threat Intel",
+      "url": "https://www.microsoft.com/en-us/wdsi/filesubmission",
+      "tags": ["defender", "false positive", "quarantine", "asr", "faux positif"],
+      "when_to_use": "Submit a verified clean, digitally signed LOB binary falsely quarantined by Microsoft Defender Antivirus.",
+      "instructions": "Sign in as Enterprise/Software Developer, select Microsoft Defender Antivirus, upload the clean signed sample, and record the Submission ID for client tracking."
+    },
+    {
+      "name": "IPv4 CIDR Subnet Calculator (ipcalc)",
+      "category": "Network & Subnets",
+      "url": "https://jodies.de/ipcalc",
+      "tags": ["subnet", "cidr", "netmask", "vlan", "dhcp", "broadcast", "gateway", "sous-reseau"],
+      "when_to_use": "Calculate usable host ranges, broadcast addresses, network IDs, and wildcard masks for DHCP, VPN, or VLAN changes.",
+      "instructions": "Enter IP and CIDR prefix (e.g., 10.0.10.0/24 or /23) to verify usable HostMin-HostMax before expanding DHCP scopes or writing firewall ACLs."
+    },
+    {
+      "name": "Visual Subnet Calculator",
+      "category": "Network & Subnets",
+      "url": "https://www.davidc.net/sites/default/subnets/subnets.html",
+      "tags": ["subnet", "cidr", "vlsm", "split", "vlan", "dhcp", "supernet", "reseau"],
+      "when_to_use": "Split or join CIDR blocks visually when carving new VLANs, server racks, or VPN pools.",
+      "instructions": "Enter base network + mask (e.g., 10.0.0.0/20), click Divide to carve smaller subnets, and verify zero overlap with existing office/VPN ranges."
+    },
+    {
+      "name": "Hurricane Electric BGP Toolkit",
+      "category": "Network & Subnets",
+      "url": "https://bgp.he.net/",
+      "tags": ["bgp", "asn", "isp", "ip", "routing", "datacenter", "rdns"],
+      "when_to_use": "Look up ASN ownership, PTR reverse DNS, and upstream ISP peering during WAN or Data Center fiber routing incidents.",
+      "instructions": "Search an IP, ASN, or ISP name to verify reverse DNS (PTR) matches mail servers and inspect announced CIDR prefixes."
+    },
+    {
+      "name": "Downdetector",
+      "category": "Cloud Status",
+      "url": "https://downdetector.com/",
+      "tags": ["outage", "panne", "isp", "microsoft", "google", "adobe", "zoom", "status"],
+      "when_to_use": "Fast 10-second check for regional ISP, cellular carrier, or SaaS vendor outages before deep endpoint debugging.",
+      "instructions": "Check spike reports for the user's regional ISP or SaaS vendor alongside official vendor status dashboards."
+    },
+    {
+      "name": "Microsoft Entra Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://entra.microsoft.com/",
+      "tags": ["entra", "azure ad", "sign-in logs", "mfa", "tap", "conditional access", "bitlocker", "identity"],
+      "when_to_use": "Sign-in logs (AADSTS codes), MFA/TAP resets, Conditional Access policy evaluation, and BitLocker keys.",
+      "instructions": "Check Monitoring & health -> Sign-in logs first for AADSTS failure codes and Conditional Access tabs; check Users -> Authentication methods for TAP."
+    },
+    {
+      "name": "Microsoft Intune Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://intune.microsoft.com/",
+      "tags": ["intune", "mdm", "autopilot", "compliance", "win11", "macos", "bitlocker", "enrollment"],
+      "when_to_use": "Device compliance checks, Windows 11 Feature Update readiness, Autopilot hashes, FileVault/BitLocker recovery keys, and remote Sync.",
+      "instructions": "Navigate to Devices -> All devices -> <device> for Compliance, Recovery keys, and Sync. Check Reports -> Windows updates for Win11 safeguard holds."
+    },
+    {
+      "name": "Microsoft 365 Admin Center",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://admin.microsoft.com/",
+      "tags": ["m365", "licenses", "users", "shared mailbox", "service health", "admin"],
+      "when_to_use": "Assign M365/Windows/Intune licenses, reset passwords, manage Shared Mailboxes, and check tenant Service Health.",
+      "instructions": "Check Billing -> Licenses and Active users -> Licenses and apps before troubleshooting missing desktop Office/Exchange/Intune features."
+    },
+    {
+      "name": "M365 Maps (Microsoft Licensing Matrix)",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://m365maps.com/",
+      "tags": ["licensing", "licence", "m365", "windows enterprise", "business premium", "intune", "defender"],
+      "when_to_use": "Verify instantly which Microsoft 365 bundle includes Intune, Entra ID P1/P2, Defender, or Windows 11 Enterprise Subscription Activation.",
+      "instructions": "Open Business Premium, E3, or E5 interactive diagrams to confirm whether the user's SKU actually entitles Windows Pro/Enterprise upgrade or Intune MDM."
+    },
+    {
+      "name": "Microsoft KMS Client Setup Keys (GVLK)",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://learn.microsoft.com/en-us/windows-server/get-started/kms-client-activation-keys",
+      "tags": ["windows activation", "kms", "gvlk", "slmgr", "licence windows", "product key", "0xc004f074"],
+      "when_to_use": "Retrieve official public Microsoft Generic Volume License Keys (GVLK) when pointing domain Windows/Server hosts back to KMS or ADBA.",
+      "instructions": "Copy ONLY the matching OS edition GVLK from Microsoft Learn, install with slmgr /ipk <GVLK>, then activate via slmgr /ato against internal KMS/ADBA (never use third-party activators)."
+    },
+    {
+      "name": "Windows 11 Supported Processors & Hardware Specs",
+      "category": "Microsoft 365 & Windows Licensing",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/design/minimum/windows-processor-requirements",
+      "tags": ["windows 11", "cpu", "tpm", "compatibility", "intune", "migration", "0xc1900200"],
+      "when_to_use": "Confirm whether an older Windows 10 endpoint CPU officially supports Windows 11 during Intune Feature Update migrations.",
+      "instructions": "Match the exact Intel/AMD processor model from Get-CimInstance Win32_Processor against the Windows 11 supported CPU list before targeting feature updates."
+    },
+    {
+      "name": "Microsoft 365 Service Health Status",
+      "category": "Cloud Status",
+      "url": "https://status.cloud.microsoft/",
+      "tags": ["status", "outage", "panne", "m365", "exchange", "teams", "sharepoint", "onedrive"],
+      "when_to_use": "Verify global Microsoft 365 / Entra / Teams outages when tenant Admin Center itself is unreachable.",
+      "instructions": "Check active advisories here alongside tenant Admin Center -> Health -> Service health before mass-resetting client Outlook/OneDrive caches."
+    },
+    {
+      "name": "Google Workspace Admin Console",
+      "category": "Google Workspace & Cloud",
+      "url": "https://admin.google.com/",
+      "tags": ["google workspace", "admin", "2sv", "gmail", "drive", "suspended", "403"],
+      "when_to_use": "Unlock suspended Google Workspace accounts, issue 2SV backup codes, inspect Email Log Search, and manage Shared Drive permissions.",
+      "instructions": "Always open in an Incognito/dedicated corporate browser profile signed ONLY into admin@contoso.com to prevent multi-account 403 collisions."
+    },
+    {
+      "name": "Google Cloud Console",
+      "category": "Google Workspace & Cloud",
+      "url": "https://console.cloud.google.com/",
+      "tags": ["gcp", "google cloud", "iam", "billing", "quota", "403", "permission_denied"],
+      "when_to_use": "Inspect GCP Project IAM bindings, Organization Policies, suspended Billing accounts, and API quota limits.",
+      "instructions": "Verify the top Project selector, IAM & Admin -> IAM roles, and Billing -> Account Management. Ensure Google Cloud Platform is enabled in admin.google.com for the user's OU."
+    },
+    {
+      "name": "Google Workspace Status Dashboard",
+      "category": "Cloud Status",
+      "url": "https://www.google.com/appsstatus/dashboard/",
+      "tags": ["google", "gmail", "drive", "status", "outage", "panne"],
+      "when_to_use": "Confirm whether Gmail, Google Drive, or Admin Console is experiencing a service-wide incident.",
+      "instructions": "Check red/amber service rows and click the incident title for regional scope and official ETA updates."
+    },
+    {
+      "name": "Adobe Admin Console",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://adminconsole.adobe.com/",
+      "tags": ["adobe", "acrobat", "creative cloud", "license", "licence", "sso", "pdf"],
+      "when_to_use": "Assign/revoke Adobe Acrobat Pro or Creative Cloud licenses and verify Federated/Enterprise ID directory sync.",
+      "instructions": "Go to Users -> search user email -> confirm active Product Assignment (Acrobat Pro / CC) and tell the user to pick 'Company or School Account' at sign-in."
+    },
+    {
+      "name": "Adobe Acrobat Cleaner Tool & Enterprise Docs",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://www.adobe.com/devnet-docs/acrobatetk/tools/Labs/cleaner.html",
+      "tags": ["adobe", "acrobat", "cleaner", "repair", "pdf", "license", "uninstall"],
+      "when_to_use": "Cleanly remove corrupted Adobe Acrobat/Reader installations, broken licensing stores, or stuck PDF previewers.",
+      "instructions": "Download ONLY from official Adobe Enterprise Toolkit docs, close all Office/Acrobat apps, run Cleaner Tool for the affected product track, reboot, and reinstall cleanly."
+    },
+    {
+      "name": "Synaptics DisplayLink Drivers",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://www.synaptics.com/products/displaylink-graphics/downloads",
+      "tags": ["displaylink", "dock", "monitor", "ecran", "usb-c", "macos", "windows"],
+      "when_to_use": "Blank external monitors on USB-C/USB-A DisplayLink docks (especially Apple Silicon M1/M2/M3 Macs with 2+ external displays).",
+      "instructions": "Match exact OS (Windows or macOS DisplayLink Manager), install official driver, and on macOS grant Screen Recording permission under Privacy & Security."
+    },
+    {
+      "name": "Apple Official Startup Key Combinations & Recovery",
+      "category": "Adobe, macOS & Drivers",
+      "url": "https://support.apple.com/en-us/102603",
+      "tags": ["macos", "apple", "recovery", "safe mode", "boot", "intel", "apple silicon"],
+      "when_to_use": "Verify exact Mac Recovery Mode, Safe Mode, Diagnostics, and Startup Manager key combos by Apple Silicon vs. Intel.",
+      "instructions": "Identify Apple Silicon (hold Power button) vs Intel (hold Command+R) first using uname -m or model year before guiding the user through boot steps."
+    },
+    {
+      "name": "Microsoft Azure Portal",
+      "category": "Azure & Microsoft Entra",
+      "url": "https://portal.azure.com/",
+      "tags": ["azure", "vm", "rbac", "nsg", "key vault", "storage", "serial console"],
+      "when_to_use": "Inspect Azure VMs, Boot Diagnostics, Serial Console, Network Security Groups (NSG), RBAC roles, Key Vault, and Storage firewalls.",
+      "instructions": "Filter by Subscription and Resource Group first. Use Resource Health, Boot Diagnostics, and Effective Security Rules on the VM NIC before changing NSG or RBAC assignments."
+    },
+    {
+      "name": "Azure Service Status",
+      "category": "Azure & Microsoft Entra",
+      "url": "https://azure.status.microsoft/",
+      "tags": ["azure", "outage", "region", "status", "vm", "allocation"],
+      "when_to_use": "Confirm whether regional Azure outages or capacity incidents explain AllocationFailed or unreachable VM/storage errors.",
+      "instructions": "Check the target Azure region (e.g., Canada Central, Canada East, East US) and combine with tenant-specific Azure Service Health alerts in Portal."
+    },
+    {
+      "name": "Microsoft Entra AADSTS Error Code Lookup",
+      "category": "Azure & Microsoft Entra",
+      "url": "https://login.microsoftonline.com/error",
+      "tags": ["entra", "aadsts", "conditional access", "consent", "oauth", "sign-in"],
+      "when_to_use": "Decode any AADSTS code returned during developer app consent, OAuth sign-in, or Conditional Access geo-blocking.",
+      "instructions": "Paste the numeric code or full AADSTS string (e.g., AADSTS65001, AADSTS53003, AADSTS7000215) to view official Microsoft remediation details."
+    }
+  ]
+}

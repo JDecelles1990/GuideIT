@@ -6,13 +6,13 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from guideit_master.core.event_bus import AppEventBus
+from guideit_master.guideit.ui.main_window import PlaybooksWorkspaceWidget
 from guideit_master.psstore.services.hotkey_service import GlobalHotkeyManager
 from guideit_master.psstore.ui.launcher_view import ScriptsWorkspaceWidget
 from guideit_master.ui.shell_window import (
     MODE_PLAYBOOKS,
     MODE_SCRIPTS,
     MODE_SPLIT,
-    UnifiedShellWindow,
 )
 
 
@@ -22,6 +22,8 @@ def test_permanent_splitter_split_view_without_reparenting(shell_window_factory)
 
     pb = win.playbooks_workspace
     sc = win.scripts_workspace
+    assert isinstance(pb, PlaybooksWorkspaceWidget)
+    assert win.health_pill_btn.text() == "✓ 65 Valid"
     assert pb.parentWidget() is win.mode_splitter
     assert sc.parentWidget() is win.mode_splitter
     assert win.mode_splitter.indexOf(pb) == 0
@@ -41,6 +43,10 @@ def test_permanent_splitter_split_view_without_reparenting(shell_window_factory)
     assert pb.isVisible()
     assert not sc.isVisible()
     assert pb.is_compact_mode is False
+    assert pb.top_bar.isVisible()
+    assert pb.filter_sidebar.isVisible()
+    assert pb.results_list.isVisible()
+    assert pb.viewer.isVisible()
     assert pb.parentWidget() is win.mode_splitter
     assert sc.parentWidget() is win.mode_splitter
 
@@ -50,6 +56,10 @@ def test_permanent_splitter_split_view_without_reparenting(shell_window_factory)
     assert pb.isVisible()
     assert sc.isVisible()
     assert pb.is_compact_mode is True
+    assert not pb.top_bar.isVisible()
+    assert not pb.filter_sidebar.isVisible()
+    assert not pb.results_list.isVisible()
+    assert pb.viewer.isVisible()
     assert sc.is_compact_mode is True
     assert not sc.sidebar.isVisible()
     assert not sc.catalog_view.isVisible()
@@ -120,6 +130,7 @@ def test_event_bus_open_copy_and_playbook_signals(shell_window_factory) -> None:
     copied = sc.clipboard_service.copy_to_clipboard.call_args[0][0]
     assert "[bool]$ClearQueueFiles = $false" in copied
 
-    # Open playbook signal switches shell to Playbooks or Split mode
+    # Open playbook signal switches shell to Playbooks or Split mode and navigates viewer
     win.event_bus.open_playbook_requested.emit("win-001", False)
     assert win.current_mode == MODE_PLAYBOOKS
+    assert win.playbooks_workspace.viewer.current_playbook_id == "win-001"

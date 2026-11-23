@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any, Callable
 
 from PySide6.QtCore import Qt
@@ -25,6 +26,8 @@ from PySide6.QtWidgets import (
 )
 
 from guideit_master.core.event_bus import AppEventBus
+from guideit_master.guideit.models import ValidationReport
+from guideit_master.guideit.ui.main_window import PlaybooksWorkspaceWidget
 from guideit_master.psstore.repositories.catalog_repo import CatalogRepo
 from guideit_master.psstore.services.clipboard_service import ClipboardService
 from guideit_master.psstore.services.hotkey_service import (
@@ -46,67 +49,6 @@ MODE_SCRIPTS = 1
 MODE_SPLIT = 2
 
 
-class PlaybooksPlaceholderWidget(QFrame):
-    """Phase 1 placeholder inside the permanent splitter prior to Phase 2 GuideIT integration."""
-
-    def __init__(
-        self,
-        on_open_scripts: Callable[[], None] | None = None,
-        parent: QWidget | None = None,
-    ) -> None:
-        super().__init__(parent)
-        self.setObjectName("PlaybooksPlaceholderFrame")
-        self._on_open_scripts = on_open_scripts
-        self._compact_mode = False
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(12)
-        layout.addStretch(1)
-
-        badge = QLabel("PHASE 2 MODULE PREVIEW")
-        badge.setObjectName("SectionTitle")
-        badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(badge)
-
-        title = QLabel("📘 GuideIT Troubleshooting Playbooks")
-        title.setObjectName("HeaderTitle")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title)
-
-        self.description_label = QLabel(
-            "65 L1–L3 bilingual (EN/FR) MSP playbooks, domain taxonomy filters, FTS5 symptom search, "
-            "and bidirectional PowerShell script deep links will mount into this workspace pane in Phase 2."
-        )
-        self.description_label.setWordWrap(True)
-        self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.description_label.setStyleSheet("color: #cbd5e1; font-size: 13px;")
-        layout.addWidget(self.description_label)
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch(1)
-        self.switch_scripts_btn = QPushButton("⚡ Open Scripts Workstation (Alt+2)")
-        self.switch_scripts_btn.setObjectName("PrimaryButton")
-        self.switch_scripts_btn.setToolTip("Return to the PowerShellStore script workstation (Alt+2)")
-        if self._on_open_scripts is not None:
-            self.switch_scripts_btn.clicked.connect(self._on_open_scripts)
-        btn_row.addWidget(self.switch_scripts_btn)
-        btn_row.addStretch(1)
-        layout.addLayout(btn_row)
-
-        layout.addStretch(1)
-
-    @property
-    def is_compact_mode(self) -> bool:
-        return self._compact_mode
-
-    def set_compact_mode(self, compact: bool) -> None:
-        self._compact_mode = bool(compact)
-
-    def toggle_sidebar(self) -> None:
-        """No-op sidebar toggle preserved for uniform shell delegation."""
-
-
 class UnifiedShellWindow(QMainWindow):
     """Unified main window owning navigation modes, tray icon, opacity, startup, and Win+F8."""
 
@@ -120,6 +62,8 @@ class UnifiedShellWindow(QMainWindow):
         startup_service: StartupService | None = None,
         hotkey_manager: GlobalHotkeyManager | None = None,
         event_bus: AppEventBus | None = None,
+        playbooks_root_dir: Path | None = None,
+        guideit_db_path: Path | None = None,
         initial_mode: int = MODE_SCRIPTS,
         parent: QWidget | None = None,
     ) -> None:
@@ -140,6 +84,10 @@ class UnifiedShellWindow(QMainWindow):
 
         self._force_quit = False
         self._current_mode = MODE_SCRIPTS
+        self._playbooks_kw = {
+            "root_dir": playbooks_root_dir,
+            "db_path": guideit_db_path,
+        }
         self._workspaces_kw = {
             "repo": repo,
             "scanner": scanner,
@@ -154,6 +102,11 @@ class UnifiedShellWindow(QMainWindow):
         self._init_tray_icon()
 
         self.scripts_workspace.set_startup_checked(self.startup_service.is_startup_enabled())
+        if self.playbooks_workspace.last_report is not None:
+            self._update_health_pill(self.playbooks_workspace.last_report)
+        if self.playbooks_workspace.index_status_text:
+            self.index_status_label.setText(self.playbooks_workspace.index_status_text)
+
         self.set_mode(initial_mode)
 
         install_item_view_glow_recursive(self)
@@ -174,14 +127,14 @@ class UnifiedShellWindow(QMainWindow):
         header_layout.setContentsMargins(14, 6, 14, 6)
         header_layout.setSpacing(12)
 
-        brand_label = QLabel("⚡ GuideIT Master")
+        brand_label = QLabel("⚡ GuideIT Master", self.shell_header)
         brand_label.setStyleSheet("font-size: 15px; font-weight: 700; color: #f8fafc;")
         header_layout.addWidget(brand_label)
 
         self.mode_group = QButtonGroup(self)
         self.mode_group.setExclusive(True)
 
-        self.btn_mode_playbooks = QPushButton("📘 Playbooks")
+        self.btn_mode_playbooks = QPushButton("📘 Playbooks", self.shell_header)
         self.btn_mode_playbooks.setObjectName("ModeSwitchButton")
         self.btn_mode_playbooks.setCheckable(True)
         self.btn_mode_playbooks.setToolTip("Switch to GuideIT Playbooks workspace (Alt+1)")
@@ -189,7 +142,7 @@ class UnifiedShellWindow(QMainWindow):
         self.mode_group.addButton(self.btn_mode_playbooks, MODE_PLAYBOOKS)
         header_layout.addWidget(self.btn_mode_playbooks)
 
-        self.btn_mode_scripts = QPushButton("⚡ Scripts")
+        self.btn_mode_scripts = QPushButton("⚡ Scripts", self.shell_header)
         self.btn_mode_scripts.setObjectName("ModeSwitchButton")
         self.btn_mode_scripts.setCheckable(True)
         self.btn_mode_scripts.setToolTip("Switch to PowerShellStore Scripts workstation (Alt+2)")
@@ -197,7 +150,7 @@ class UnifiedShellWindow(QMainWindow):
         self.mode_group.addButton(self.btn_mode_scripts, MODE_SCRIPTS)
         header_layout.addWidget(self.btn_mode_scripts)
 
-        self.btn_mode_split = QPushButton("🔀 Split View")
+        self.btn_mode_split = QPushButton("🔀 Split View", self.shell_header)
         self.btn_mode_split.setObjectName("ModeSwitchButton")
         self.btn_mode_split.setCheckable(True)
         self.btn_mode_split.setToolTip(
@@ -209,16 +162,32 @@ class UnifiedShellWindow(QMainWindow):
 
         header_layout.addStretch(1)
 
+        self.btn_useful_tools = QPushButton("🌐 Useful Tools", self.shell_header)
+        self.btn_useful_tools.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_useful_tools.setToolTip(
+            "Open curated MSP & Data Center websites and external tools (Ctrl+T)"
+        )
+        header_layout.addWidget(self.btn_useful_tools)
+
+        self.health_pill_btn = QPushButton("Checking...", self.shell_header)
+        self.health_pill_btn.setObjectName("healthPill")
+        self.health_pill_btn.setProperty("status", "unknown")
+        self.health_pill_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.health_pill_btn.setToolTip(
+            "Click to inspect GuideIT playbook validation & multi-tenant PII report"
+        )
+        header_layout.addWidget(self.health_pill_btn)
+
         opacity_container = QWidget(self.shell_header)
         opacity_layout = QHBoxLayout(opacity_container)
         opacity_layout.setContentsMargins(0, 0, 0, 0)
         opacity_layout.setSpacing(6)
 
-        self.opacity_title = QLabel("Opacity:")
+        self.opacity_title = QLabel("Opacity:", opacity_container)
         self.opacity_title.setStyleSheet("color: #9ca3af; font-size: 11px; font-weight: 500;")
         opacity_layout.addWidget(self.opacity_title)
 
-        self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.opacity_slider = QSlider(Qt.Orientation.Horizontal, opacity_container)
         self.opacity_slider.setRange(60, 100)
         self.opacity_slider.setValue(100)
         self.opacity_slider.setFixedWidth(84)
@@ -228,7 +197,7 @@ class UnifiedShellWindow(QMainWindow):
         self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
         opacity_layout.addWidget(self.opacity_slider)
 
-        self.opacity_label = QLabel("100%")
+        self.opacity_label = QLabel("100%", opacity_container)
         self.opacity_label.setFixedWidth(36)
         self.opacity_label.setStyleSheet(
             "color: #9ca3af; font-size: 11px; font-family: Consolas, monospace;"
@@ -242,8 +211,10 @@ class UnifiedShellWindow(QMainWindow):
         self.mode_splitter = QSplitter(Qt.Orientation.Horizontal, central)
         self.mode_splitter.setChildrenCollapsible(False)
 
-        self.playbooks_workspace = PlaybooksPlaceholderWidget(
-            on_open_scripts=lambda: self.set_mode(MODE_SCRIPTS),
+        self.playbooks_workspace = PlaybooksWorkspaceWidget(
+            **self._playbooks_kw,
+            event_bus=self.event_bus,
+            embedded_in_shell=True,
             parent=self.mode_splitter,
         )
         self.scripts_workspace = ScriptsWorkspaceWidget(
@@ -260,9 +231,20 @@ class UnifiedShellWindow(QMainWindow):
 
         self.status_bar = QStatusBar(self)
         self.setStatusBar(self.status_bar)
+        self.index_status_label = QLabel("", self)
+        self.index_status_label.setStyleSheet(
+            "color: #93A4B8; padding-right: 8px; font-size: 12px;"
+        )
+        self.status_bar.addPermanentWidget(self.index_status_label)
         self.status_bar.showMessage("Ready")
 
     def _connect_signals(self) -> None:
+        self.playbooks_workspace.status_message_requested.connect(self.status_bar.showMessage)
+        self.playbooks_workspace.validation_report_updated.connect(self._update_health_pill)
+        self.playbooks_workspace.index_status_updated.connect(self.index_status_label.setText)
+        self.btn_useful_tools.clicked.connect(self.playbooks_workspace.open_resources_dialog)
+        self.health_pill_btn.clicked.connect(self.playbooks_workspace.show_validation_dialog)
+
         self.scripts_workspace.status_message_requested.connect(self.status_bar.showMessage)
         self.scripts_workspace.startup_toggled.connect(self._on_sidebar_startup_toggled)
         self.event_bus.status_toast_requested.connect(self.status_bar.showMessage)
@@ -271,6 +253,24 @@ class UnifiedShellWindow(QMainWindow):
         self.event_bus.run_script_requested.connect(self._on_run_script_requested)
         self.event_bus.open_playbook_requested.connect(self._on_open_playbook_requested)
         self.hotkey_manager.triggered.connect(self.toggle_window_visibility)
+
+    def _update_health_pill(self, report: ValidationReport) -> None:
+        err_cnt = len(report.errors)
+        warn_cnt = len(report.warnings)
+        if err_cnt > 0:
+            status = "err"
+            text = f"✕ {err_cnt} Error(s)"
+        elif warn_cnt > 0:
+            status = "warn"
+            text = f"⚠ {warn_cnt} Warning(s)"
+        else:
+            status = "ok"
+            text = f"✓ {report.checked_files} Valid"
+
+        self.health_pill_btn.setText(text)
+        self.health_pill_btn.setProperty("status", status)
+        self.health_pill_btn.style().unpolish(self.health_pill_btn)
+        self.health_pill_btn.style().polish(self.health_pill_btn)
 
     def _register_shortcut(
         self,
@@ -304,9 +304,19 @@ class UnifiedShellWindow(QMainWindow):
         )
         self._register_shortcut("focus_search", "Ctrl+F", self._focus_search_input)
         self._register_shortcut(
-            "sync_catalog", "F5", self.scripts_workspace.sync_and_refresh
+            "focus_playbook_search", "Ctrl+K", self._focus_playbook_search
         )
-        self._register_shortcut("escape_action", "Esc", self.scripts_workspace._handle_escape)
+        self._register_shortcut(
+            "useful_tools", "Ctrl+T", self.playbooks_workspace.open_resources_dialog
+        )
+        self._register_shortcut(
+            "reset_playbook_filters", "Ctrl+R", self.playbooks_workspace.reset_all
+        )
+        self._register_shortcut(
+            "playbook_back", "Alt+Left", self.playbooks_workspace.navigate_back
+        )
+        self._register_shortcut("sync_catalog", "F5", self._sync_all_libraries)
+        self._register_shortcut("escape_action", "Esc", self._handle_escape)
         self._register_shortcut(
             "check_all_visible",
             "Ctrl+Shift+A",
@@ -431,6 +441,23 @@ class UnifiedShellWindow(QMainWindow):
             self.set_mode(MODE_SCRIPTS)
         self.scripts_workspace._focus_search_input()
 
+    def _focus_playbook_search(self) -> None:
+        if self._current_mode != MODE_PLAYBOOKS:
+            self.set_mode(MODE_PLAYBOOKS)
+        self.playbooks_workspace.focus_search()
+
+    def _sync_all_libraries(self) -> None:
+        self.scripts_workspace.sync_and_refresh()
+        self.playbooks_workspace.start_reindex()
+
+    def _handle_escape(self) -> None:
+        if self.scripts_workspace.runner.is_running:
+            self.scripts_workspace._handle_escape()
+        elif self._current_mode == MODE_PLAYBOOKS:
+            self.playbooks_workspace.handle_escape()
+        else:
+            self.scripts_workspace._handle_escape()
+
     # ------------------------------------------------------------------
     # EventBus Cross-Module Orchestration
     # ------------------------------------------------------------------
@@ -471,8 +498,8 @@ class UnifiedShellWindow(QMainWindow):
             self.scripts_workspace._on_run_local_clicked()
 
     def _on_open_playbook_requested(self, playbook_id: str, split_view: bool) -> None:
+        self.playbooks_workspace.navigate_to_playbook(playbook_id)
         self.set_mode(MODE_SPLIT if split_view else MODE_PLAYBOOKS)
-        self.status_bar.showMessage(f"Requested playbook: {playbook_id}", 3000)
 
     # ------------------------------------------------------------------
     # Window Opacity, Tray Icon, Global Hotkey & Lifecycle
@@ -610,6 +637,7 @@ class UnifiedShellWindow(QMainWindow):
             or not hasattr(self, "tray_icon")
             or not self.tray_icon.isVisible()
         ):
+            self.playbooks_workspace.shutdown_workers()
             self.hotkey_manager.unregister()
             event.accept()
         else:
@@ -629,6 +657,7 @@ class UnifiedShellWindow(QMainWindow):
     def quit_application(self) -> None:
         """Completely terminates the application and unregisters global hotkeys."""
         self._force_quit = True
+        self.playbooks_workspace.shutdown_workers()
         self.hotkey_manager.unregister()
         if hasattr(self, "tray_icon"):
             self.tray_icon.hide()

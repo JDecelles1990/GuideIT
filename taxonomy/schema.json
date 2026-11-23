@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "required_fields": [
+    "id",
+    "domain",
+    "subject",
+    "title",
+    "tier",
+    "keywords_en",
+    "keywords_fr",
+    "error_codes",
+    "tags",
+    "os",
+    "environment",
+    "tools",
+    "risk_level",
+    "requires_admin",
+    "last_verified"
+  ],
+  "optional_fields": [
+    "subcategory",
+    "related_ids"
+  ],
+  "enums": {
+    "tier": ["L1", "L2", "L3"],
+    "os": ["windows", "macos", "linux", "ios", "android", "cross_platform"],
+    "environment": [
+      "hybrid_ad",
+      "on_prem_ad",
+      "entra_id",
+      "m365",
+      "google_workspace",
+      "intune",
+      "network",
+      "cloud_infra",
+      "azure",
+      "datacenter",
+      "local_endpoint",
+      "saas"
+    ],
+    "risk_level": ["low", "medium", "high"]
+  },
+  "required_sections": [
+    "Fast Triage (Under 2 Minutes)",
+    "Read-Only Diagnostics (L1-L2)",
+    "Deep-Dive Investigation (L3)",
+    "Remediation (Confirm Before Running)",
+    "Verification & Post-Fix Checks"
+  ],
+  "optional_sections": [
+    "Cross-Subject Escalation & Pivot Links",
+    "Useful Links & External Tools",
+    "Client Update Snippets (EN / FR)"
+  ],
+  "allowed_placeholder_email_domains": [
+    "example.com",
+    "example.org",
+    "example.net",
+    "contoso.com",
+    "fabrikam.com",
+    "contoso.onmicrosoft.com",
+    "tenant.onmicrosoft.com",
+    "domain.local",
+    "corp.local"
+  ],
+  "allowed_public_dns_ips": [
+    "1.1.1.1",
+    "1.0.0.1",
+    "8.8.8.8",
+    "8.8.4.4",
+    "9.9.9.9"
+  ]
+}

@@ -1,0 +1,884 @@
+{
+  "version": "1.0",
+  "entries": [
+    {
+      "phrases": [
+        "locked out",
+        "account locked",
+        "keeps locking",
+        "bad password",
+        "password loop ad",
+        "compte verrouillé",
+        "compte verrouille",
+        "verrouillé",
+        "verrouille",
+        "mot de passe refusé",
+        "mot de passe refuse"
+      ],
+      "tags": ["account_lockout", "bad_password"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["4740", "4625", "0xC0000234", "AADSTS50053"]
+    },
+    {
+      "phrases": [
+        "google admin console",
+        "admin.google.com",
+        "google workspace suspended",
+        "google 2sv lockout",
+        "console admin google",
+        "compte google suspendu",
+        "validation en deux etapes google"
+      ],
+      "tags": ["google_workspace_admin", "google_2sv_lockout"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["403", "ERROR_2SV"]
+    },
+    {
+      "phrases": [
+        "new phone mfa",
+        "lost authenticator",
+        "mfa not receiving code",
+        "nouveau telephone mfa",
+        "reinitialiser mfa",
+        "authenticator ne fonctionne plus"
+      ],
+      "tags": ["mfa_new_phone", "authenticator_reset"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["AADSTS50074", "AADSTS500121"]
+    },
+    {
+      "phrases": [
+        "outlook keeps asking for password",
+        "outlook password prompt",
+        "outlook disconnected",
+        "modern auth broken",
+        "mot de passe en boucle",
+        "outlook demande mot de passe",
+        "courriel bloqué",
+        "courriel bloque",
+        "outlook déconnecté",
+        "outlook deconnecte"
+      ],
+      "tags": ["modern_auth_token", "outlook_auth_loop"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["AADSTS50076", "0x80040115"]
+    },
+    {
+      "phrases": [
+        "can't modify shared excel",
+        "excel locked for editing",
+        "excel read only",
+        "sharepoint checkout",
+        "impossible modifier excel partage",
+        "excel lecture seule",
+        "fichier verrouille par un autre utilisateur"
+      ],
+      "tags": ["excel_shared_locked", "file_readonly"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["READ_ONLY", "LOCKED_FOR_EDITING"]
+    },
+    {
+      "phrases": [
+        "lost modifications word",
+        "lost changes excel",
+        "unsaved word document",
+        "document reverted",
+        "modifications perdues word",
+        "modifications perdues excel",
+        "document non enregistre",
+        "recuperer version anterieure"
+      ],
+      "tags": ["lost_document_edits", "office_autorecover"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["AUTOSAVE_OFF", "SYNC_CONFLICT"]
+    },
+    {
+      "phrases": [
+        "gmail bounce back",
+        "google drive access denied",
+        "shared drive missing",
+        "courriel gmail rejete",
+        "acces refuse google drive",
+        "disque partage google"
+      ],
+      "tags": ["google_gmail_ndr", "google_drive_access"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["550 5.7.26", "550 5.7.1"]
+    },
+    {
+      "phrases": [
+        "onedrive stuck processing changes",
+        "onedrive red x",
+        "onedrive not syncing",
+        "onedrive bloque",
+        "synchronisation onedrive echouee",
+        "chemin trop long sharepoint"
+      ],
+      "tags": ["onedrive_sync_stuck", "sharepoint_path_limit"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["0x8004de40", "0x8007016a"]
+    },
+    {
+      "phrases": [
+        "email bounced back",
+        "missing shared mailbox",
+        "mail stuck in quarantine",
+        "courriel retourne en erreur",
+        "boite partagee manquante",
+        "courriel en quarantaine"
+      ],
+      "tags": ["exchange_ndr_bounce", "shared_mailbox_missing"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["550 5.7.1", "550 5.4.1", "550 5.7.511"]
+    },
+    {
+      "phrases": [
+        "windows update failed",
+        "update stuck",
+        "corrupted system files",
+        "windows slow after update",
+        "mise à jour bloquée",
+        "mise a jour bloquee",
+        "mise à jour échouée",
+        "mise a jour echouee",
+        "windows lent"
+      ],
+      "tags": ["windows_update", "component_store"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0x80070005", "0x800f081f", "0x80240034"]
+    },
+    {
+      "phrases": [
+        "bitlocker recovery screen",
+        "asking for bitlocker key",
+        "ecran bleu bitlocker",
+        "cle de recuperation bitlocker"
+      ],
+      "tags": ["bitlocker_recovery", "tpm_lockout"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0x80310000", "TPM_LOCKOUT"]
+    },
+    {
+      "phrases": [
+        "blue screen",
+        "bsod",
+        "pc keeps rebooting",
+        "ecran bleu",
+        "plantage windows ecran bleu",
+        "redemarrage inattendu"
+      ],
+      "tags": ["bsod_crash", "minidump_analysis"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["41", "1001", "CRITICAL_PROCESS_DIED", "DRIVER_IRQL_NOT_LESS_OR_EQUAL"]
+    },
+    {
+      "phrases": [
+        "temporary profile",
+        "desktop icons disappeared",
+        "we can't sign into your account",
+        "profil temporaire",
+        "bureau vide",
+        "icones disparues"
+      ],
+      "tags": ["temp_profile", "profile_corruption"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["1511", "1515"]
+    },
+    {
+      "phrases": [
+        "no internet",
+        "site won't load",
+        "mapped drive gone",
+        "vpn drops",
+        "split tunnel",
+        "pas de réseau",
+        "pas de reseau",
+        "pas d'internet",
+        "vpn coupe",
+        "lecteur réseau disparu",
+        "lecteur reseau disparu"
+      ],
+      "tags": ["apipa_dhcp", "dns_resolution", "vpn_split_tunnel"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["169.254", "NXDOMAIN"]
+    },
+    {
+      "phrases": [
+        "wifi keeps disconnecting",
+        "connected no internet",
+        "wifi won't connect",
+        "wifi se deconnecte",
+        "connecte sans internet",
+        "probleme wifi"
+      ],
+      "tags": ["wifi_disconnect", "wifi_8021x_auth"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["8002", "11004"]
+    },
+    {
+      "phrases": [
+        "choppy call",
+        "teams audio robotic",
+        "one way audio",
+        "appel hache",
+        "son robotique teams",
+        "voix coupee"
+      ],
+      "tags": ["voip_choppy_audio", "teams_call_quality"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["SIP_ALG", "UDP_3478"]
+    },
+    {
+      "phrases": [
+        "won't print",
+        "offline printer",
+        "spooler crash",
+        "print queue stuck",
+        "bloqué en file",
+        "bloque en file",
+        "imprimante hors ligne",
+        "n'imprime pas",
+        "spouleur bloqué",
+        "spouleur bloque"
+      ],
+      "tags": ["print_spooler", "rpc_print_auth"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["0x0000011b", "0x00000709"]
+    },
+    {
+      "phrases": [
+        "bluetooth headphones won't connect",
+        "bluetooth headset no audio",
+        "bluetooth mic not working",
+        "casque bluetooth ne se connecte pas",
+        "ecouteurs bluetooth",
+        "ecouteurs bluetooth pas de son",
+        "micro bluetooth teams"
+      ],
+      "tags": ["bluetooth_audio_connect", "bluetooth_hfp_a2dp"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["BTH_PAIR_FAIL", "HFP_A2DP"]
+    },
+    {
+      "phrases": [
+        "second monitor not detected",
+        "docking station flickering",
+        "usb-c monitor black screen",
+        "deuxieme ecran non detecte",
+        "station d'accueil ecran noir",
+        "ecran externe ne s'allume pas"
+      ],
+      "tags": ["usbc_dock_display", "external_monitor_blank"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["DISPLAYLINK", "NO_SIGNAL"]
+    },
+    {
+      "phrases": [
+        "scan to email failed",
+        "printer cannot send email",
+        "numerisation vers courriel echouee",
+        "scan vers email ne fonctionne pas"
+      ],
+      "tags": ["scan_to_email", "smtp_relay_auth"],
+      "domains": ["05_Printers_Devices"],
+      "error_codes": ["535 5.7.139", "550 5.7.64"]
+    },
+    {
+      "phrases": [
+        "suspicious email",
+        "account compromised",
+        "forwarding rule",
+        "impossible travel",
+        "phishing click",
+        "hameçonnage",
+        "hameconnage",
+        "courriel suspect",
+        "compte compromis",
+        "voyage impossible"
+      ],
+      "tags": ["bec_compromise", "token_theft"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["AADSTS50126"]
+    },
+    {
+      "phrases": [
+        "blocked download",
+        "defender blocked app",
+        "macro blocked",
+        "telechargement bloque",
+        "application bloquee par defender",
+        "faux positif antivirus"
+      ],
+      "tags": ["defender_asr_block", "false_positive_block"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["1121", "1122"]
+    },
+    {
+      "phrases": [
+        "intune non-compliant",
+        "intune non compliant",
+        "company portal error",
+        "mac not syncing",
+        "iphone email blocked",
+        "intune non conforme",
+        "mac ne synchronise pas",
+        "portail d'entreprise",
+        "appareil non conforme"
+      ],
+      "tags": ["intune_compliance", "mdm_sync"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["AADSTS53000"]
+    },
+    {
+      "phrases": [
+        "mac keychain password prompt",
+        "login keychain keeps popping up",
+        "trousseau d'acces mac",
+        "mac demande mot de passe trousseau"
+      ],
+      "tags": ["macos_keychain_loop", "platform_sso_desync"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["ERRSEC_AUTH_FAILED"]
+    },
+    {
+      "phrases": [
+        "backup failed",
+        "shadow copy error",
+        "server disk full",
+        "vss writer failed",
+        "sauvegarde échouée",
+        "sauvegarde echouee",
+        "disque serveur plein",
+        "espace disque saturé",
+        "espace disque sature"
+      ],
+      "tags": ["vss_writer_failure", "server_disk_full"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["8193", "12289", "0x80042306"]
+    },
+    {
+      "phrases": [
+        "google cloud console error",
+        "gcp permission denied",
+        "google cloud billing disabled",
+        "cloud console 403",
+        "console google cloud acces refuse",
+        "quota gcp depasse"
+      ],
+      "tags": ["gcp_console_iam", "gcp_billing_quota"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["403", "PERMISSION_DENIED", "RESOURCE_EXHAUSTED"]
+    },
+    {
+      "phrases": [
+        "rdp won't connect",
+        "remote desktop credssp",
+        "bureau a distance refuse",
+        "erreur rdp nla"
+      ],
+      "tags": ["rdp_credssp_nla", "remote_desktop_failed"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["0x00000800", "CREDSSP"]
+    },
+    {
+      "phrases": [
+        "redirect loop",
+        "white page login",
+        "app crashes on launch",
+        "sso loop",
+        "page blanche",
+        "boucle de connexion",
+        "boucle de redirection",
+        "application plante",
+        "plantage application"
+      ],
+      "tags": ["browser_sso_loop", "lob_app_crash"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["ERR_TOO_MANY_REDIRECTS", "1000"]
+    },
+    {
+      "phrases": [
+        "excel freezes on open",
+        "word not responding",
+        "pdf preview not working",
+        "excel gele a l'ouverture",
+        "apercu pdf ne fonctionne pas",
+        "complement office plante"
+      ],
+      "tags": ["office_addin_freeze", "pdf_preview_broken"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["PDF_PREVIEW", "COM_ADDIN"]
+    },
+    {
+      "phrases": [
+        "intune windows 11 upgrade",
+        "windows 11 migration failed",
+        "feature update stuck intune",
+        "safeguard hold windows 11",
+        "mbr2gpt uefi conversion",
+        "migration windows 11 intune",
+        "mise a niveau windows 11 echouee",
+        "mise a jour des fonctionnalites bloquee"
+      ],
+      "tags": ["intune_win11_migration", "win11_upgrade_hold"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0xC1900101", "0xC1900200", "0xC1900208", "0x8007001F", "0x800F0922"]
+    },
+    {
+      "phrases": [
+        "enroll new device intune",
+        "autopilot failed oobe",
+        "enrollment status page timeout",
+        "intune mdm enrollment error",
+        "enroler nouvel appareil intune",
+        "echec autopilot oobe",
+        "erreur inscription intune"
+      ],
+      "tags": ["intune_enrollment", "autopilot_oobe"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["80180014", "80180005", "80180018", "80070774", "0x8018002b", "0x800705b4"]
+    },
+    {
+      "phrases": [
+        "mac spinning beachball force quit",
+        "macos beginner guide",
+        "mac running slow freeze",
+        "how to open activity monitor mac",
+        "mac lent roue multicolore",
+        "forcer quitter application mac",
+        "guide debutant macos"
+      ],
+      "tags": ["macos_beginner_basics", "macos_slow_freeze"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["SPINNING_BEACHBALL", "FORCE_QUIT"]
+    },
+    {
+      "phrases": [
+        "macos app blocked developer",
+        "developer cannot be verified mac",
+        "mac teams screen sharing blocked",
+        "mac privacy security allow app",
+        "application bloquee developpeur non verifie mac",
+        "macos partage ecran teams bloque"
+      ],
+      "tags": ["macos_gatekeeper_blocked", "macos_tcc_permissions"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["GATEKEEPER_BLOCK", "TCC_DENIED"]
+    },
+    {
+      "phrases": [
+        "mac startup disk full",
+        "macos system data huge",
+        "apfs local snapshots mac",
+        "disque demarrage sature mac",
+        "donnees systeme volumineuses mac",
+        "espace disque plein macos"
+      ],
+      "tags": ["macos_disk_full", "apfs_snapshots"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["ENOSPC", "APFS_PURGEABLE"]
+    },
+    {
+      "phrases": [
+        "mac recovery mode won't boot",
+        "mac flashing question mark folder",
+        "disk utility first aid mac",
+        "mode recuperation mac ne demarre pas",
+        "dossier point interrogation clignotant mac",
+        "sos utilitaire de disque mac"
+      ],
+      "tags": ["macos_recovery_boot", "macos_disk_first_aid"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["QUESTION_MARK_FOLDER", "PROHIBITED_SYMBOL"]
+    },
+    {
+      "phrases": [
+        "mac connect network drive smb",
+        "finder connect to server smb",
+        "mac office no license found",
+        "mac connecter lecteur reseau smb",
+        "office mac aucune licence trouvee",
+        "vider cache dns mac"
+      ],
+      "tags": ["macos_smb_network", "macos_office_license"],
+      "domains": ["07_macOS_Mobile_MDM"],
+      "error_codes": ["SMB_MOUNT_FAIL", "OFFICE_ACTIVATE_MAC"]
+    },
+    {
+      "phrases": [
+        "systemd failed journalctl",
+        "linux service won't start",
+        "systemctl failed unit",
+        "service linux en echec",
+        "erreur systemd journalctl"
+      ],
+      "tags": ["linux_systemd_failed", "linux_journalctl"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["203/EXEC", "127", "137", "139"]
+    },
+    {
+      "phrases": [
+        "linux oom killer",
+        "linux high cpu io wait",
+        "out of memory killed process",
+        "charge cpu elevee linux",
+        "saturation memoire oom linux"
+      ],
+      "tags": ["linux_oom_killer", "linux_high_cpu_io"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["OOM_KILLED", "SIGKILL", "D_STATE"]
+    },
+    {
+      "phrases": [
+        "linux disk full inodes",
+        "linux read only file system",
+        "lsof deleted open files",
+        "disque plein inodes linux",
+        "systeme de fichiers lecture seule linux"
+      ],
+      "tags": ["linux_disk_inodes", "linux_readonly_fs"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["ENOSPC", "EROFS", "EXT4_ERROR"]
+    },
+    {
+      "phrases": [
+        "linux interface no carrier",
+        "linux bond lacp down",
+        "linux firewall port blocked",
+        "interface reseau linux sans lien",
+        "pare feu linux bloque port"
+      ],
+      "tags": ["linux_network_bond", "linux_firewall_nftables"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["NO-CARRIER", "ECONNREFUSED", "ETIMEDOUT"]
+    },
+    {
+      "phrases": [
+        "linux ssh permission denied",
+        "ssh publickey denied",
+        "ssh host key verification failed",
+        "connexion ssh refusee linux",
+        "cle ssh refusee linux"
+      ],
+      "tags": ["linux_ssh_denied", "linux_pam_selinux"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["SSH_PUBLICKEY_DENIED", "HOST_KEY_MISMATCH"]
+    },
+    {
+      "phrases": [
+        "ipmi raid degraded",
+        "idrac ilo hardware fault",
+        "ecc memory error mce",
+        "smart disk failing datacenter",
+        "erreur materielle serveur ipmi",
+        "disque raid degrade"
+      ],
+      "tags": ["datacenter_ipmi_hardware", "datacenter_raid_smart"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["MCE", "ECC_ERROR", "RAID_DEGRADED", "SMART_FAIL"]
+    },
+    {
+      "phrases": [
+        "sfp optical rx power",
+        "fiber link down datacenter",
+        "server psu failed thermal trip",
+        "puissance optique sfp faible",
+        "panne alimentation thermique baie"
+      ],
+      "tags": ["datacenter_power_thermal", "datacenter_sfp_optical"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["PSU_FAIL", "THERMAL_TRIP", "DOM_RX_LOW"]
+    },
+    {
+      "phrases": [
+        "grub rescue emergency mode",
+        "linux won't boot fstab",
+        "dracut initqueue timeout",
+        "mode urgence linux demarrage",
+        "erreur fstab grub rescue"
+      ],
+      "tags": ["linux_grub_boot", "linux_fstab_emergency"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["GRUB_RESCUE", "EMERGENCY_MODE", "DRACUT_TIMEOUT"]
+    },
+    {
+      "phrases": [
+        "gpo not applying",
+        "sysvol dfsr replication failed",
+        "gpresult access denied",
+        "strategie groupe gpo non appliquee",
+        "erreur replication ad sysvol"
+      ],
+      "tags": ["gpo_not_applying", "ad_replication_dfsr"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["1058", "1030", "1055", "1129", "4012", "2213"]
+    },
+    {
+      "phrases": [
+        "trust relationship failed",
+        "primary domain trust broken",
+        "relation d'approbation domaine echouee",
+        "echec relation approbation poste"
+      ],
+      "tags": ["domain_trust_failed", "secure_channel_broken"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["5722", "3210", "0xC000018B"]
+    },
+    {
+      "phrases": [
+        "windows 100 disk usage",
+        "windows high cpu memory leak",
+        "pc extremely slow tiworker",
+        "disque 100 pourcent windows",
+        "fuite memoire cpu eleve windows"
+      ],
+      "tags": ["windows_high_cpu_disk", "windows_memory_leak"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["129", "153", "2004"]
+    },
+    {
+      "phrases": [
+        "webcam not working teams",
+        "microphone not detected windows",
+        "no camera attached",
+        "camera ne fonctionne pas teams",
+        "micro non detecte windows"
+      ],
+      "tags": ["windows_audio_webcam", "teams_mic_camera_blocked"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0xA00F4244", "Code 10", "Code 43"]
+    },
+    {
+      "phrases": [
+        "mapped network drive red x",
+        "network path was not found",
+        "smb error 1219",
+        "lecteur reseau croix rouge",
+        "chemin reseau introuvable smb"
+      ],
+      "tags": ["smb_mapped_drive", "smb_error_1219"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["0x80070035", "0x80070043", "1219", "53"]
+    },
+    {
+      "phrases": [
+        "ssl certificate expired",
+        "your connection is not private",
+        "untrusted root certificate",
+        "certificat ssl expire",
+        "connexion non privee certificat"
+      ],
+      "tags": ["tls_cert_expired", "untrusted_root_ca"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["NET::ERR_CERT_DATE_INVALID", "NET::ERR_CERT_AUTHORITY_INVALID", "36871", "36887"]
+    },
+    {
+      "phrases": [
+        "dhcp scope full",
+        "dns forwarder failing server",
+        "kerberos clock skew",
+        "plage dhcp saturee",
+        "decalage horaire kerberos ntp"
+      ],
+      "tags": ["dhcp_scope_exhausted", "kerberos_ntp_skew"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["1020", "1342", "4013", "KRB_AP_ERR_SKEW"]
+    },
+    {
+      "phrases": [
+        "windows not activated",
+        "activate windows watermark",
+        "windows license error",
+        "kms activation failed",
+        "windows non active",
+        "erreur licence windows",
+        "cle produit windows invalide"
+      ],
+      "tags": ["windows_activation", "windows_licensing_kms"],
+      "domains": ["03_Windows_Endpoints"],
+      "error_codes": ["0xC004F074", "0xC004C003", "0xC004F050", "0x8007007B", "0x803FA067"]
+    },
+    {
+      "phrases": [
+        "adobe acrobat license error",
+        "creative cloud sign in loop",
+        "adobe expired subscription",
+        "licence adobe acrobat introuvable",
+        "adobe creative cloud bloque",
+        "reparer adobe acrobat"
+      ],
+      "tags": ["adobe_licensing", "adobe_acrobat_repair"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["ADOBE_LICENSE_ERR", "205", "195"]
+    },
+    {
+      "phrases": [
+        "developer app permissions entra",
+        "coder needs graph api permission",
+        "admin consent required",
+        "app registration secret expired",
+        "user or administrator has not consented",
+        "approbation administrateur requise",
+        "permission application entra",
+        "consentement admin entra",
+        "secret client expire"
+      ],
+      "tags": ["entra_app_permissions", "entra_admin_consent"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["AADSTS65001", "AADSTS90094", "AADSTS7000215", "AADSTS50105", "AADSTS700016"]
+    },
+    {
+      "phrases": [
+        "blocked outside canada",
+        "gpo blocking user outside canada",
+        "traveling outside country cant sign in",
+        "conditional access named location block",
+        "geoblocking entra id",
+        "voyage hors canada bloque",
+        "acces refuse hors canada",
+        "blocage geographique acces conditionnel"
+      ],
+      "tags": ["geo_block_travel", "conditional_access_location"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["AADSTS53003", "GEO_BLOCK", "CA_NAMED_LOCATION"]
+    },
+    {
+      "phrases": [
+        "entra connect sync error",
+        "azure ad connect not syncing",
+        "duplicate proxyaddress user not syncing",
+        "on prem ad password hash sync broken",
+        "synchronisation entra connect echouee",
+        "doublon proxyaddresses ad entra",
+        "erreur synchronisation ad connect"
+      ],
+      "tags": ["entra_connect_sync", "ad_sync_duplicate"],
+      "domains": ["01_Identity_AD_Entra"],
+      "error_codes": ["6900", "6126", "AttributeValueMustBeUnique", "InvalidSoftMatch"]
+    },
+    {
+      "phrases": [
+        "cannot message external teams user",
+        "teams guest access blocked",
+        "add external user to team fails",
+        "teams federation partner domain error",
+        "utilisateur externe teams bloque",
+        "impossible inviter invite teams",
+        "federation externe teams refusee"
+      ],
+      "tags": ["teams_external_guest", "teams_federation_blocked"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["EXTERNAL_FEDERATION_BLOCKED", "GUEST_INVITE_FAILED"]
+    },
+    {
+      "phrases": [
+        "mailbox full cannot send or receive",
+        "recoverable items folder full",
+        "online archive not moving old mail",
+        "exchange quota exceeded 100gb",
+        "boite courriel pleine",
+        "archive en ligne exchange bloquee",
+        "elements recuperables pleins"
+      ],
+      "tags": ["mailbox_full_quota", "online_archive_stuck"],
+      "domains": ["02_M365_Email_Collab"],
+      "error_codes": ["554 5.2.2", "MAILBOX_FULL"]
+    },
+    {
+      "phrases": [
+        "site to site vpn down",
+        "ipsec tunnel phase 1 phase 2 mismatch",
+        "azure vpn gateway disconnected",
+        "branch office tunnel keeps flapping",
+        "tunnel vpn site a site tombe",
+        "erreur phase 1 ipsec ike",
+        "tunnel vpn passerelle deconnecte"
+      ],
+      "tags": ["ipsec_vpn_tunnel", "ike_phase_mismatch"],
+      "domains": ["04_Network_VPN_VoIP"],
+      "error_codes": ["NO_PROPOSAL_CHOSEN", "IKE_PHASE1_FAIL", "DPD_TIMEOUT"]
+    },
+    {
+      "phrases": [
+        "purview dlp blocked email or file",
+        "sensitivity label cannot open encrypted document",
+        "confidential file access denied rms",
+        "blocage dlp purview courriel",
+        "etiquette sensibilite acces refuse",
+        "fichier chiffre impossible ouvrir"
+      ],
+      "tags": ["purview_dlp_block", "sensitivity_label_denied"],
+      "domains": ["06_Security_Access"],
+      "error_codes": ["DLP_POLICY_TIP", "RMS_ACCESS_DENIED"]
+    },
+    {
+      "phrases": [
+        "azure vm won't boot rdp",
+        "azure vm unreachable ssh rdp",
+        "azure serial console boot diagnostics",
+        "azure vm allocation failed",
+        "vm azure demarre pas rdp",
+        "console serie azure vm",
+        "blocage nsg connexion rdp azure"
+      ],
+      "tags": ["azure_vm_triage", "azure_vm_boot_rdp"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["AllocationFailed", "VMExtensionProvisioningError", "OSProvisioningTimedOut", "NSG_DENY"]
+    },
+    {
+      "phrases": [
+        "azure rbac authorization failed 403",
+        "key vault firewall forbidden",
+        "storage account blob 403 permission mismatch",
+        "managed identity unauthorized azure",
+        "erreur 403 permission azure rbac",
+        "coffre cles key vault bloque",
+        "compte stockage azure acces refuse"
+      ],
+      "tags": ["azure_rbac_403", "azure_keyvault_storage"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["AuthorizationFailed", "AuthorizationPermissionMismatch", "KeyVaultFirewall"]
+    },
+    {
+      "phrases": [
+        "docker container keeps restarting",
+        "docker no space left on device overlay2",
+        "container port already in use",
+        "image pull backoff docker error",
+        "conteneur docker redemarre en boucle",
+        "disque plein docker overlay2",
+        "erreur port deja utilise conteneur"
+      ],
+      "tags": ["docker_container_crash", "docker_overlay_disk"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["CrashLoopBackOff", "EADDRINUSE", "ImagePullBackOff"]
+    },
+    {
+      "phrases": [
+        "sql server login failed 18456",
+        "sql transaction log is full 9002",
+        "sql database blocking deadlock 1205",
+        "cannot connect sql server port 1433",
+        "echec connexion sql server 18456",
+        "journal transaction sql plein 9002",
+        "blocage deadlock base de donnees sql"
+      ],
+      "tags": ["sql_login_failed", "sql_transaction_log_full"],
+      "domains": ["08_Servers_Cloud_Infra"],
+      "error_codes": ["18456", "9002", "1205"]
+    },
+    {
+      "phrases": [
+        "git ssl certificate problem corporate proxy",
+        "npm pip self signed cert in chain",
+        "powershell script execution disabled running scripts",
+        "developer tool blocked by ssl inspection",
+        "erreur certificat ssl git npm proxy",
+        "execution script powershell desactivee"
+      ],
+      "tags": ["dev_ssl_proxy_cert", "git_powershell_policy"],
+      "domains": ["09_Apps_LOB"],
+      "error_codes": ["SELF_SIGNED_CERT_IN_CHAIN", "PSSecurityException"]
+    }
+  ]
+}

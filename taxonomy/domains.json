@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "domains": [
+    {
+      "folder": "01_Identity_AD_Entra",
+      "prefix": "id",
+      "subject": "Identity / AD & Entra ID",
+      "description": "Active Directory DS, Entra ID, Google Workspace Admin/2SV, SSO, MFA, Kerberos, PRT, GPO, and Conditional Access",
+      "subcategories": [
+        {"id": "lockout_mfa_recovery", "label": "Lockout, MFA & Account Recovery"},
+        {"id": "ad_gpo_hybrid_sync", "label": "Active Directory, GPO & Hybrid Sync"},
+        {"id": "entra_apps_conditional_access", "label": "Entra Apps & Geo/Conditional Access"}
+      ]
+    },
+    {
+      "folder": "02_M365_Email_Collab",
+      "prefix": "m365",
+      "subject": "Microsoft 365 / Email & Collaboration",
+      "description": "Exchange Online, Outlook, Excel/Word collaboration, Teams, SharePoint, OneDrive, Google Workspace Gmail/Drive, and Mail Flow",
+      "subcategories": [
+        {"id": "email_exchange_mailflow", "label": "Outlook, Exchange & Mail Flow"},
+        {"id": "docs_onedrive_teams", "label": "Docs, OneDrive & Teams Collab"}
+      ]
+    },
+    {
+      "folder": "03_Windows_Endpoints",
+      "prefix": "win",
+      "subject": "Windows Endpoints",
+      "description": "Windows 10/11 OS health, BSOD, Windows Update, BitLocker, profiles, and WMI",
+      "subcategories": [
+        {"id": "updates_win11_licensing", "label": "Updates, Win11 Upgrade & Licensing"},
+        {"id": "boot_bitlocker_bsod", "label": "BitLocker, BSOD & Performance"},
+        {"id": "profiles_audio_av", "label": "User Profiles, Audio & Webcam"}
+      ]
+    },
+    {
+      "folder": "04_Network_VPN_VoIP",
+      "prefix": "net",
+      "subject": "Network, VPN & VoIP",
+      "description": "DNS, DHCP, APIPA, Wi-Fi, VPN tunnels, SMB, firewall routing, and VoIP call quality",
+      "subcategories": [
+        {"id": "dns_dhcp_wifi_voip", "label": "DNS, DHCP, Wi-Fi & VoIP"},
+        {"id": "smb_vpn_tunnels", "label": "SMB Drives & IPsec VPN Tunnels"}
+      ]
+    },
+    {
+      "folder": "05_Printers_Devices",
+      "prefix": "prt",
+      "subject": "Printers & Peripherals",
+      "description": "Print Spooler, TCP/IP vs WSD ports, Type 3/4 drivers, RPC print errors, scan-to-email, Bluetooth headsets, and USB-C docks",
+      "subcategories": [
+        {"id": "printers_spooler_scan", "label": "Printers, Spooler & Scan-to-Email"},
+        {"id": "bluetooth_docks_displays", "label": "Bluetooth, USB-C Docks & Displays"}
+      ]
+    },
+    {
+      "folder": "06_Security_Access",
+      "prefix": "sec",
+      "subject": "Security & Access",
+      "description": "Phishing, BEC, token theft, Microsoft Defender, Purview DLP, ASR rules, and UAC/privileges",
+      "subcategories": [
+        {"id": "bec_defender_threats", "label": "BEC Compromise & Defender ASR"},
+        {"id": "tls_certs_purview_dlp", "label": "TLS/SSL Certs, Purview DLP & Labels"}
+      ]
+    },
+    {
+      "folder": "07_macOS_Mobile_MDM",
+      "prefix": "mdm",
+      "subject": "macOS, Mobile & MDM",
+      "description": "Beginner-friendly macOS troubleshooting survival guide, iOS/Android, Intune new device enrollment & Autopilot, ABM/DEP, and compliance profiles",
+      "subcategories": [
+        {"id": "intune_autopilot_mdm", "label": "Intune Enrollment, Autopilot & Compliance"},
+        {"id": "macos_basics_apps_shares", "label": "macOS Basics, Gatekeeper, Keychain & SMB"},
+        {"id": "macos_disk_recovery", "label": "macOS Disk Full & Recovery Mode"}
+      ]
+    },
+    {
+      "folder": "08_Servers_Cloud_Infra",
+      "prefix": "srv",
+      "subject": "Servers, Cloud & Infrastructure",
+      "description": "Linux & Data Center technician ops (systemd, OOM, RAID/IPMI, SFP+ optics, GRUB/fstab), Windows Server DHCP/DNS/NTP/RDP/VSS, and Google Cloud Console IAM & billing",
+      "subcategories": [
+        {"id": "windows_server_sql", "label": "Windows Server, RDP, DHCP/DNS & SQL"},
+        {"id": "linux_os_networking", "label": "Linux Services, CPU/Disk, Network & SSH"},
+        {"id": "datacenter_hardware_boot", "label": "Data Center IPMI/RAID, Fiber & Boot"},
+        {"id": "cloud_azure_gcp_docker", "label": "Azure, Google Cloud & Containers"}
+      ]
+    },
+    {
+      "folder": "09_Apps_LOB",
+      "prefix": "app",
+      "subject": "Applications & LOB",
+      "description": "Browsers, SSO loops, PDF/Office add-ins, ERP/accounting/LOB applications, and .NET/Java runtimes",
+      "subcategories": [
+        {"id": "office_pdf_adobe", "label": "Office Add-ins, PDF & Adobe Licensing"},
+        {"id": "browsers_sso_dev_tools", "label": "Browsers, LOB SSO & Dev Tooling"}
+      ]
+    }
+  ]
+}

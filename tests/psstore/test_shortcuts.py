@@ -12,8 +12,12 @@ from guideit_master.ui.shell_window import MODE_PLAYBOOKS, MODE_SCRIPTS, MODE_SP
 
 def test_all_shortcuts_registered_and_unique(shell_window_factory) -> None:
     win = shell_window_factory()
-    assert len(win.shortcuts) == 27
+    assert len(win.shortcuts) == 31
     assert win.shortcut_sidebar is win.shortcuts["toggle_sidebar"]
+    assert "focus_playbook_search" in win.shortcuts
+    assert "useful_tools" in win.shortcuts
+    assert "reset_playbook_filters" in win.shortcuts
+    assert "playbook_back" in win.shortcuts
 
     seen_sequences: dict[str, str] = {}
     for name, sc in win.shortcuts.items():
@@ -47,6 +51,16 @@ def test_mode_search_escape_tab_and_parameter_shortcuts(shell_window_factory) ->
     assert win.current_mode == MODE_SCRIPTS
     assert ws.is_compact_mode is False
     assert ws.sidebar.isVisible()
+
+    # Focus playbook search automatically switches to Playbooks mode
+    win._focus_playbook_search()
+    assert win.current_mode == MODE_PLAYBOOKS
+    assert win.playbooks_workspace.isVisible()
+    assert not ws.isVisible()
+    win.playbooks_workspace.search_input.setText("4740")
+    win._handle_escape()
+    assert win.playbooks_workspace.search_input.text() == ""
+    win.set_mode(MODE_SCRIPTS)
 
     # Escape clears search filter
     ws.sidebar.search_input.setText("Disk")
@@ -131,6 +145,9 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
     assert "Alt+1" in win.btn_mode_playbooks.toolTip()
     assert "Alt+2" in win.btn_mode_scripts.toolTip()
     assert "Alt+3" in win.btn_mode_split.toolTip()
+    assert "Ctrl+T" in win.btn_useful_tools.toolTip()
+    assert "Ctrl+K" in win.playbooks_workspace.search_input.toolTip()
+    assert "Ctrl+R" in win.playbooks_workspace.filter_sidebar.reset_button.toolTip()
     assert "Ctrl+=" in win.opacity_slider.toolTip()
     assert "Ctrl+B" in ws.catalog_view.toggle_sidebar_btn.toolTip()
     assert "Ctrl+O" in ws.catalog_view.open_folder_btn.toolTip()
@@ -160,6 +177,10 @@ def test_tooltips_and_docs_advertise_shortcuts_and_38_scripts(shell_window_facto
         "Ctrl+B",
         "Ctrl+O",
         "Ctrl+F",
+        "Ctrl+K",
+        "Ctrl+T",
+        "Ctrl+R",
+        "Alt+Left",
         "F5",
         "Esc",
         "Ctrl+Shift+A",
