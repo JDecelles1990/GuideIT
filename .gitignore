@@ -12,9 +12,16 @@ index/*.db-*
 __pycache__/
 *.py[cod]
 *$py.class
+# Build & release artifacts
 *.egg-info/
 dist/
 build/
+*.zip
+*.sha256
+*.db
+*.db-wal
+*.db-shm
+smoke_test_result.json
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

@@ -6,7 +6,9 @@
 param(
     [switch]$VerifyOnly,
     [switch]$Package,
-    [string]$PythonExe = "python"
+    [switch]$SkipTests,
+    [switch]$NoZip,
+    [string]$PythonExe = ""
 )
 
 Set-StrictMode -Version Latest
@@ -14,10 +16,68 @@ $ErrorActionPreference = 'Stop'
 
 $RepoRoot = $PSScriptRoot
 $SpecPath = Join-Path $RepoRoot "guideit_master.spec"
+$VenvPython = Join-Path (Join-Path (Join-Path $RepoRoot ".venv") "Scripts") "python.exe"
 
 if (-not $VerifyOnly -and -not $Package) {
     $VerifyOnly = $true
     Write-Host "No mode flag specified; defaulting to -VerifyOnly." -ForegroundColor Yellow
+}
+
+if ([string]::IsNullOrWhiteSpace($PythonExe)) {
+    if (Test-Path -LiteralPath $VenvPython) {
+        $PythonExe = $VenvPython
+    }
+    elseif ($Package) {
+        throw (
+            "Project virtual environment Python not found at '{0}'. Create .venv and install dependencies first:`n" +
+            "  python -m venv --system-site-packages .venv`n" +
+            "  .\.venv\Scripts\python.exe -m pip install -r requirements.txt`n" +
+            "Or pass -PythonExe explicitly."
+        ) -f $VenvPython
+    }
+    else {
+        $PythonExe = "python"
+    }
+}
+else {
+    $cmdFound = Get-Command -Name $PythonExe -ErrorAction SilentlyContinue
+    if (-not (Test-Path -LiteralPath $PythonExe) -and $null -eq $cmdFound) {
+        throw ("Specified Python executable not found: '{0}'" -f $PythonExe)
+    }
+}
+
+function Get-AppVersion {
+    param([string]$RootDir)
+    $pyproject = Join-Path $RootDir "pyproject.toml"
+    if (Test-Path -LiteralPath $pyproject) {
+        $raw = Get-Content -LiteralPath $pyproject -Raw -Encoding UTF8
+        if ($raw -match '(?m)^version\s*=\s*"([^"]+)"') {
+            return $Matches[1]
+        }
+    }
+    return "1.0.0"
+}
+
+function Get-PlaybookFileCount {
+    param([string]$PlaybooksRoot)
+    if (-not (Test-Path -LiteralPath $PlaybooksRoot)) {
+        return 0
+    }
+    $count = 0
+    $domainDirs = Get-ChildItem -LiteralPath $PlaybooksRoot -Directory
+    foreach ($dir in $domainDirs) {
+        $files = @(Get-ChildItem -LiteralPath $dir.FullName -File -Filter "*.md" | Where-Object { $_.Name.ToLowerInvariant() -ne "readme.md" })
+        $count += $files.Count
+    }
+    return $count
+}
+
+function Get-PsScriptFileCount {
+    param([string]$ScriptsRoot)
+    if (-not (Test-Path -LiteralPath $ScriptsRoot)) {
+        return 0
+    }
+    return @(Get-ChildItem -LiteralPath $ScriptsRoot -Recurse -File -Filter "*.ps1").Count
 }
 
 function Invoke-NativeStep {
@@ -160,8 +220,14 @@ print(
 function Invoke-VerificationSuite {
     Invoke-NativeStep -Label "Python Environment Check" -Executable $PythonExe -Arguments @("--version")
     Invoke-NativeStep -Label "Validate GuideIT Playbooks (--strict)" -Executable $PythonExe -Arguments @((Join-Path $RepoRoot (Join-Path "tools" "validate_playbooks.py")), "--strict")
-    Invoke-NativeStep -Label "Lint PowerShellStore Scripts" -Executable $PythonExe -Arguments @((Join-Path $RepoRoot "tools\lint_scripts.py"))
-    Invoke-NativeStep -Label "Run Unified Pytest Suite" -Executable $PythonExe -Arguments @("-m", "pytest", (Join-Path $RepoRoot "tests"), "-v")
+    Invoke-NativeStep -Label "Lint PowerShellStore Scripts" -Executable $PythonExe -Arguments @((Join-Path $RepoRoot (Join-Path "tools" "lint_scripts.py")))
+    if (-not $SkipTests) {
+        Invoke-NativeStep -Label "Run Unified Pytest Suite" -Executable $PythonExe -Arguments @("-m", "pytest", (Join-Path $RepoRoot "tests"), "-v")
+    }
+    else {
+        Write-Host ""
+        Write-Host "Skipping pytest suite (-SkipTests specified)." -ForegroundColor Yellow
+    }
     Invoke-SpecAudit -SpecFile $SpecPath
 }
 
@@ -186,7 +252,7 @@ function Invoke-PackageBuildAndSmokeTest {
         $ErrorActionPreference = $prevPref
     }
     if ($pyiExit -ne 0) {
-        throw "PyInstaller is not installed in '$PythonExe'. Install it first with: pip install pyinstaller>=6.0"
+        throw ("PyInstaller is not installed in '{0}'. Install it first with: {0} -m pip install -r requirements.txt" -f $PythonExe)
     }
     Write-Host ("PyInstaller version: {0}" -f $pyiVersion) -ForegroundColor Green
 
@@ -196,6 +262,15 @@ function Invoke-PackageBuildAndSmokeTest {
     $preGuideItTime = Get-FileTimestampSnapshot -Path $liveGuideItDb
     $prePsStoreTime = Get-FileTimestampSnapshot -Path $livePsStoreDb
 
+    $buildDir = Join-Path $RepoRoot "build"
+    $distDir = Join-Path $RepoRoot "dist"
+    foreach ($staleDir in @($buildDir, $distDir)) {
+        if (Test-Path -LiteralPath $staleDir) {
+            Write-Host ("Cleaning stale output directory: {0}" -f $staleDir) -ForegroundColor DarkGray
+            Remove-Item -LiteralPath $staleDir -Recurse -Force
+        }
+    }
+
     Push-Location $RepoRoot
     try {
         Invoke-NativeStep -Label "PyInstaller Onedir Build" -Executable $PythonExe -Arguments @("-m", "PyInstaller", "--noconfirm", "--clean", $SpecPath)
@@ -204,7 +279,7 @@ function Invoke-PackageBuildAndSmokeTest {
         Pop-Location
     }
 
-    $distBundleDir = Join-Path (Join-Path $RepoRoot "dist") "GuideIT_Master"
+    $distBundleDir = Join-Path $distDir "GuideIT_Master"
     $exePath = Join-Path $distBundleDir "GuideIT_Master.exe"
     if (-not (Test-Path -LiteralPath $exePath)) {
         throw ("Expected packaged executable not found: {0}" -f $exePath)
@@ -233,10 +308,33 @@ function Invoke-PackageBuildAndSmokeTest {
         }
     }
 
+    $webEngineDll = @(Get-ChildItem -LiteralPath $distBundleDir -Recurse -File -Filter "Qt6WebEngine*.dll" -ErrorAction SilentlyContinue)
+    if ($webEngineDll.Count -gt 0) {
+        throw ("Excluded QtWebEngine DLL leaked into bundle: {0}" -f $webEngineDll[0].FullName)
+    }
+
+    $expectedPlaybooks = Get-PlaybookFileCount -PlaybooksRoot (Join-Path $RepoRoot "playbooks")
+    $bundledPlaybooks = Get-PlaybookFileCount -PlaybooksRoot (Join-Path $assetRoot "playbooks")
+    if ($bundledPlaybooks -ne $expectedPlaybooks) {
+        throw ("Bundled playbook count mismatch: expected {0}, found {1}" -f $expectedPlaybooks, $bundledPlaybooks)
+    }
+
+    $expectedScripts = Get-PsScriptFileCount -ScriptsRoot (Join-Path $RepoRoot "powershell_scripts")
+    $bundledScripts = Get-PsScriptFileCount -ScriptsRoot (Join-Path $assetRoot "powershell_scripts")
+    if ($bundledScripts -ne $expectedScripts) {
+        throw ("Bundled PowerShell script count mismatch: expected {0}, found {1}" -f $expectedScripts, $bundledScripts)
+    }
+
     Write-Host ""
-    Write-Host "=== Running Frozen Executable Sandbox Smoke Test ===" -ForegroundColor Cyan
+    Write-Host "=== Running Isolated Out-of-Repo Frozen Smoke Test ===" -ForegroundColor Cyan
+    $appSandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("GuideIT_App_" + [System.Guid]::NewGuid().ToString("N"))
+    $copiedBundleDir = Join-Path $appSandbox "GuideIT_Master"
+    $copiedExe = Join-Path $copiedBundleDir "GuideIT_Master.exe"
+
     $smokeTemp = Join-Path ([System.IO.Path]::GetTempPath()) ("GuideIT_Smoke_" + [System.Guid]::NewGuid().ToString("N"))
+    $null = New-Item -ItemType Directory -Path $appSandbox -Force
     $null = New-Item -ItemType Directory -Path $smokeTemp -Force
+    Copy-Item -LiteralPath $distBundleDir -Destination $copiedBundleDir -Recurse -Force
 
     $smokeUserScripts = Join-Path $smokeTemp "user_scripts"
     $null = New-Item -ItemType Directory -Path $smokeUserScripts -Force
@@ -295,7 +393,7 @@ finally {
             Remove-Item Env:GUIDEIT_BUNDLE_DIR
         }
 
-        $proc = Start-Process -FilePath $exePath -ArgumentList @("--smoke-test") -Wait -PassThru
+        $proc = Start-Process -FilePath $copiedExe -WorkingDirectory $appSandbox -ArgumentList @("--smoke-test") -Wait -PassThru
         if ($proc.ExitCode -ne 0) {
             throw ("Frozen smoke test exited with code {0}." -f $proc.ExitCode)
         }
@@ -311,24 +409,32 @@ finally {
             }
         }
 
-        $payload = Get-Content -LiteralPath $smokeJsonFile -Raw | ConvertFrom-Json
+        $payload = Get-Content -LiteralPath $smokeJsonFile -Raw -Encoding UTF8 | ConvertFrom-Json
         if (-not $payload.ok) {
             throw ("Frozen smoke test reported failure: {0}" -f ($payload.errors -join "; "))
         }
         if (-not $payload.frozen) {
             throw "Frozen smoke test did not report frozen=true."
         }
-        if ([int]$payload.playbook_count -lt 65) {
-            throw ("Expected >= 65 playbooks in frozen bundle, got {0}" -f $payload.playbook_count)
+        $resolvedBundlePath = [System.IO.Path]::GetFullPath([string]$payload.bundle_dir)
+        $expectedSandboxPrefix = [System.IO.Path]::GetFullPath($copiedBundleDir)
+        if (-not $resolvedBundlePath.StartsWith($expectedSandboxPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw ("Frozen bundle resolved outside sandbox! bundle_dir={0}, expected prefix={1}" -f $resolvedBundlePath, $expectedSandboxPrefix)
         }
-        if ([int]$payload.script_count -lt 39) {
-            throw ("Expected >= 39 scripts (38 bundled + 1 smoke overlay), got {0}" -f $payload.script_count)
+        if ([int]$payload.playbook_count -ne $expectedPlaybooks) {
+            throw ("Expected {0} playbooks in frozen bundle, got {1}" -f $expectedPlaybooks, $payload.playbook_count)
+        }
+        if ([int]$payload.script_count -ne ($expectedScripts + 1)) {
+            throw ("Expected {0} scripts ({1} bundled + 1 smoke overlay), got {2}" -f ($expectedScripts + 1), $expectedScripts, $payload.script_count)
         }
         if ([int]$payload.user_script_count -lt 1) {
             throw ("Expected >= 1 user_scripts overlay entry, got {0}" -f $payload.user_script_count)
         }
         if (-not $payload.unified_search_ok -or -not $payload.split_view_ok) {
             throw "Frozen smoke test search or Split View check failed."
+        }
+        if (-not $payload.markdown_render_ok -or -not $payload.rmm_clipboard_ok) {
+            throw "Frozen smoke test Markdown rendering or RMM clipboard check failed."
         }
 
         $postGuideItTime = Get-FileTimestampSnapshot -Path $liveGuideItDb
@@ -340,19 +446,64 @@ finally {
             throw "Live data/powershell_store.db was modified during frozen smoke test!"
         }
 
-        Write-Host ("Frozen smoke test passed: playbooks={0}, scripts={1} (user={2}), bundle={3}" -f $payload.playbook_count, $payload.script_count, $payload.user_script_count, $exePath) -ForegroundColor Green
+        Write-Host ("Out-of-repo smoke test passed: playbooks={0}, scripts={1} (user={2}), bundle_dir={3}" -f $payload.playbook_count, $payload.script_count, $payload.user_script_count, $payload.bundle_dir) -ForegroundColor Green
     }
     finally {
         if ($hadDataDir) { $env:GUIDEIT_DATA_DIR = $origDataDir } else { Remove-Item Env:GUIDEIT_DATA_DIR -ErrorAction SilentlyContinue }
         if ($hadBundleDir) { $env:GUIDEIT_BUNDLE_DIR = $origBundleDir } else { Remove-Item Env:GUIDEIT_BUNDLE_DIR -ErrorAction SilentlyContinue }
         if ($hadQtPlatform) { $env:QT_QPA_PLATFORM = $origQtPlatform } else { Remove-Item Env:QT_QPA_PLATFORM -ErrorAction SilentlyContinue }
+        if (Test-Path -LiteralPath $appSandbox) {
+            Remove-Item -LiteralPath $appSandbox -Recurse -Force -ErrorAction SilentlyContinue
+        }
         if (Test-Path -LiteralPath $smokeTemp) {
             Remove-Item -LiteralPath $smokeTemp -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
+
+    $bundleBytes = (Get-ChildItem -LiteralPath $distBundleDir -Recurse -File | Measure-Object -Property Length -Sum).Sum
+    $bundleSizeMB = [math]::Round(($bundleBytes / 1MB), 2)
+
+    $appVersion = Get-AppVersion -RootDir $RepoRoot
+    $zipPath = Join-Path $distDir ("GuideIT_Master-v{0}-win64.zip" -f $appVersion)
+    $shaPath = "$zipPath.sha256"
+    $zipSizeMB = 0
+    if (-not $NoZip) {
+        if (Test-Path -LiteralPath $zipPath) {
+            Remove-Item -LiteralPath $zipPath -Force
+        }
+        if (Test-Path -LiteralPath $shaPath) {
+            Remove-Item -LiteralPath $shaPath -Force
+        }
+        Add-Type -AssemblyName System.IO.Compression
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::CreateFromDirectory(
+            $distBundleDir,
+            $zipPath,
+            [System.IO.Compression.CompressionLevel]::Optimal,
+            $true
+        )
+        $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        Set-Content -LiteralPath $shaPath -Value ("{0}  {1}" -f $zipHash, (Split-Path -Leaf $zipPath)) -Encoding ASCII
+        $zipSizeMB = [math]::Round(((Get-Item -LiteralPath $zipPath).Length / 1MB), 2)
+    }
+
+    Write-Host ""
+    Write-Host "=== Release Packaging Summary ===" -ForegroundColor Cyan
+    Write-Host ("Bundled Output : {0} ({1} MB)" -f $distBundleDir, $bundleSizeMB) -ForegroundColor Green
+    Write-Host ("Bundled Corpus : {0} playbooks (.md), {1} scripts (.ps1)" -f $bundledPlaybooks, $bundledScripts) -ForegroundColor Green
+    if (-not $NoZip) {
+        Write-Host ("Release Zip    : {0} ({1} MB)" -f $zipPath, $zipSizeMB) -ForegroundColor Green
+        Write-Host ("SHA-256 File   : {0}" -f $shaPath) -ForegroundColor Green
+    }
+    $warnFile = Join-Path (Join-Path $buildDir "guideit_master") "warn-guideit_master.txt"
+    if (Test-Path -LiteralPath $warnFile) {
+        $warnCount = @(Get-Content -LiteralPath $warnFile).Count
+        Write-Host ("PyInstaller Warn Log: {0} ({1} lines)" -f $warnFile, $warnCount) -ForegroundColor DarkGray
+    }
 }
 
 Write-Host ("GuideIT Master Build Pipeline (PowerShell {0})" -f $PSVersionTable.PSVersion) -ForegroundColor White
+Write-Host ("Using Python: {0}" -f $PythonExe) -ForegroundColor DarkGray
 Invoke-VerificationSuite
 
 if ($Package) {

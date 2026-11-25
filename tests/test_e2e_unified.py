@@ -367,6 +367,8 @@ def test_frozen_pyinstaller_simulation_and_smoke_test(
     assert payload["user_script_count"] == 1
     assert payload["unified_search_ok"] is True
     assert payload["split_view_ok"] is True
+    assert payload["markdown_render_ok"] is True
+    assert payload["rmm_clipboard_ok"] is True
 
     # Read-only _MEIPASS simulation must remain completely untouched
     assert _snapshot_tree(meipass_dir) == bundle_snapshot_before
@@ -398,6 +400,11 @@ def test_frozen_open_scripts_folder_targets_user_scripts(
 
     assert len(opened_urls) == 1
     assert Path(opened_urls[0].toLocalFile()).resolve() == (writable_data / "user_scripts").resolve()
+
+    # Frozen QFileSystemWatcher must watch only writable user_scripts, never read-only _MEIPASS
+    watched_dirs = [Path(d).resolve() for d in win.scripts_workspace.watcher.directories()]
+    assert not any(d.is_relative_to(meipass_dir.resolve()) for d in watched_dirs)
+    assert any(d.is_relative_to(writable_data.resolve()) for d in watched_dirs)
 
 
 def test_e2e_unified_shell_omnibox_split_view_and_reverse_nav(

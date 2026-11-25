@@ -12,7 +12,12 @@ from pathlib import Path
 
 from guideit_master.guideit.models import IndexStats, Playbook
 from guideit_master.guideit.validator import load_playbook_file
-from guideit_master.paths import get_bundle_dir, get_guideit_db_path, get_playbooks_dir
+from guideit_master.paths import (
+    get_bundle_dir,
+    get_guideit_db_path,
+    get_playbooks_dir,
+    get_taxonomy_dir,
+)
 
 DEFAULT_DB_RELPATH = Path("data/guideit.db")
 SCHEMA_VERSION = "4"
@@ -50,15 +55,24 @@ def _discover_playbook_files(root_dir: Path) -> list[Path]:
 
 
 def _compute_source_hash(root_dir: Path, files: list[Path]) -> str:
-    """Compute a deterministic SHA-256 digest of all indexed playbook files."""
+    """Compute a deterministic SHA-256 digest of all indexed playbooks and taxonomy files."""
     hasher = hashlib.sha256()
-    for path in files:
+    taxonomy_dir = get_taxonomy_dir(root_dir)
+    tax_files = sorted(taxonomy_dir.glob("*.json")) if taxonomy_dir.is_dir() else []
+    for path in [*files, *tax_files]:
         rel = path.relative_to(root_dir).as_posix()
         hasher.update(rel.encode("utf-8"))
         hasher.update(b"\0")
         hasher.update(path.read_bytes())
         hasher.update(b"\0")
     return hasher.hexdigest()
+
+
+def compute_corpus_hash(root_dir: Path | None = None) -> str:
+    """Compute deterministic SHA-256 digest of bundled playbooks/ and taxonomy/."""
+    resolved_root = (root_dir if root_dir is not None else get_bundle_dir()).resolve()
+    files = _discover_playbook_files(resolved_root)
+    return _compute_source_hash(resolved_root, files)
 
 
 def build_index(root_dir: Path | None = None, db_path: Path | None = None) -> IndexStats:

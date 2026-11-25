@@ -1,0 +1,63 @@
+name: Build Windows Desktop Bundle
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: "Python version for Windows build"
+        required: false
+        type: string
+        default: "3.12"
+      skip_tests:
+        description: "Skip pytest suite during build.ps1 execution"
+        required: false
+        type: boolean
+        default: false
+      artifact_name:
+        description: "Uploaded workflow artifact name"
+        required: false
+        type: string
+        default: "GuideIT_Master-win64"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ inputs.python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Create .venv and install dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m venv .venv
+          & .\.venv\Scripts\python.exe -m pip install --upgrade pip
+          & .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+      - name: Verify, package onedir bundle, and run out-of-repo smoke test
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $argsList = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', '.\build.ps1', '-Package')
+          if ('${{ inputs.skip_tests }}' -eq 'true') {
+              $argsList += '-SkipTests'
+          }
+          & powershell.exe @argsList
+          if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+          }
+
+      - name: Upload portable Windows release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: |
+            dist/GuideIT_Master-v*-win64.zip
+            dist/GuideIT_Master-v*-win64.zip.sha256
+          if-no-files-found: error
+          retention-days: 14

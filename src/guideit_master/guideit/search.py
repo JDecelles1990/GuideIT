@@ -8,7 +8,7 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-from guideit_master.guideit.indexer import SCHEMA_VERSION, build_index
+from guideit_master.guideit.indexer import SCHEMA_VERSION, build_index, compute_corpus_hash
 from guideit_master.guideit.models import SearchHit, SearchResponse
 from guideit_master.guideit.taxonomy import (
     TaxonomyConfig,
@@ -142,10 +142,16 @@ def ensure_index_current(
                 ver_row = conn.execute(
                     "SELECT value FROM index_meta WHERE key = 'schema_version'"
                 ).fetchone()
+                hash_row = conn.execute(
+                    "SELECT value FROM index_meta WHERE key = 'source_hash'"
+                ).fetchone()
                 cols = {row[1] for row in conn.execute("PRAGMA table_info(playbooks)").fetchall()}
+                expected_hash = compute_corpus_hash(resolved_root)
                 if (
                     ver_row is None
                     or str(ver_row[0]) != SCHEMA_VERSION
+                    or hash_row is None
+                    or str(hash_row[0]) != expected_hash
                     or "subcategory" not in cols
                     or "linked_scripts_json" not in cols
                 ):

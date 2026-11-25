@@ -319,12 +319,15 @@ class ScriptsWorkspaceWidget(QWidget):
         layout.addWidget(self.console_view, 1)
 
     def _refresh_watched_dirs(self) -> None:
-        """Registers bundled and writable user script directories in QFileSystemWatcher."""
-        candidate_roots = [
-            d
-            for d in (self.scanner.scripts_dir, self.scanner.user_scripts_dir)
-            if d is not None
-        ]
+        """Registers bundled (in dev) and writable user script directories in QFileSystemWatcher."""
+        if is_frozen():
+            candidate_roots = [d for d in (self.scanner.user_scripts_dir,) if d is not None]
+        else:
+            candidate_roots = [
+                d
+                for d in (self.scanner.scripts_dir, self.scanner.user_scripts_dir)
+                if d is not None
+            ]
         desired: set[str] = set()
         for root_path in candidate_roots:
             if root_path.exists():

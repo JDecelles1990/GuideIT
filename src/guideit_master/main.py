@@ -118,6 +118,8 @@ def run_smoke_test(app: QApplication) -> int:
     user_script_count = 0
     unified_search_ok = False
     split_view_ok = False
+    markdown_render_ok = False
+    rmm_clipboard_ok = False
 
     window: UnifiedShellWindow | None = None
     try:
@@ -148,6 +150,59 @@ def run_smoke_test(app: QApplication) -> int:
         user_script_count = sum(1 for s in all_scripts if s.source == "user")
         if script_count < 38:
             errors.append(f"Expected >= 38 indexed scripts, found {script_count}")
+
+        # Verify all bundled playbooks parse sections & accented UTF-8 characters cleanly
+        from guideit_master.guideit.indexer import _discover_playbook_files
+        from guideit_master.guideit.ui.markdown_blocks import parse_section_blocks
+        from guideit_master.guideit.validator import load_playbook_file
+
+        pb_files = _discover_playbook_files(bundle_dir)
+        rendered_sections = 0
+        has_utf8_accents = False
+        for pb_file in pb_files:
+            pb = load_playbook_file(bundle_dir, pb_file)
+            if "\u00e9" in pb.body_markdown or "\u00e0" in pb.body_markdown:
+                has_utf8_accents = True
+            for heading, content in pb.sections.items():
+                parsed_sec = parse_section_blocks(heading, content)
+                if parsed_sec.blocks:
+                    rendered_sections += 1
+        markdown_render_ok = (
+            len(pb_files) == playbook_count
+            and rendered_sections >= playbook_count
+            and has_utf8_accents
+        )
+        if not markdown_render_ok:
+            errors.append(
+                f"Playbook Markdown rendering check failed (files={len(pb_files)}, indexed={playbook_count}, sections={rendered_sections}, accents={has_utf8_accents})."
+            )
+
+        # Verify single-script RMM parameter injection and multi-script read-only bundle copy
+        clipboard = QApplication.clipboard()
+        orig_clip = clipboard.text() if clipboard is not None else ""
+        try:
+            rmm_single = window.scripts_workspace.clipboard_service.copy_rmm_ready_script(
+                "04_Devices/Reset-PrintSpooler.ps1",
+                {"ClearQueueFiles": False},
+            )
+            single_clip = clipboard.text() if clipboard is not None else ""
+            window.playbooks_workspace.navigate_to_playbook("net-001")
+            app.processEvents()
+            window.playbooks_workspace.trigger_copy_readonly_bundle()
+            app.processEvents()
+            bundle_clip = clipboard.text() if clipboard is not None else ""
+            rmm_clipboard_ok = (
+                "[bool]$ClearQueueFiles = $false" in rmm_single
+                and single_clip == rmm_single
+                and "Combined Multi-Script Bundle" in bundle_clip
+                and "Get-NetworkSnapshot.ps1" in bundle_clip
+                and "Reset-NetworkStack.ps1" not in bundle_clip
+            )
+            if not rmm_clipboard_ok:
+                errors.append("RMM single-script or read-only bundle clipboard copy verification failed.")
+        finally:
+            if clipboard is not None:
+                clipboard.setText(orig_clip)
 
         search_resp = window.run_unified_search("0x0000011b")
         app.processEvents()
@@ -189,6 +244,8 @@ def run_smoke_test(app: QApplication) -> int:
         "user_script_count": user_script_count,
         "unified_search_ok": unified_search_ok,
         "split_view_ok": split_view_ok,
+        "markdown_render_ok": markdown_render_ok,
+        "rmm_clipboard_ok": rmm_clipboard_ok,
         "errors": errors,
     }
     result_path = data_dir / "smoke_test_result.json"
